@@ -11,7 +11,7 @@ export const createPharamcyController = async (req: any, res: any) => {
     }
 }
 
-export const getAllPharmaciesController  = async (req: any, res: any) => {
+export const getAllPharmaciesController = async (req: any, res: any) => {
     try {
         const pharmacies = await getAllPharmaciesService()
         res.status(201).json(pharmacies)
@@ -21,25 +21,25 @@ export const getAllPharmaciesController  = async (req: any, res: any) => {
     }
 }
 
-export const getPharmacyByIdController  = async (req:any,res:any) =>{
-    const {id} = req.params
-    try{
+export const getPharmacyByIdController = async (req: any, res: any) => {
+    const { id } = req.params
+    try {
         const pharmacy = await getPharmacyByIdService(id)
-        res.status(201).json(pharmacy)       
+        res.status(201).json(pharmacy)
     }
-    catch(error){
+    catch (error) {
         res.status(500).json({ error: 'Failed to fetch pharmacy' })
     }
 }
 
-export const updatePharmacyController = async (req:any,res:any) =>{
-    const {id} = req.params
-    const {pharmacy_name, pharmacy_address} = req.body
-    try{
+export const updatePharmacyController = async (req: any, res: any) => {
+    const { id } = req.params
+    const { pharmacy_name, pharmacy_address } = req.body
+    try {
         await updatePharmacyService(id, pharmacy_name, pharmacy_address)
-        res.status(200).json({message: 'Pharmacy updated successfully'})
+        res.status(200).json({ message: 'Pharmacy updated successfully' })
     }
-    catch(error){
+    catch (error) {
         res.status(500).json({ error: 'Failed to update pharmacy' })
     }
 }
