@@ -9,8 +9,9 @@ datasource db {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model log_types {
-  id         BigInt   @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamptz(6)
+  id         BigInt     @id @default(autoincrement())
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  messages   messages[]
 
   @@schema("public")
 }
@@ -28,18 +29,20 @@ model message_types {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model messages {
-  id            BigInt        @id @default(autoincrement())
-  from_number   String        @db.VarChar
-  to_number     String        @db.VarChar
-  message       String
-  message_type  BigInt
-  created_at    DateTime      @default(now()) @db.Timestamptz(6)
-  pharmacy_id   BigInt?
-  status_code   Int
-  log_type      String        @db.VarChar()
-  log_error     String        @db.VarChar()
+  id           BigInt   @id @default(autoincrement())
+  from_number  String   @db.VarChar
+  to_number    String   @db.VarChar
+  message      String
+  message_type BigInt   @db.BigInt
+  pharmacy_id  BigInt?  @db.BigInt
+  status_code  Int
+  log_type     BigInt   @db.BigInt
+  log_error    String   @db.VarChar()
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
   message_types message_types @relation(fields: [message_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
   pharmacies    pharmacies?   @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  log_types     log_types     @relation(fields: [log_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("public")
 }
@@ -77,17 +80,17 @@ model user_roles {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
-  id               BigInt     @id @default(autoincrement())
-  username         String @db.VarChar(50)
-  password         String     @db.VarChar(50)
-  mobile           String     @unique @db.VarChar(13)
-  role_id          BigInt @db.BigInt
-  pharmacy_id      BigInt @db.BigInt
-  created_at       DateTime   @default(now()) @db.Timestamptz(6)
-  is_logging_in    Boolean    @default(false) @db.Boolean
-  is_active Boolean?   @default(true)
-  pharmacies       pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user_roles       user_roles @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id            BigInt     @id @default(autoincrement())
+  username      String     @db.VarChar(50)
+  password      String     @db.VarChar(50)
+  mobile        String     @unique @db.VarChar(13)
+  role_id       BigInt     @db.BigInt
+  pharmacy_id   BigInt     @db.BigInt
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  is_logging_in Boolean    @default(false) @db.Boolean
+  is_active     Boolean?   @default(true)
+  pharmacies    pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_roles    user_roles @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("public")
 }
