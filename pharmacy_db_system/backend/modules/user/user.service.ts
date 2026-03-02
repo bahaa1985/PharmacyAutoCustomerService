@@ -38,9 +38,11 @@ export const updateUserService = async (userId: bigint, updateData: Prisma.users
     }
 }
 
-export const getAllusersService = async ()=>{
+export const getAllUsersService = async (pharmacyId:bigint)=>{
     try{
-        const users = prismaClient.users.findMany()
+        const users = prismaClient.users.findMany({
+            where:{pharmacy_id:pharmacyId}
+        })
         return users
     }
     catch(error){
