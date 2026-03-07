@@ -11,7 +11,7 @@ datasource db {
 model log_types {
   id         BigInt     @id @default(autoincrement())
   created_at DateTime   @default(now()) @db.Timestamptz(6)
-  messages   messages[]
+  //messages   messages[]
 
   @@schema("public")
 }
@@ -36,13 +36,13 @@ model messages {
   message_type BigInt   @db.BigInt
   pharmacy_id  BigInt?  @db.BigInt
   status_code  Int
-  log_type     BigInt   @db.BigInt
-  log_error    String   @db.VarChar()
+  //log_type     BigInt   @db.BigInt
+  log    String   @db.VarChar()
   created_at   DateTime @default(now()) @db.Timestamptz(6)
 
   message_types message_types @relation(fields: [message_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
   pharmacies    pharmacies?   @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  log_types     log_types     @relation(fields: [log_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  //log_types     log_types     @relation(fields: [log_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("public")
 }

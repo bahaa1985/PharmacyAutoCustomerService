@@ -1,9 +1,9 @@
 import express from 'express'
 import { createPharamcyController, getAllPharmaciesController, getPharmacyByIdController, updatePharmacyController } from './pharmacy.controller'
 
-const router = express.Router()
+const PHARMACY_ROUTER = express.Router()
 
-router.post('/new',createPharamcyController)
-router.get('/all', getAllPharmaciesController)
-router.get('/:id', getPharmacyByIdController)
-router.put('/update/:id', updatePharmacyController)
+PHARMACY_ROUTER.post('/new',createPharamcyController)
+PHARMACY_ROUTER.get('/all', getAllPharmaciesController)
+PHARMACY_ROUTER.get('/:id', getPharmacyByIdController)
+PHARMACY_ROUTER.put('/update/:id', updatePharmacyController)
