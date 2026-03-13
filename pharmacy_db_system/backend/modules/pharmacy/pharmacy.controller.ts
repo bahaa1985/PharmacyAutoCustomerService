@@ -1,10 +1,17 @@
 import { createPharmacyService, getAllPharmaciesService, getPharmacyByIdService, updatePharmacyService } from "./pharmacy.service";
 
+const serializePharmacy = (pharmacy: any) => {
+    return {
+        ...pharmacy,
+        id: pharmacy.id?.toString()
+    }
+}
+
 export const createPharamcyController = async (req: any, res: any) => {
     const { pharmacy_name, pharmacy_address } = req.body
     try {
         const newPharmacy = await createPharmacyService(pharmacy_name, pharmacy_address)
-        res.status(201).json(newPharmacy)
+        res.status(201).json(serializePharmacy(newPharmacy))
     }
     catch (error) {
         res.status(500).json({ error: 'Failed to create pharmacy' })
@@ -25,7 +32,7 @@ export const getPharmacyByIdController = async (req: any, res: any) => {
     const { id } = req.params
     try {
         const pharmacy = await getPharmacyByIdService(id)
-        res.status(201).json(pharmacy)
+        res.status(201).json(serializePharmacy(pharmacy))
     }
     catch (error) {
         res.status(500).json({ error: 'Failed to fetch pharmacy' })

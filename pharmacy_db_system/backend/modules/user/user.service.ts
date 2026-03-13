@@ -1,13 +1,15 @@
 import { Prisma, PrismaClient } from "@prisma/client";
+// import { adapter } from "../../utils/prisma-adapter";
+import {prismaClient} from "../../utils/prisma-adapter.ts"
 import bcrypt from 'bcrypt'
 
-const prismaClient = new PrismaClient()
+// const prismaClient = new PrismaClient()
 
 export const createUserService = async (username: string, password:string, mobile:string,
     role_id: bigint, pharmacy_id: bigint) => {
         try{
             const saltRounds=10
-            const hashedPassword = await bcrypt.hash(password,saltRounds)
+            const hashedPassword:string = await bcrypt.hash(password,saltRounds)
             const newUser = await prismaClient.users.create({
                 data:{
                     username, password:hashedPassword, mobile, role_id, pharmacy_id
@@ -15,7 +17,7 @@ export const createUserService = async (username: string, password:string, mobil
             })
             return newUser
         }
-        catch(error){
+        catch(error){ 
             console.error("Error creating user:", error)
             throw error
         }
@@ -40,7 +42,7 @@ export const updateUserService = async (userId: bigint, updateData: Prisma.users
 
 export const getAllUsersService = async (pharmacyId:bigint)=>{
     try{
-        const users = prismaClient.users.findMany({
+        const users = await prismaClient.users.findMany({
             where:{pharmacy_id:pharmacyId}
         })
         return users
@@ -53,7 +55,7 @@ export const getAllUsersService = async (pharmacyId:bigint)=>{
 
 export const deactivateUserService = async (userId: bigint) => {
     try{
-        const user = prismaClient.users.update({
+        const user = await prismaClient.users.update({
             where :{id :userId},
             data:{is_active:false}
         })

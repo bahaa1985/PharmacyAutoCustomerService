@@ -1,7 +1,7 @@
 import express from 'express'
 import { createPharamcyController, getAllPharmaciesController, getPharmacyByIdController, updatePharmacyController } from './pharmacy.controller'
 
-const PHARMACY_ROUTER = express.Router()
+export const PHARMACY_ROUTER = express.Router()
 
 PHARMACY_ROUTER.post('/new',createPharamcyController)
 PHARMACY_ROUTER.get('/all', getAllPharmaciesController)

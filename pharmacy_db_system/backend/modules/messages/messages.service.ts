@@ -1,6 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-
-const prismaClient = new PrismaClient()
+import { prismaClient } from "../../utils/prisma-adapter"
 
 // export const createMessageService = async (fromNumber: string, toNumber: string, message: string, messageType: bigint, pharmacyId: bigint, statusCode: number, log: string,) => {
 //     try {

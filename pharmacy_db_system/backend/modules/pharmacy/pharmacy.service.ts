@@ -1,6 +1,5 @@
 import prisma from "@prisma/client";
-
-const prismaClient = new prisma.PrismaClient();
+import { prismaClient } from "../../utils/prisma-adapter"
 
 export const createPharmacyService = async (
   pharmacy_name: string,
@@ -42,18 +41,18 @@ export const getPharmacyByIdService = async (id: bigint) => {
   }
 }
 
-export const updatePharmacyService = async (id:bigint, pharmacy_name: string, pharmacy_address: string) => {
-    try{
-        const updatedPharmacy = await prismaClient.pharmacies.update({
-            where:{id},
-            data:{
-                pharmacy_name,pharmacy_address
-            }
-        })
-        return updatedPharmacy
-    }
-    catch(error){
-        console.error("Error updating pharmacy:", error)
-        throw error
-    }
+export const updatePharmacyService = async (id: bigint, pharmacy_name: string, pharmacy_address: string) => {
+  try {
+    const updatedPharmacy = await prismaClient.pharmacies.update({
+      where: { id },
+      data: {
+        pharmacy_name, pharmacy_address
+      }
+    })
+    return updatedPharmacy
+  }
+  catch (error) {
+    console.error("Error updating pharmacy:", error)
+    throw error
+  }
 }
