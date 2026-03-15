@@ -27,3 +27,17 @@ export const userLoginController = async (req: any, res: any) =>  {
         res.status(401).json({ success: false, message: "Invalid credentials" })
     }
 }
+
+export const userLogoutController = async (req:any,res:any) =>{
+    try{
+        const token = req.cookies.token || null
+        if (!token) {
+            return res.status(400).json({ success: false, message: 'No token provided.' })
+        }
+        res.clearCookie('token')
+        res.status(200).json({ success: true, message: 'Logged out successfully.' })
+    }
+    catch(error){
+        res.status(500).json({ success: false, message: 'Error logging out.' })
+    }
+}
