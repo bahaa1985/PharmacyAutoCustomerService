@@ -7,7 +7,7 @@ import type { LoginCredentials, AuthResponse, User } from '../types/user';
  */
 export const authAPI = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/api/auth/login', credentials);
+    const response = await api.post<AuthResponse>('/login', credentials);
     return response.data;
   },
 
@@ -15,7 +15,7 @@ export const authAPI = {
    * Get current logged-in user
    */
   getCurrentUser: async (): Promise<User> => {
-    const response = await api.get<User>('/api/auth/me');
+    const response = await api.get<User>('/me');
     return response.data;
   },
 

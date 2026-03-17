@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { USER_ROUTER } from './modules/user/user.route';
 import { AUTH_LOGIN_ROUTER } from './modules/auth/login.route'
 import { AUTH_LOGOUT_ROUTER } from './modules/auth/logout.route';
@@ -9,6 +10,10 @@ import { authenticateToken } from './middleware/authenticateToken';
 const app = express();
 
 // Middleware
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(require('cookie-parser')())

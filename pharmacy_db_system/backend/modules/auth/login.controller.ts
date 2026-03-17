@@ -10,6 +10,8 @@ const serializeUser = (user: any) => {
     }
 }
 
+
+
 export const userLoginController = async (req: any, res: any) =>  {
     try {
         const { mobile, password } = req.body
@@ -25,6 +27,19 @@ export const userLoginController = async (req: any, res: any) =>  {
     }
     catch (error) {
         res.status(401).json({ success: false, message: "Invalid credentials" })
+    }
+}
+
+export const getCurrentUserController = async (req:any, res:any) => {
+    try {
+        const user = req.user
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' })
+        }
+        res.status(200).json({ success: true, user })
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching user data' })
     }
 }
 

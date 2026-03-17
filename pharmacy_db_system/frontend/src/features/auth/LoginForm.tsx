@@ -8,7 +8,7 @@ export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,7 @@ export const LoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await login(mobile, password);
       navigate('/dashboard');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -32,11 +32,11 @@ export const LoginForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="user@example.com"
+        label="Mobile"
+        type="number"
+        value={mobile}
+        onChange={(e) => setMobile(e.target.value)}
+        // placeholder="01234567890"
         required
       />
       <Input
