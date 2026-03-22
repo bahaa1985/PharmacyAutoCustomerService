@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { USER_ROUTER } from './modules/user/user.route';
 import { AUTH_LOGIN_ROUTER } from './modules/auth/login.route'
+import { AUTH_LOGGED_ROUTER } from './modules/auth/logged.route';
 import { AUTH_LOGOUT_ROUTER } from './modules/auth/logout.route';
 import { PHARMACY_ROUTER } from './modules/pharmacy/pharmacy.route';
 import { authenticateToken } from './middleware/authenticateToken';
@@ -29,6 +30,7 @@ app.get('/',authenticateToken, (req: any, res: any) => {
 app.use('/user', USER_ROUTER)
 app.use('/login', AUTH_LOGIN_ROUTER)
 app.use('/logout', AUTH_LOGOUT_ROUTER)
+app.use('/me',AUTH_LOGGED_ROUTER)
 app.use('/pharmacy', PHARMACY_ROUTER)
 
 app.listen(3000, () => {

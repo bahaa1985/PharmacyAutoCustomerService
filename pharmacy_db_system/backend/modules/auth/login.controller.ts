@@ -1,5 +1,6 @@
 import { userLoginService } from "./login.service";
 import { generateToken } from "../../utils/jwt";
+import { log } from "console";
 
 const serializeUser = (user: any) => {
     return {
@@ -15,7 +16,7 @@ const serializeUser = (user: any) => {
 export const userLoginController = async (req: any, res: any) =>  {
     try {
         const { mobile, password } = req.body
-        const user = await userLoginService(mobile, password)
+        const user = await userLoginService('+'+mobile, password)
         if (user) {
             //if the credentials are valid, generate a token and set it in the cookie:
             const token = generateToken(serializeUser(user))

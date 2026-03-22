@@ -23,7 +23,7 @@ export const authAPI = {
    * Logout and clear server-side session
    */
   logout: async (): Promise<void> => {
-    await api.post('/api/auth/logout');
+    await api.post('/logout');
   },
 
   /**

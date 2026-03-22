@@ -6,4 +6,3 @@ import bodyParser from "body-parser";
 export const AUTH_LOGIN_ROUTER = express.Router()
 
 AUTH_LOGIN_ROUTER.post('/',bodyParser.urlencoded({extended:true}), userLoginController)
-AUTH_LOGIN_ROUTER.get('/me', authenticateToken, getCurrentUserController)
