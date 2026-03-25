@@ -1,8 +1,11 @@
 export interface User {
   id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'user';
+  mobile: string;
+  username: string;
+  role_id: string;
+  pharmacy_id: string;
+  is_active:boolean;
+  is_logging_at: string,
   createdAt: string;
 }
 
@@ -12,6 +15,7 @@ export interface LoginCredentials {
 }
 
 export interface AuthResponse {
+  status:boolean,
   user: User;
   token?: string;
 }

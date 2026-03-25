@@ -37,7 +37,7 @@ export const getCurrentUserController = async (req:any, res:any) => {
         if (!user) {
             return res.status(401).json({ success: false, message: 'Unauthorized' })
         }
-        res.status(200).json({ success: true, user })
+        res.status(200).json(serializeUser(user))
     }
     catch (error) {
         res.status(500).json({ success: false, message: 'Error fetching user data' })

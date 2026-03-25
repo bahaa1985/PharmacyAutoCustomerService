@@ -1,13 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
+  const user = useAuth().user;
 
   const links = [
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/messages', label: 'Messages' },
     { path: '/inventory', label: 'Inventory' },
+    { path:'/users',label:'Users'}
   ];
 
   return (
@@ -19,6 +22,9 @@ export const Sidebar: React.FC = () => {
         <ul className="space-y-2">
           {links.map((link) => (
             <li key={link.path}>
+              {
+                user?.role_id === '1' || (link.path !== '/users' && user?.role_id === '2') ? null : null
+              }
               <Link
                 to={link.path}
                 className={`block px-4 py-2 rounded-md transition-colors ${

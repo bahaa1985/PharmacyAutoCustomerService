@@ -30,11 +30,13 @@ export const authAPI = {
    * Register a new user
    */
   register: async (data: {
-    email: string;
+    mobile: string;
     password: string;
-    name: string;
+    username: string;
+    role_id:number;
+    pharmacy_id:number;
   }): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/api/auth/register', data);
+    const response = await api.post<AuthResponse>('/user', data);
     return response.data;
   },
 };

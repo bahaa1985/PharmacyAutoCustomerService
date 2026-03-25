@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (mobile: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await authAPI.login({ mobile, password });
+      const response = await authAPI.login({ mobile, password });     
       setUser(response.user);
     } finally {
       setIsLoading(false);
