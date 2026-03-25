@@ -1,9 +1,9 @@
 export interface User {
-  id: string;
+  id: number;
   mobile: string;
   username: string;
-  role_id: string;
-  pharmacy_id: string;
+  role_id: number;
+  pharmacy_id: number;
   is_active:boolean;
   is_logging_at: string,
   createdAt: string;
@@ -18,4 +18,9 @@ export interface AuthResponse {
   status:boolean,
   user: User;
   token?: string;
+}
+
+export interface RegisterResponse{
+  status:boolean,
+  user:User
 }

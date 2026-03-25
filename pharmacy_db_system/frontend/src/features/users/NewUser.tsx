@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import {userAPI} from '../../api/userAPI'
+import { Modal } from '../../components/ui/Modal';
 
 export const NewUser: React.FC = () => {
+
+    const cuurentUser = useAuth().user
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        email: '',
+        mobile: '',
         password: '',
         confirmPassword: '',
-        role: 'user',
+        roleId: 1,
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [error, setError] = useState('');
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -22,13 +30,14 @@ export const NewUser: React.FC = () => {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e: React.FormEvent) => {
+        try{
+e.preventDefault();
         const newErrors: Record<string, string> = {};
 
         if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-        if (!formData.email.trim()) newErrors.email = 'Email is required';
+        // if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+        if (!formData.mobile.trim()) newErrors.email = 'Email is required';
         if (!formData.password) newErrors.password = 'Password is required';
         if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
@@ -39,7 +48,21 @@ export const NewUser: React.FC = () => {
         if (Object.keys(newErrors).length === 0) {
             console.log('Form submitted:', formData);
             // TODO: API call to register user
+            await userAPI.register({
+                mobile:formData.mobile,
+                password:formData.password,
+                username:formData.firstName,
+                role_id:formData.roleId,
+                pharmacy_id:cuurentUser?.pharmacy_id || 0
+            })
+            setShowSuccessModal(true);
         }
+        }
+        catch(err){
+            const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
+        }
+        
     };
 
     return (
@@ -77,14 +100,14 @@ export const NewUser: React.FC = () => {
                 <div>
                     <label className="block text-sm font-medium mb-1">Email</label>
                     <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
+                        type="number"
+                        name="mobile"
+                        value={formData.mobile}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded"
                     />
-                    {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    {errors.mobile && (
+                        <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
                     )}
                 </div>
 
@@ -122,13 +145,13 @@ export const NewUser: React.FC = () => {
                     <label className="block text-sm font-medium mb-1">Role</label>
                     <select
                         name="role"
-                        value={formData.role}
+                        value={formData.roleId}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded"
                     >
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                        <option value="pharmacist">Pharmacist</option>
+                        <option value={2}>Owner</option>
+                        <option value={3}>Pharmacist</option>
+                        <option value={4}>Delivery</option>
                     </select>
                 </div>
 
@@ -139,6 +162,16 @@ export const NewUser: React.FC = () => {
                     Register
                 </button>
             </form>
+
+            <Modal
+                isOpen={showSuccessModal}
+                title="Registration Successful"
+                onClose={() => setShowSuccessModal(false)}
+                confirmText="OK"
+                onConfirm={() => setShowSuccessModal(false)}
+            >
+                <p>User has been registered successfully!</p>
+            </Modal>
         </div>
     );
 };

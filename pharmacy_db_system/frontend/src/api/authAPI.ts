@@ -26,17 +26,5 @@ export const authAPI = {
     await api.post('/logout');
   },
 
-  /**
-   * Register a new user
-   */
-  register: async (data: {
-    mobile: string;
-    password: string;
-    username: string;
-    role_id:number;
-    pharmacy_id:number;
-  }): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/user', data);
-    return response.data;
-  },
+  
 };
