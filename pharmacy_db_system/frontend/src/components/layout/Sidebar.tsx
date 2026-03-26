@@ -23,7 +23,7 @@ export const Sidebar: React.FC = () => {
           {links.map((link) => (
             <li key={link.path}>
               {
-                user?.role_id === '1' || (link.path !== '/users' && user?.role_id === '2') ? null : null
+                user?.role_id === 1 || (link.path !== '/users' && user?.role_id === 2) ? null : null
               }
               <Link
                 to={link.path}

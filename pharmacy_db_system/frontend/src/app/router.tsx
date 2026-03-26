@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { LoginPage } from '../pages/Login';
 import { DashboardPage } from '../pages/Dashboard';
 import { MessagesPage } from '../pages/Messages';
+import { UsersPage } from '../pages/Users';
 import { InventoryPage } from '../pages/Inventory';
 import { NotFoundPage } from '../pages/NotFound';
 
@@ -67,6 +68,14 @@ export const AppRouter: React.FC = () => {
               <MessagesPage />
             </ProtectedRoute>
           }
+        />
+        <Route 
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <UsersPage/>
+          </ProtectedRoute>
+        }
         />
         <Route
           path="/inventory"

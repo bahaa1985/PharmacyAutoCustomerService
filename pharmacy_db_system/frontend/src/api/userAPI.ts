@@ -12,7 +12,7 @@ export const userAPI = {
     role_id:number;
     pharmacy_id:number;
   }): Promise<RegisterResponse> => {
-    const response = await api.post<RegisterResponse>('/user', data);
+    const response = await api.post<RegisterResponse>('/user/new', data);
     return response.data;
   },
     
