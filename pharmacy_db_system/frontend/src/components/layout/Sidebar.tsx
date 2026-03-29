@@ -4,14 +4,32 @@ import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
-  const user = useAuth().user;
+  const {user} = useAuth();
 
-  const links = [
+  // const links = [
+  //   { path: '/dashboard', label: 'Dashboard' },
+  //   { path: '/messages', label: 'Messages' },
+  //   { path: '/inventory', label: 'Inventory' },
+  //   { path:'/users',label:'Users'}
+  // ];
+const links = [
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/messages', label: 'Messages' },
     { path: '/inventory', label: 'Inventory' },
     { path:'/users',label:'Users'}
-  ];
+  ]
+  
+  // function deletePathUsers(){
+    // if(user && user.role_id > 2 ){
+    //   setLinks(links.filter(link => link.path !== '/users'))
+    // }
+    // return links
+  // }
+  // useEffect(()=>{
+  //   console.log("user",user?.role_id);
+  // })
+
+   
 
   return (
     <aside className="w-64 bg-gray-900 text-white h-screen flex flex-col">
@@ -23,8 +41,7 @@ export const Sidebar: React.FC = () => {
           {links.map((link) => (
             <li key={link.path}>
               {
-                user?.role_id === 1 || (link.path !== '/users' && user?.role_id === 2) ? null : null
-              }
+               link.path !== '/users' ?
               <Link
                 to={link.path}
                 className={`block px-4 py-2 rounded-md transition-colors ${
@@ -34,7 +51,18 @@ export const Sidebar: React.FC = () => {
                 }`}
               >
                 {link.label}
-              </Link>
+              </Link>:
+              link.path === '/users' && user && user?.role_id <=2 ?
+             <Link
+                to={link.path}
+                className={`block px-4 py-2 rounded-md transition-colors ${
+                  location.pathname === link.path
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
+                }`}
+              >
+                {link.label}
+              </Link>:null}
             </li>
           ))}
         </ul>

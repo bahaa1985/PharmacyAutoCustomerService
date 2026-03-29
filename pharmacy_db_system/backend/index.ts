@@ -7,13 +7,23 @@ import { AUTH_LOGOUT_ROUTER } from './modules/auth/logout.route';
 import { PHARMACY_ROUTER } from './modules/pharmacy/pharmacy.route';
 import { authenticateToken } from './middleware/authenticateToken';
 
-
 const app = express();
 
 // Middleware
+const FRONTEND_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin || FRONTEND_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
