@@ -1,5 +1,5 @@
 import api from './axios'
-import type { RegisterResponse } from '../types/user';
+import type { RegisterResponse, User } from '../types/user';
 
 export const userAPI = {
     /**
@@ -12,9 +12,16 @@ export const userAPI = {
     role_id:number;
     pharmacy_id:number;
   }): Promise<RegisterResponse> => {
-    const response = await api.post<RegisterResponse>('/user/new', data);
+    const response = await api.post<RegisterResponse>('/users/new', data);
     return response.data;
   },
-    
+  
+  /**
+   * Fetch all users by pharmacy ID
+   */
+  getUsers: async (pharmacyId:bigint):Promise<User[]> =>{
+    const response = await api.get(`/users/all/${pharmacyId}`)
+    return response.data
+  }
 }
 
