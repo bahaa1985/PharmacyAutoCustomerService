@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { userAPI } from "../../api/userAPI";
 import { Modal } from "../../components/ui/Modal";
+import { pharmacyAPI } from "../../api/pharmacyAPI";
+import type{ Pharmacy } from "../../types/pharmacy";
 
 export const NewUser: React.FC = () => {
-  const cuurentUser = useAuth().user;
+  const currentUser = useAuth().user;
 
+  console.log("current",currentUser);
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -15,9 +19,23 @@ export const NewUser: React.FC = () => {
     roleId: 2,
   });
 
+  const [pharmacies,setPharamacies] = useState<Pharmacy[]>([]); 
+  const [pharmacyId,setPharmacyId] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+   useEffect(()=>{
+    
+      const getPharmaciesAsync = async() =>{        
+          const pharmacies = await  pharmacyAPI.getPharmacies()
+           setPharamacies(pharmacies)
+      }
+      if (currentUser?.role_id === Number('1')) {
+        getPharmaciesAsync()
+      }
+    },[])
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -52,7 +70,7 @@ export const NewUser: React.FC = () => {
           password: formData.password,
           username: formData.firstName,
           role_id: formData.roleId,
-          pharmacy_id: cuurentUser?.pharmacy_id || 0,
+          pharmacy_id: currentUser?.role_id === Number('1') ? pharmacyId : currentUser?.pharmacy_id || 0,
         });
         setMessage("User registered successfully!");
         setShowSuccessModal(true);
@@ -75,6 +93,27 @@ export const NewUser: React.FC = () => {
     <div className="max-w-md mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">Register New User</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {
+          currentUser?.role_id === Number('1') ? (
+            <div>
+          <label className="block text-sm font-medium mb-1">Pharmacy</label>
+          <select
+            name="pharmacyId"
+            value={pharmacyId}
+            onChange={(e) => setPharmacyId(Number(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded"
+          >
+            <option value={0}>Select Pharmacy</option>
+            {pharmacies.map((pharmacy) => (
+              <option key={pharmacy.id} value={pharmacy.id}>
+                {pharmacy.name}
+              </option>
+            ))}
+          </select>
+        </div>
+          ):null
+        }
+        
         <div>
           <label className="block text-sm font-medium mb-1">First Name</label>
           <input

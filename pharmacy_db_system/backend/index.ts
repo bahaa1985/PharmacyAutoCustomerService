@@ -13,8 +13,9 @@ const app = express();
 const FRONTEND_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:5174',
+  'http://localhost:5175'
 ];
-
+// app.use(cors())
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || FRONTEND_ORIGINS.includes(origin)) {

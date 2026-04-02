@@ -21,7 +21,7 @@ export const createPharamcyController = async (req: any, res: any) => {
 export const getAllPharmaciesController = async (req: any, res: any) => {
     try {
         const pharmacies = await getAllPharmaciesService()
-        res.status(201).json(pharmacies)
+        res.status(201).json(pharmacies.map(serializePharmacy))
     }
     catch (error) {
         res.status(500).json({ error: 'Failed to fetch pharmacies' })
