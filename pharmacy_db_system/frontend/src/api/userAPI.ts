@@ -22,6 +22,14 @@ export const userAPI = {
   getUsers: async (pharmacyId:bigint):Promise<User[]> =>{
     const response = await api.get(`/users/all/${pharmacyId}`)
     return response.data
+  },
+
+  /**
+   * Update user
+   */
+  updateUser:async(userId:bigint,data:Partial<User>):Promise<User> =>{
+    const response = await api.patch(`/users/${userId}`,data)
+    return response.data
   }
 }
 

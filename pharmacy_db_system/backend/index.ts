@@ -38,12 +38,12 @@ app.get('/',authenticateToken, (req: any, res: any) => {
   res.send('Hello '+username+ ' !')
 });
 
-app.use('/user', USER_ROUTER)
+app.use('/users', USER_ROUTER)
 app.use('/login', AUTH_LOGIN_ROUTER)
 app.use('/logout', AUTH_LOGOUT_ROUTER)
 app.use('/me',AUTH_LOGGED_ROUTER)
 app.use('/pharmacy', PHARMACY_ROUTER)
-app.use('/user', USER_ROUTER)
+// app.use('/user', USER_ROUTER)
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000');

@@ -31,7 +31,7 @@ export const NewUser: React.FC = () => {
           const pharmacies = await  pharmacyAPI.getPharmacies()
            setPharamacies(pharmacies)
       }
-      if (currentUser?.role_id === Number('1')) {
+      if (currentUser?.role_id.toString() === '1') {
         getPharmaciesAsync()
       }
     },[])
@@ -70,7 +70,7 @@ export const NewUser: React.FC = () => {
           password: formData.password,
           username: formData.firstName,
           role_id: formData.roleId,
-          pharmacy_id: currentUser?.role_id === Number('1') ? pharmacyId : currentUser?.pharmacy_id || 0,
+          pharmacy_id: currentUser?.role_id.toString() === '1' ? pharmacyId : currentUser?.pharmacy_id || 0,
         });
         setMessage("User registered successfully!");
         setShowSuccessModal(true);
@@ -94,7 +94,7 @@ export const NewUser: React.FC = () => {
       <h2 className="text-2xl font-bold mb-6">Register New User</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {
-          currentUser?.role_id === Number('1') ? (
+          currentUser?.role_id.toString() === '1' ? (
             <div>
           <label className="block text-sm font-medium mb-1">Pharmacy</label>
           <select
@@ -104,9 +104,9 @@ export const NewUser: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded"
           >
             <option value={0}>Select Pharmacy</option>
-            {pharmacies.map((pharmacy) => (
+            {pharmacies?.map((pharmacy) => (
               <option key={pharmacy.id} value={pharmacy.id}>
-                {pharmacy.name}
+                {pharmacy.pharmacy_name}
               </option>
             ))}
           </select>

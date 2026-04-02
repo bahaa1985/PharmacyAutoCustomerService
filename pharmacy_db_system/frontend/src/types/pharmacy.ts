@@ -1,5 +1,5 @@
 export interface Pharmacy{
     id:number,
-    name:string,
-    address:string,
+    pharmacy_name:string,
+    pharmacy_address:string,
 }
