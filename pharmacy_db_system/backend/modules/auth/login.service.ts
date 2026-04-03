@@ -12,7 +12,8 @@ export const userLoginService = async (mobile: string, password: string) => {
             throw new Error("User not found")
         }        
 
-        const isMatch = bcrypt.compareSync(password, user_data.password)
+        if(user_data.is_active !== false){
+            const isMatch = bcrypt.compareSync(password, user_data.password)
 
         if(isMatch) {
             const logged_user = await prismaClient.users.update({
@@ -23,6 +24,10 @@ export const userLoginService = async (mobile: string, password: string) => {
                 }
             })
             return logged_user
+        }
+        }
+        else{
+            throw new Error("User is not active")
         }
     }
     catch (error) {

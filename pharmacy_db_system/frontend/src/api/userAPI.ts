@@ -28,7 +28,7 @@ export const userAPI = {
    * Update user
    */
   updateUser:async(userId:bigint,data:Partial<User>):Promise<User> =>{
-    const response = await api.patch(`/users/${userId}`,data)
+    const response = await api.patch(`/users/update/${userId}`,data)
     return response.data
   }
 }

@@ -3,19 +3,23 @@ import { useAuth } from "../../context/AuthContext";
 import { userAPI } from "../../api/userAPI";
 import { pharmacyAPI } from "../../api/pharmacyAPI";
 import { Modal } from "../../components/ui/Modal";
+import { useToast } from "../../context/ToastContext";
 import type { User } from "../../types/user";
 import type { Pharmacy } from "../../types/pharmacy";
-// import { Toggle } from "../../components/ui/core/toggle";
 import Switch from "@mui/material/Switch"
+import EditIcon from '@mui/icons-material/Edit';
 
 export const UsersList: React.FC = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [pharmacies, setPharamacies] = useState<Pharmacy[]>([]);
-  const [showModal, setShowModal] = useState(false);
   const [pharmacyId, setPharmacyId] = useState(user?.pharmacy_id || 0);
   const [selectedUser, setSelectedUser] = useState<User>();
-  const [isActive,setIsActive] = useState(false)
+  const [showModal, setShowModal] = useState(false);
+  const [editable,setEditable] = useState(false)
+  const [modalTitle, setModalTitle] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const getPharmaciesAsync = async () => {
@@ -41,6 +45,7 @@ export const UsersList: React.FC = () => {
 
   const handleUserClick = (user: User) => {
     setSelectedUser(user);
+    setModalTitle(user.username+"'s Details");
     setShowModal(true);
   };
 
@@ -54,6 +59,7 @@ export const UsersList: React.FC = () => {
   }
 
   const handleUserUpdate = async(userId:bigint) =>{
+    setLoading(true);
     try{
       const updatedUser = await userAPI.updateUser(userId,{
         is_active:selectedUser?.is_active,
@@ -61,10 +67,19 @@ export const UsersList: React.FC = () => {
         mobile:selectedUser?.mobile,
         role_id:selectedUser?.role_id
       })
+      if(updatedUser) {
+        showToast(`${selectedUser?.username} updated successfully!`, 'success');
+        setShowModal(false);
+        await fetchUsers();
+      }
       return updatedUser
     }
     catch(error){
       console.error("Error updating user:",error)
+      showToast('Failed to update user', 'error');
+    }
+    finally {
+      setLoading(false);
     }
   }
 
@@ -93,19 +108,33 @@ export const UsersList: React.FC = () => {
       {user?.role_id.toString() === '1' && <button onClick={fetchUsers}>Fetch Users</button>}
       <ul>
         {users.map((user: User) => (
-          <li key={user.id} onClick={() => handleUserClick(user)}>
+          <li key={user.id} className="my-4 cursor-pointer" onClick={() => handleUserClick(user)}>
             {user.username} - {user.mobile}
           </li>
         ))}
       </ul>
       {showModal && selectedUser && (
-        <Modal onClose={() => setShowModal(false)} isOpen={showModal} title={selectedUser.username}>
-          <div>Username: <input type="text" contentEditable={false}>{selectedUser.username}</input></div>
-          <p>Mobile: {selectedUser.mobile}</p>
-          <label>Active</label>
-          {/* <Toggle label="activate_user" checked={selectedUser.is_active} onChange={handleToggleChange} /> */}
+        <Modal onClose={() => setShowModal(false)} isOpen={showModal} title={modalTitle}>
+          <div className="my-4">Username: 
+            <input type="text" contentEditable={editable} value={selectedUser.username} onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})} />
+            <button className="cursor-pointer"  onClick={()=>setEditable(true)}><EditIcon fontSize="medium"/></button>
+          </div>
+          <div className="my-4">Mobile:
+            <input type="text" contentEditable={editable} value={selectedUser.mobile} onChange={(e) => setSelectedUser({...selectedUser, mobile: e.target.value})} />
+          </div>
+          <div className="my-4">Active:
 <Switch checked={selectedUser?.is_active} onChange={handleToggleChange} />
-          <button className="w-1/6 flex p-4 bg-green-600 text-[#fff]" onClick={() => handleUserUpdate(BigInt(selectedUser.id))}>Update</button>
+          </div>
+          {/* <label>Active</label> */}
+          {/* <Toggle label="activate_user" checked={selectedUser.is_active} onChange={handleToggleChange} /> */}
+
+          <button 
+            disabled={loading}
+            className="w-1/4 h-10 flex justify-center items-center px-4 py-auto bg-green-500 text-[#fff] rounded-md disabled:opacity-50 disabled:cursor-not-allowed" 
+            onClick={() => handleUserUpdate(BigInt(selectedUser?.id))}
+          >
+            {loading ? 'Updating...' : 'Update'}
+          </button>
         </Modal>
       )}
     </div>

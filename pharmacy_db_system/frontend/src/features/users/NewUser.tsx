@@ -7,8 +7,6 @@ import type{ Pharmacy } from "../../types/pharmacy";
 
 export const NewUser: React.FC = () => {
   const currentUser = useAuth().user;
-
-  console.log("current",currentUser);
   
   const [formData, setFormData] = useState({
     firstName: "",
