@@ -52,7 +52,8 @@ export const NewUser: React.FC = () => {
       if (!formData.firstName.trim())
         newErrors.firstName = "First name is required";
       // if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-      if (!formData.mobile.trim()) newErrors.email = "Email is required";
+      if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
+      if( formData.mobile.length != 13) newErrors.mobile = "Mobile must be 11 digits";
       if (!formData.password) newErrors.password = "Password is required";
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = "Passwords do not match";
@@ -82,7 +83,7 @@ export const NewUser: React.FC = () => {
         });
       }
     } catch (err) {
-      const errMessage = err instanceof Error ? err.message : "Login failed";
+      const errMessage = err instanceof Error ? err.message : "Registration failed";
       setMessage(errMessage);
     }
   };
@@ -215,7 +216,7 @@ export const NewUser: React.FC = () => {
         confirmText="OK"
         onConfirm={() => setShowSuccessModal(false)}
       >
-        <p>User has been registered successfully!</p>
+        <p>{message}</p>
       </Modal>
     </div>
   );
