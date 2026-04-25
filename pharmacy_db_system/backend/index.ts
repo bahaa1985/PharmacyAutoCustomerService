@@ -5,6 +5,8 @@ import { AUTH_LOGIN_ROUTER } from './modules/auth/login.route'
 import { AUTH_LOGGED_ROUTER } from './modules/auth/logged.route';
 import { AUTH_LOGOUT_ROUTER } from './modules/auth/logout.route';
 import { PHARMACY_ROUTER } from './modules/pharmacy/pharmacy.route';
+// import { MESSAGES_ROUTER } from './modules/messages/messages.route';
+import INVENTORY_ROUTER from './modules/inventory/inventory.route';
 import { authenticateToken } from './middleware/authenticateToken';
 
 const app = express();
@@ -43,7 +45,8 @@ app.use('/login', AUTH_LOGIN_ROUTER)
 app.use('/logout', AUTH_LOGOUT_ROUTER)
 app.use('/me',AUTH_LOGGED_ROUTER)
 app.use('/pharmacy', PHARMACY_ROUTER)
-// app.use('/user', USER_ROUTER)
+// app.use('/messages', MESSAGES_ROUTER)
+app.use('/inventory', INVENTORY_ROUTER)
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000');

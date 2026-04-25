@@ -6,6 +6,13 @@ export interface InventoryUploadResponse {
   importedCount?: number;
 }
 
+export interface DrugCardEntry {
+  a_name?: string;
+  e_name?: string;
+  dosage_form: string;
+  normalizedDosageForm:string
+}
+
 export const inventoryAPI = {
   /**
    * Upload inventory file (CSV or Excel)
@@ -15,14 +22,17 @@ export const inventoryAPI = {
     formData.append('file', file);
 
     const response = await api.post<InventoryUploadResponse>(
-      '/api/inventory/upload',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      '/inventory/upload',
+      formData
     );
+    return response.data;
+  },
+
+  /**
+   * Get DrugCard data from local file
+   */
+  getDrugCardData: async (): Promise<DrugCardEntry[]> => {
+    const response = await api.get<DrugCardEntry[]>('/inventory/drugcard');
     return response.data;
   },
 
@@ -34,7 +44,7 @@ export const inventoryAPI = {
     limit?: number;
     search?: string;
   }) => {
-    const response = await api.get('/api/inventory', { params });
+    const response = await api.get('/inventory', { params });
     return response.data;
   },
 

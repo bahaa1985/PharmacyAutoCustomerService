@@ -1,4 +1,4 @@
-import { cn } from "../../../../node_modules/tailwindcs"
+import { cn } from "../../../utils/cn"
 import { useId, type ComponentProps } from "react";
 
 type PropsType = Omit<ComponentProps<"input">, "size"> & {

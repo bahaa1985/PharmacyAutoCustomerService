@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+gen-lang-client-0222261698-14cc2f011302.json
 
 # Editor directories and files
 .vscode/*

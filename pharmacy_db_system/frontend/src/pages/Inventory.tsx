@@ -1,6 +1,7 @@
 import React from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { UploadInventory } from '../features/inventory/UploadInventory';
+// import { UploadFile } from '../upload_file/UploadFile';
 
 export const InventoryPage: React.FC = () => {
   return (

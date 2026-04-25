@@ -2,37 +2,89 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Backend",
+            "label": "Build Backend",
+            "type": "shell",
+            "command": "npm run build",
+            "options": {
+                "cwd": "${workspaceFolder}/backend"
+            },
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Frontend",
+            "type": "shell",
+            "command": "npm run build",
+            "options": {
+                "cwd": "${workspaceFolder}/frontend"
+            },
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build All",
+            "dependsOn": [
+                "Build Backend",
+                "Build Frontend"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Dev - Backend",
             "type": "shell",
             "command": "npm start",
             "options": {
                 "cwd": "${workspaceFolder}/backend"
             },
             "presentation": {
-                "group": "server"
+                "group": "server",
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^.*$",
+                    "file": 1,
+                    "location": 2,
+                    "message": 3
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^.*listening on port.*",
+                    "endsPattern": "^.*"
+                }
             }
         },
         {
-            "label": "Run Frontend",
+            "label": "Dev - Frontend",
             "type": "shell",
             "command": "npm run dev",
             "options": {
                 "cwd": "${workspaceFolder}/frontend"
             },
             "presentation": {
-                "group": "server"
-            }
+                "group": "server",
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "isBackground": true,
+            "problemMatcher": []
         },
         {
-            "label": "Run All",
+            "label": "Dev - All (Backend + Frontend)",
             "dependsOn": [
-                "Run Backend",
-                "Run Frontend"
+                "Dev - Backend",
+                "Dev - Frontend"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "presentation": {
+                "group": "server"
+            },
+            "problemMatcher": []
         }
     ]
 }

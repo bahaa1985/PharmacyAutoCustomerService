@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
+// import { usePharmacy } from '../../context/PharamcyContext';
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  // const { pharmacy} = usePharmacy()
 
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
