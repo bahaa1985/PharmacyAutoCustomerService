@@ -17,6 +17,7 @@ type WorkerRequest = {
   e_nameIndex: number;
   dosageFormIndex: number;
   unitsIndex: number;
+  activeIndex?: number;
   drugCardByFirstChar: Record<string, DrugCardEntry[]>;
 };
 
@@ -62,9 +63,15 @@ const processChunk = (request: WorkerRequest): WorkerResponse => {
 
       row[request.dosageFormIndex] = selectedDosageForm;
       row[request.unitsIndex] = selectedUnitOne ? 1 : matchedDrug.units ?? null;
+      if (typeof request.activeIndex === 'number') {
+        row[request.activeIndex] = matchedDrug.active ?? null;
+      }
     } else {
       row[request.dosageFormIndex] = null;
       row[request.unitsIndex] = null;
+      if (typeof request.activeIndex === 'number') {
+        row[request.activeIndex] = null;
+      }
     }
 
     return row;

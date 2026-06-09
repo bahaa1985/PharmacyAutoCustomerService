@@ -1,4 +1,6 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
 import cors from 'cors';
 import { USER_ROUTER } from './modules/user/user.route';
 import { AUTH_LOGIN_ROUTER } from './modules/auth/login.route'
@@ -6,7 +8,7 @@ import { AUTH_LOGGED_ROUTER } from './modules/auth/logged.route';
 import { AUTH_LOGOUT_ROUTER } from './modules/auth/logout.route';
 import { PHARMACY_ROUTER } from './modules/pharmacy/pharmacy.route';
 // import { MESSAGES_ROUTER } from './modules/messages/messages.route';
-import INVENTORY_ROUTER from './modules/inventory/inventory.route';
+import {INVENTORY_ROUTER} from './modules/inventory/inventory.route';
 import { authenticateToken } from './middleware/authenticateToken';
 
 const app = express();
@@ -28,8 +30,9 @@ app.use(cors({
   },
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Allow larger JSON payloads for bulk inventory uploads
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(require('cookie-parser')())
 
 app.get('/',authenticateToken, (req: any, res: any) => {
@@ -51,3 +54,22 @@ app.use('/inventory', INVENTORY_ROUTER)
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
 });
+
+// process.on('uncaughtException', (err) => {
+//   console.error('uncaughtException', err);
+//   try {
+//     fs.writeFileSync(path.join(process.cwd(), 'tmp_uncaught.json'), JSON.stringify({ error: String(err), stack: err?.stack }, null, 2));
+//   } catch (e) {
+//     console.error('Failed writing uncaught exception file', e);
+//   }
+//   process.exit(1);
+// });
+
+// process.on('unhandledRejection', (reason) => {
+//   console.error('unhandledRejection', reason);
+//   try {
+//     fs.writeFileSync(path.join(process.cwd(), 'tmp_unhandled_rejection.json'), JSON.stringify({ reason: String(reason) }, null, 2));
+//   } catch (e) {
+//     console.error('Failed writing unhandled rejection file', e);
+//   }
+// });

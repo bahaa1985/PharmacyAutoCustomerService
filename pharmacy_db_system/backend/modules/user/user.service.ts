@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 // import { adapter } from "../../utils/prisma-adapter";
-import {prismaClient} from "../../utils/prisma-adapter.ts"
+import {prismaClient} from "../../utils/prisma-adapter"
 import bcrypt from 'bcrypt'
 
 // const prismaClient = new PrismaClient()

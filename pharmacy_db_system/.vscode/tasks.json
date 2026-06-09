@@ -27,10 +27,7 @@
                 "Build Backend",
                 "Build Frontend"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "problemMatcher": []
         },
         {
@@ -81,6 +78,10 @@
                 "Dev - Backend",
                 "Dev - Frontend"
             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "presentation": {
                 "group": "server"
             },

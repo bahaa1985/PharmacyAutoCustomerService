@@ -1,4 +1,4 @@
-import {prismaClient} from "../../utils/prisma-adapter.ts"
+import {prismaClient} from "../../utils/prisma-adapter"
 
 export const userLogoutService  = async(user_id:number)=>{
     try{

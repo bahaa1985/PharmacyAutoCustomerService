@@ -1,20 +1,55 @@
 generator client {
   provider = "prisma-client-js"
-  // engineType      = "library"
+  // output   = "../node_modules/.prisma/client"
+  // output = "../dist/generated/prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["public"]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model draft_messages {
+  id          BigInt   @id @default(autoincrement())
+  from_number String?  @db.VarChar
+  to_number   String?  @db.VarChar
+  message     String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model errors_log {
+  id            BigInt   @id @default(autoincrement())
+  workflow_name String?  @db.VarChar
+  error_message String?
+  from_number   String?  @db.VarChar
+  to_number     String?  @db.VarChar
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model inventory {
+  id              BigInt      @id @default(autoincrement())
+  created_at      DateTime    @default(now()) @db.Timestamptz(6)
+  pharmacy_id     BigInt?
+  en_name         String?
+  ar_name         String?
+  price           Decimal?    @db.Decimal(10, 2)
+  units_count     Float?
+  dosage_form     String?
+  drug_type       String?     @db.VarChar
+  active_material String?     @db.VarChar
+  quantity        Float?
+  pharmacies      pharmacies? @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model log_types {
   id         BigInt   @id @default(autoincrement())
   created_at DateTime @default(now()) @db.Timestamptz(6)
-  //messages   messages[]
-
-  @@schema("public")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -23,71 +58,43 @@ model message_types {
   id           BigInt     @id @default(autoincrement())
   message_type String     @db.VarChar
   messages     messages[]
-
-  @@schema("public")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model messages {
-  id           BigInt   @id @default(autoincrement())
-  from_number  String   @db.VarChar
-  to_number    String   @db.VarChar
-  message      String?   @db.VarChar
-  message_type BigInt   @db.BigInt
-  image_url    String?  @db.VarChar
-  pharmacy_id  BigInt   @db.BigInt
-  //log_type     BigInt   @db.BigInt
-  log          String   @db.VarChar()
-  created_at   DateTime @default(now()) @db.Timestamptz(6)
-
+  id            BigInt        @id @default(autoincrement())
+  message       String?
+  message_type  BigInt
+  created_at    DateTime      @default(now()) @db.Timestamptz(6)
+  pharmacy_id   BigInt
+  from_number   String        @db.VarChar
+  to_number     String        @db.VarChar
+  log           String        @db.VarChar
+  image_url     String?       @db.VarChar
+  album_id      String?       @db.VarChar
+  confidence    Float?        @db.Real
   message_types message_types @relation(fields: [message_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
   pharmacies    pharmacies    @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  //log_types     log_types     @relation(fields: [log_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@schema("public")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model pharmacies {
-  id               BigInt     @id @default(autoincrement())
-  pharmacy_name    String     @db.VarChar
-  //pharmacy_mobile  String     @db.VarChar
-  pharmacy_address String     @db.VarChar
-  created_at       DateTime   @default(now()) @db.Timestamptz(6)
-  //password         String?
+  id               BigInt      @id @default(autoincrement())
+  pharmacy_name    String      @db.VarChar
+  pharmacy_address String      @db.VarChar
+  created_at       DateTime    @default(now()) @db.Timestamptz(6)
+  inventory        inventory[]
   messages         messages[]
   users            users[]
-
-  @@schema("public")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-// model system_logs {
-//   id BigInt @id @default(autoincrement())
-
-//   @@schema("public")
-// }
-
-// model inventory {
-//   id          BigInt   @id @default(autoincrement())
-//   aname       String   @db.VarChar
-//   ename       String   @db.VarChar
-//   price       Float    @db.DoublePrecision
-//   unit        String   @db.VarChar
-//   form_dosage String   @db.VarChar
-//   created_at  DateTime @default(now()) @db.Timestamptz(6)
-
-//   @@schema("public")
-// }
-
 model user_roles {
   id        BigInt  @id @default(autoincrement())
   role_name String  @db.VarChar
   users     users[]
-
-  @@schema("public")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -95,16 +102,14 @@ model user_roles {
 model users {
   id            BigInt     @id @default(autoincrement())
   username      String     @db.VarChar(50)
-  password      String     @db.VarChar()
+  password      String     @db.VarChar
   mobile        String     @unique @db.VarChar(13)
-  role_id       BigInt     @db.BigInt
-  pharmacy_id   BigInt     @db.BigInt
   created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  pharmacy_id   BigInt
+  is_logging_in Boolean    @default(false)
+  role_id       BigInt
+  is_active     Boolean    @default(true)
   last_login_at DateTime?  @db.Timestamptz(6)
-  is_logging_in Boolean    @default(false) @db.Boolean
-  is_active     Boolean    @default(true) @db.Boolean
   pharmacies    pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user_roles    user_roles @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@schema("public")
 }

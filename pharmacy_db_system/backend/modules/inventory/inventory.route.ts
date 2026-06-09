@@ -1,15 +1,13 @@
 import { Router } from 'express';
-import multer from 'multer';
-import * as XLSX from 'xlsx';
-import { inventoryController } from './inventory.controller';
+// import multer from 'multer';
+// import * as XLSX from 'xlsx';
+import {uploadInventory} from './inventory.controller';
 
-const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+export const INVENTORY_ROUTER = Router();
+// const upload = multer({ storage: multer.memoryStorage() });
 
 // Upload inventory file
-router.post('/upload', upload.single('file'), inventoryController.uploadInventory);
+// router.post('/upload', upload.single('file'), inventoryController.uploadInventory);
+INVENTORY_ROUTER.post('/upload', uploadInventory);
 
-// Get DrugCard data
-router.get('/drugcard', inventoryController.getDrugCardData);
-
-export default router;
+// legacy: drugcard endpoint removed — frontend loads DrugCard.xlsx from public/

@@ -4,6 +4,9 @@ export interface DrugCardEntry {
   a_name?: string;
   e_name?: string;
   dosage_form: string;
+  active_material?: string;
+  active?: string;
+  active_ingredient?: string;
   normalizedDosageForm?: string;
   normalizedAName?: string;
   normalizedAFirstSector?: string;
@@ -136,10 +139,13 @@ export const normalizeDrugCardData = (drugCardData: DrugCardEntry[]): DrugCardEn
       || normalizedEName.charAt(0)
       || '';
 
+    const activeMaterial = drug.active_material ?? drug.active ?? drug['active_ingredient'] ?? undefined;
     return {
       ...drug,
       a_name: normalizedAName,
       e_name: normalizedEName,
+      active: activeMaterial ?? undefined,
+      active_material: activeMaterial ?? undefined,
       normalizedAName,
       normalizedAFirstSector,
       normalizedEName,

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { inventoryAPI } from '../../api/inventoryAPI';
-import { uploadExcelFile } from './UploadToN8NGoogleDrive';
 // import { googleDriveAPI } from '../../api/googleDriveAPI';
 import { Button } from '../../components/ui/Button';
 // import { Modal } from '../../components/ui/Modal';
@@ -25,7 +24,7 @@ export const UploadInventory: React.FC = () => {
   const { showToast } = useToast();
   const { pharmacy } = usePharmacy();
 
-  console.log("pharmacy",pharmacy);
+  // console.log("pharmacy",pharmacy);
   
   // Load DrugCard data from local file
   type ExcelRow = (string | number | boolean | null)[];
@@ -46,6 +45,7 @@ export const UploadInventory: React.FC = () => {
     e_nameIndex: number,
     dosageFormIndex: number,
     unitsIndex: number,
+    activeIndex: number,
     drugCardByFirstChar: Record<string, DrugCardEntry[]>
   ): Promise<ExcelRow[]> => {
     if (rows.length === 0) {
@@ -96,6 +96,7 @@ export const UploadInventory: React.FC = () => {
           e_nameIndex,
           dosageFormIndex,
           unitsIndex,
+          activeIndex,
           drugCardByFirstChar
         });
       });
@@ -142,7 +143,7 @@ export const UploadInventory: React.FC = () => {
       const dataRows = jsonData.slice(1);
 
       // 2. Check required columns
-      const requiredColumns = ['a_name', 'price', 'unit'];
+      const requiredColumns = ['a_name', 'price','quantity'];
       const missingColumns = requiredColumns.filter(col => !headers.includes(col));
 
       if (missingColumns.length > 0) {
@@ -154,9 +155,10 @@ export const UploadInventory: React.FC = () => {
       const e_nameIndex = headers.indexOf('e_name');
 
       // 3. Add form_dosage column
-      const extendedHeaders = [...headers, 'dosage_form', 'units'];
+      const extendedHeaders = [...headers, 'dosage_form', 'units_count', 'active'];
       const dosageFormIndex = headers.length;
       const unitsIndex = headers.length + 1;
+      const activeIndex = headers.length + 2;
 
       // Load DrugCard data for comparison
       const drugCardData = await loadDrugCardData();
@@ -181,6 +183,7 @@ export const UploadInventory: React.FC = () => {
         e_nameIndex,
         dosageFormIndex,
         unitsIndex,
+        activeIndex,
         drugCardByFirstChar
       );
       
@@ -222,13 +225,7 @@ export const UploadInventory: React.FC = () => {
     }
   };
 
-  const createProcessedExcelFile = (fileName: string): File => {
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.aoa_to_sheet(processedRows);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory');
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    return new File([new Blob([wbout])], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  };
+  // Excel file generation removed — not required for backend upload path
 
   const handleUploadButtonClick = async () => {
     if (!originalFile || processedRows.length === 0) {
@@ -240,32 +237,57 @@ export const UploadInventory: React.FC = () => {
     setStatus('');
 
     try {
-      // Create the processed Excel file
-      // const timestamp = new Date().toISOString().split('T')[0];
-      // const processedFileName = `processed-inventory-${timestamp}.xlsx`;
-      const processedFileName = `${pharmacy?.pharmacy_name}.xlsx`;
-      const excelFile = createProcessedExcelFile(processedFileName);
+      // Create the processed Excel file (omitted — not needed for backend upload)
 
-      // Upload to Google Drive
-      const uploadResult = await uploadExcelFile(excelFile);
-      // setStatus('Uploading to Google Drive...');
-      // const googleDriveResult = await googleDriveAPI.uploadProcessedExcelFile(excelFile);
-      showToast(`✓ File uploaded to Google Drive: ${uploadResult}`, 'success');
+      // Optionally upload the processed file to Google Drive (kept for reuse)
+      // const uploadResult = await uploadExcelFile(excelFile);
+      // showToast(`✓ File uploaded to Google Drive: ${uploadResult}`, 'success');
 
-      // Upload to backend
-      // setStatus('Uploading to backend...');
-      // const response = await inventoryAPI.uploadInventory(originalFile);
-      // setStatus(
-      //   `✓ ${response.message} (${response.importedCount || 0} items imported)`
-      // );
+      // Ensure pharmacy is available
+      if (!pharmacy || !pharmacy.id) {
+        showToast('Cannot upload: pharmacy not loaded. Please ensure you are logged in and a pharmacy is selected.', 'error');
+        return;
+      }
+
+      // Prepare JSON rows to send to backend. `processedRows` has header row at index 0.
+      const headers = processedRows[0] as string[];
+      const dataRows = processedRows.slice(1) as (string | number | boolean | null)[][];
+      const rowsObjects = dataRows.map(row => {
+        const obj: Record<string, string | number | boolean | null> = {};
+        headers.forEach((h, i) => {
+          const key = (h || '').toString().toLowerCase().trim();
+          obj[key] = row[i] ?? null;
+        });
+        return obj;
+      });
+
+      
+
+      // Sanitize rows to include only fields the backend/DB expects
+      const sanitizedRows = rowsObjects.map(r => ({
+        ar_name: r.ar_name ?? r.a_name ?? null,
+        en_name: r.en_name ?? r.e_name ?? null,
+        price: r.price !== undefined && r.price !== null ? parseFloat(String(r.price)) : null,
+        units_count: r.units_count !== undefined && r.units_count !== null ? parseFloat(String(r.units_count))  : null,
+        quantity: r.quantity !== undefined && r.quantity !== null ? parseFloat(String(r.quantity)) : null,
+        dosage_form: r.dosage_form ?? null,
+        active: r.active ?? null
+      }));
+
+      console.log('Prepared rows for backend:', sanitizedRows);
+      // Send processed rows to backend for DB insertion
+      const backendResult = await inventoryAPI.uploadProcessed(sanitizedRows, pharmacy.id);
+      showToast(`✓ Backend: ${backendResult.message}`, 'success');
 
       // Reset state
       setDisabledUploadingButton(true);
       setOriginalFile(null);
       setProcessedRows([]);
 
-      showToast('Successfully uploaded to both Google Drive and backend!', 'success');
+      showToast('Successfully uploaded to backend!', 'success');
     } catch (err) {
+      console.log("upload error front",JSON.stringify(err, null, 2));
+      
       const message = err instanceof Error ? err.message : 'Upload failed';
       setStatus(`✗ Upload failed: ${message}`);
       showToast(message, 'error');
@@ -316,7 +338,7 @@ export const UploadInventory: React.FC = () => {
               </p>
             </div>
           )}
-          {/* {status && (
+          {status && (
             <p
               className={`text-sm ${
                 status.startsWith('✓') ? 'text-green-600' : 'text-red-600'
@@ -324,7 +346,7 @@ export const UploadInventory: React.FC = () => {
             >
               {status}
             </p>
-          )} */}
+          )}
         </div>
       {/* </Modal> */}
       {/* {status && (

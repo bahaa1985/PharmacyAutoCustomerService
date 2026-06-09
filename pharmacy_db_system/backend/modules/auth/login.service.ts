@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import {prismaClient} from "../../utils/prisma-adapter.ts"
+import {prismaClient} from "../../utils/prisma-adapter"
 
 
 export const userLoginService = async (mobile: string, password: string) => {
@@ -25,6 +25,8 @@ export const userLoginService = async (mobile: string, password: string) => {
             })
             return logged_user
         }
+        // Password did not match
+        throw new Error("Invalid credentials")
         }
         else{
             throw new Error("User is not active")

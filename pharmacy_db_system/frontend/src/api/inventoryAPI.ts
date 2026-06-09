@@ -1,4 +1,5 @@
 import api from './axios';
+import * as XLSX from 'xlsx';
 
 export interface InventoryUploadResponse {
   success: boolean;
@@ -11,20 +12,35 @@ export interface DrugCardEntry {
   e_name?: string;
   dosage_form: string;
   normalizedDosageForm:string
+  active?: string
 }
 
 export const inventoryAPI = {
   /**
    * Upload inventory file (CSV or Excel)
    */
-  uploadInventory: async (file: File): Promise<InventoryUploadResponse> => {
-    const formData = new FormData();
-    formData.append('file', file);
+  // uploadInventory: async (file: File): Promise<InventoryUploadResponse> => {
+  //   const formData = new FormData();
+  //   formData.append('file', file);
 
-    const response = await api.post<InventoryUploadResponse>(
-      '/inventory/upload',
-      formData
-    );
+  //   const response = await api.post<InventoryUploadResponse>(
+  //     '/inventory/upload',
+  //     formData
+  //   );
+  //   return response.data;
+  // },
+
+  /**
+   * Upload processed inventory rows (JSON) prepared by frontend
+   */
+  uploadProcessed: async (
+    rows: Array<Record<string, unknown>>,
+    pharmacy_id: number
+  ): Promise<InventoryUploadResponse> => {
+    const response = await api.post<InventoryUploadResponse>('/inventory/upload', {
+      rows,
+      pharmacy_id,
+    });
     return response.data;
   },
 
@@ -32,8 +48,14 @@ export const inventoryAPI = {
    * Get DrugCard data from local file
    */
   getDrugCardData: async (): Promise<DrugCardEntry[]> => {
-    const response = await api.get<DrugCardEntry[]>('/inventory/drugcard');
-    return response.data;
+    // Load DrugCard.xlsx from public/ so frontend handles fuzzy matching locally
+    const res = await fetch('/DrugCard.xlsx');
+    if (!res.ok) throw new Error('Failed to fetch DrugCard.xlsx');
+    const buffer = await res.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(sheet) as DrugCardEntry[];
+    return data;
   },
 
   /**
@@ -52,6 +74,6 @@ export const inventoryAPI = {
    * Delete inventory item
    */
   deleteInventory: async (id: string) => {
-    await api.delete(`/api/inventory/${id}`);
+    await api.delete(`/inventory/${id}`);
   },
 };
