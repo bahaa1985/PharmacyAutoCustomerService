@@ -4,8 +4,9 @@ export interface User {
   username: string;
   role_id: number;
   pharmacy_id: number;
-  is_active:boolean;
-  is_logging_at: string,
+  ai_mode: boolean;
+  is_active: boolean;
+  is_logging_at: string;
   createdAt: string;
 }
 
