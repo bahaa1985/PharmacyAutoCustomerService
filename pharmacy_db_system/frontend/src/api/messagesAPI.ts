@@ -2,45 +2,40 @@ import api from './axios';
 import type { Message, CreateMessageDto } from '../types/message';
 
 export const messagesAPI = {
-  /**
-   * Get all messages for the current user
-   */
-  getMessages: async (): Promise<Message[]> => {
-    const response = await api.get<Message[]>('/api/messages');
+  getMessages: async (userNumber: string, contactPhone?: string): Promise<Message[]> => {
+    const search = contactPhone ? `?contactPhone=${encodeURIComponent(contactPhone)}` : '';
+    const response = await api.get<Message[]>(`/messages/user/${userNumber}${search}`);
     return response.data;
   },
 
-  /**
-   * Get a specific message by ID
-   */
+  getMessagesByPharmacy: async (
+    pharmacyId: number,
+    contactPhone?: string,
+  ): Promise<Message[]> => {
+    const search = contactPhone ? `?contactPhone=${encodeURIComponent(contactPhone)}` : '';
+    const response = await api.get<Message[]>(`/messages/pharmacy/${pharmacyId}${search}`);
+    return response.data;
+  },
+
   getMessage: async (id: string): Promise<Message> => {
-    const response = await api.get<Message>(`/api/messages/${id}`);
+    const response = await api.get<Message>(`/messages/${id}`);
     return response.data;
   },
 
-  /**
-   * Create a new message
-   */
   createMessage: async (data: CreateMessageDto): Promise<Message> => {
-    const response = await api.post<Message>('/api/messages', data);
+    const response = await api.post<Message>(`/messages/new`, data);
     return response.data;
   },
 
-  /**
-   * Update an existing message
-   */
   updateMessage: async (
     id: string,
-    data: Partial<CreateMessageDto>
+    data: Partial<CreateMessageDto>,
   ): Promise<Message> => {
-    const response = await api.patch<Message>(`/api/messages/${id}`, data);
+    const response = await api.patch<Message>(`/messages/${id}`, data);
     return response.data;
   },
 
-  /**
-   * Delete a message
-   */
   deleteMessage: async (id: string): Promise<void> => {
-    await api.delete(`/api/messages/${id}`);
+    await api.delete(`/messages/${id}`);
   },
 };

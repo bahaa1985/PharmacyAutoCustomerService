@@ -5,9 +5,9 @@ import { log } from "console";
 const serializeUser = (user: any) => {
     return {
         ...user,
-        id: user.id?.toString(),
-        role_id: user.role_id?.toString(),
-        pharmacy_id: user.pharmacy_id?.toString()
+        id: Number(user.id),
+        role_id: Number(user.role_id),
+        pharmacy_id: Number(user.pharmacy_id),
     }
 }
 

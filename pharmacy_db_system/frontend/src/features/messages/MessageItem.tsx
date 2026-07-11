@@ -15,9 +15,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className="font-semibold text-lg text-gray-900">
-            {message.title}
+            {message.from_number} → {message.to_number}
           </h3>
-          <p className="text-gray-600 mt-2">{message.content}</p>
+          <p className="text-gray-600 mt-2">{message.message || (message.image_url ? 'Image message' : 'No content')}</p>
         </div>
         {onDelete && (
           <button
@@ -29,7 +29,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
         )}
       </div>
       <p className="text-xs text-gray-500 mt-4">
-        {new Date(message.createdAt).toLocaleDateString()}
+        {new Date(message.created_at).toLocaleDateString()}
       </p>
     </div>
   );

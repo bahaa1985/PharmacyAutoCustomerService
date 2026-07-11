@@ -1,13 +1,21 @@
 export interface Message {
   id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
+  original_id?: string | null;
+  quoted_message_id?: string | null;
+  message?: string | null;
+  message_type: string;
+  created_at: string;
+  pharmacy_id: string;
+  from_number: string;
+  to_number: string;
+  log: string;
+  image_url?: string | null;
+  album_id?: string | null;
+  confidence?: number | null;
 }
 
 export interface CreateMessageDto {
-  title: string;
-  content: string;
+  to_number: string;
+  message?: string;
+  image_url?: string;
 }
