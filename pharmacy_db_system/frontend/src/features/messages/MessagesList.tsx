@@ -6,6 +6,7 @@ import type { Message } from '../../types/message';
 import type { Contact } from '../../types/contact';
 import { useAuth } from '../../context/AuthContext';
 import { supabaseClient } from '../../lib/supabaseClient';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export const MessagesList: React.FC = () => {
   const { user, setUser } = useAuth();
@@ -69,7 +70,7 @@ export const MessagesList: React.FC = () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'messages' },
-        (payload) => {
+        (payload: RealtimePostgresChangesPayload<Message>) => {
           const newMessageData = payload.new as Message | null;
           const oldMessageData = payload.old as Message | null;
           if (!newMessageData && !oldMessageData) return;
