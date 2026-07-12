@@ -3,11 +3,14 @@ import {prismaClient} from "../../utils/prisma-adapter"
 
 
 export const userLoginService = async (mobile: string, password: string) => {
+    console.log("user login service is running");
+    
     try {
         const user_data = await prismaClient.users.findUnique({ 
             
             where: { mobile:mobile }
         })
+        console.log("Fetched user data:", user_data);
         if (!user_data) {
             throw new Error("User not found")
         }        

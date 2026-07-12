@@ -21,7 +21,7 @@ export const createUserService = async (username: string, password:string, mobil
         }
     }
 
-export const updateUserService = async (userId: bigint, updateData: Prisma.usersUpdateInput) => {
+export const updateUserService = async (userId: bigint, updateData: any) => {
     try {
         if (updateData.password) {
             const saltRounds = 10;

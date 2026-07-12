@@ -3,17 +3,6 @@ import { AuthContext } from './AuthContext';
 import type { User } from '../types/user';
 import { authAPI } from '../api/authAPI';
 
-// interface AuthContextType {
-//   user: User | null;
-//   isLoading: boolean;
-//   isAuthenticated: boolean;
-//   login: (email: string, password: string) => Promise<void>;
-//   logout: () => Promise<void>;
-//   setUser: (user: User | null) => void;
-// }
-
-// const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {

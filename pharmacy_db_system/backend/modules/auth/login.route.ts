@@ -1,8 +1,12 @@
-import express from "express";
-import { userLoginController, getCurrentUserController} from "./login.controller";
-import { authenticateToken } from "../../middleware/authenticateToken";
-import bodyParser from "body-parser";
+import express from 'express';
+import { userLoginController } from './login.controller';
+import bodyParser from 'body-parser';
 
-export const AUTH_LOGIN_ROUTER = express.Router()
+export const AUTH_LOGIN_ROUTER = express.Router();
 
-AUTH_LOGIN_ROUTER.post('/',bodyParser.urlencoded({extended:true}), userLoginController)
+AUTH_LOGIN_ROUTER.post(
+  '/',
+  bodyParser.json(),
+  bodyParser.urlencoded({ extended: false }),
+  userLoginController
+);

@@ -1,6 +1,5 @@
 import { userLoginService } from "./login.service";
 import { generateToken } from "../../utils/jwt";
-import { log } from "console";
 
 const serializeUser = (user: any) => {
     return {
@@ -16,24 +15,31 @@ const serializeUser = (user: any) => {
 export const userLoginController = async (req: any, res: any) =>  {
     try {
         const { mobile, password } = req.body
-        const user = await userLoginService('+'+mobile, password)
-        if (user) {
-            //if the credentials are valid, generate a token and set it in the cookie:
-            const token = generateToken(serializeUser(user))
-            res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'Strict' })
-            res.status(200).json({ success: true, user: serializeUser(user) })
+        console.log("Received login request:", { mobile, password });
+        const user = await userLoginService(mobile, password)
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" })
         }
-        //if the credentails are invalid:
-        return res.status(401).json({ success: false, message: "Invalid credentials" })
+        const serializedUser = serializeUser(user)
+        const token = generateToken(serializedUser)
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 5 * 60 * 1000,
+        })
+        return res.status(200).json({ success: true, user: serializedUser })
     }
     catch (error) {
-        res.status(401).json({ success: false, message: "Invalid credentials" })
+        return res.status(401).json({ success: false, message: "Invalid credentials" })
     }
 }
 
 export const getCurrentUserController = async (req:any, res:any) => {
     try {
         const user = req.user
+        console.log("Current user from token:", user);
         if (!user) {
             return res.status(401).json({ success: false, message: 'Unauthorized' })
         }

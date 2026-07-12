@@ -38,7 +38,7 @@ export const LoginForm: React.FC = () => {
         type="number"
         value={mobile}
         onChange={(e) => setMobile(e.target.value)}
-        // placeholder="01234567890"
+        placeholder="20123456789"
         required
       />
       <Input
