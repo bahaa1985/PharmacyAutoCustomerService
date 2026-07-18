@@ -2,11 +2,22 @@ import { userLoginService } from "./login.service";
 import { generateToken } from "../../utils/jwt";
 
 const serializeUser = (user: any) => {
+    const roleId = user.role_id ?? user.roleId;
+    const pharmacyId = user.pharmacy_id ?? user.pharmacyId;
+    const instanceName = user.instance_name ?? user.instanceName ?? '';
+    const isActive = user.is_active ?? user.isActive;
+    const lastLoginAt = user.last_login_at ?? user.lastLogging;
+    const createdAt = user.createdAt ?? user.createdAt;
+
     return {
         ...user,
         id: Number(user.id),
-        role_id: Number(user.role_id),
-        pharmacy_id: Number(user.pharmacy_id),
+        role_id: Number(roleId),
+        pharmacy_id: Number(pharmacyId),
+        instance_name: instanceName,
+        is_active: Boolean(isActive),
+        last_login_at: lastLoginAt ? new Date(lastLoginAt).toISOString() : null,
+        createdAt: createdAt ? new Date(createdAt).toISOString() : null,
     }
 }
 

@@ -7,6 +7,7 @@ export interface User {
   ai_mode: boolean;
   is_active: boolean;
   is_logging_at: string;
+  instance_name: string;
   createdAt: string;
 }
 

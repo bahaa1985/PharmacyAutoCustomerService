@@ -19,26 +19,25 @@
             }
         },
         {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Backend (tsx)",
-            "runtimeExecutable": "node",
-            "runtimeArgs": ["--import", "tsx", "./index.ts"],
-            "cwd": "${workspaceFolder}/backend",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "skipFiles": ["<node_internals>/**"],
-            "sourceMaps": true,
-            "env": {
-                "NODE_ENV": "development"
-            }
-        }
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Backend",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "tsx",
+        "${workspaceFolder}/backend/index.ts"
+      ],
+      "console": "integratedTerminal",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    }
     ],
     "compounds": [
         {
             "name": "Debug Backend + Frontend",
             "configurations": [
-                "Debug Backend (tsx)",
+                "Debug Backend",
                 "Launch Chrome against localhost"
             ]
         }

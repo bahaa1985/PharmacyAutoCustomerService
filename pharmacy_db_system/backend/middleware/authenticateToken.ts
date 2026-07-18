@@ -5,10 +5,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'pharmacy-dev-secret'
 
 export const authenticateToken = (req: any, res: any, next: any) => {
     const token = req.cookies?.token || null
-    console.log("authenticate token",token);
+    // console.log("authenticate token",token);
     
     if (!token) {
-        return res.status(401).json({ success: false, message: 'Access denied. No token provided.' })
+        return res.status(401).json({ success: false, message: ' No token provided.' })
     }
     try {
         const decoded = jwt.verify(token, JWT_SECRET as string)

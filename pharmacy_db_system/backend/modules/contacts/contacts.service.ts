@@ -15,7 +15,7 @@ export const getContactsByUserService = async (userId: bigint) => {
 export const createContactService = async (
   name: string,
   phone: string,
-  userId: bigint,
+  userId: number | bigint,
 ) => {
   try {
     return await prismaClient.contacts.create({

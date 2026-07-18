@@ -11,6 +11,7 @@ import {
   normalizeDrugCardData
 } from './uploadInventoryHandler';
 import { usePharmacy } from '../../context/PharamcyContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const UploadInventory: React.FC = () => {
   const [status, setStatus] = useState('');
@@ -23,6 +24,7 @@ export const UploadInventory: React.FC = () => {
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const { showToast } = useToast();
   const { pharmacy } = usePharmacy();
+  const { t } = useLanguage();
 
   // console.log("pharmacy",pharmacy);
   
@@ -34,7 +36,7 @@ export const UploadInventory: React.FC = () => {
       return await inventoryAPI.getDrugCardData();
     } catch (error) {
       console.warn('Failed to load DrugCard data:', error);
-      showToast('Failed to load DrugCard data from local file', 'error');
+      showToast(t('inventory.loadDrugCardFailed'), 'error');
       return [];
     }
   };
@@ -118,7 +120,7 @@ export const UploadInventory: React.FC = () => {
       const allowedExtensions = ['.xlsx', '.xls'];
       const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
       if (!allowedExtensions.includes(fileExtension)) {
-        throw new Error('Please select a valid Excel file (.xlsx or .xls)');
+        throw new Error(t('inventory.invalidFile'));
       }
 
       // Read the Excel file
@@ -131,7 +133,7 @@ export const UploadInventory: React.FC = () => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as (string | number | boolean | null)[][];
 
       if (jsonData.length < 2) {
-        throw new Error('Excel file must contain at least a header row and one data row');
+        throw new Error(t('inventory.missingRows'));
       }
 
       // Get headers from first row
@@ -147,7 +149,7 @@ export const UploadInventory: React.FC = () => {
       const missingColumns = requiredColumns.filter(col => !headers.includes(col));
 
       if (missingColumns.length > 0) {
-        throw new Error(`Missing required columns: ${missingColumns.join(', ')}`);
+        throw new Error(`${t('inventory.missingColumns')} ${missingColumns.join(', ')}`);
       }
 
       // Get column indices
@@ -164,7 +166,7 @@ export const UploadInventory: React.FC = () => {
       const drugCardData = await loadDrugCardData();
 
       if (drugCardData.length === 0) {
-        showToast('Warning: DrugCard data not available for dosage matching', 'warning');
+        showToast(t('inventory.drugCardWarning'), 'warning');
       }
 
       // Normalize DrugCard data and group by first character for faster search
@@ -194,7 +196,7 @@ export const UploadInventory: React.FC = () => {
       setProcessedRows([extendedHeaders, ...dataRows]);
       
       // Show success toast
-      showToast('File validated and processed successfully! Ready to upload.', 'success');
+      showToast(t('inventory.processedSuccess'), 'success');
       // Enable the upload button after successful validation
       setDisabledUploadingButton(false);
 
@@ -229,7 +231,7 @@ export const UploadInventory: React.FC = () => {
 
   const handleUploadButtonClick = async () => {
     if (!originalFile || processedRows.length === 0) {
-      showToast('No file to upload. Please select and process a file first.', 'error');
+      showToast(t('inventory.noFile'), 'error');
       return;
     }
 
@@ -245,7 +247,7 @@ export const UploadInventory: React.FC = () => {
 
       // Ensure pharmacy is available
       if (!pharmacy || !pharmacy.id) {
-        showToast('Cannot upload: pharmacy not loaded. Please ensure you are logged in and a pharmacy is selected.', 'error');
+        showToast(t('inventory.pharmacyMissing'), 'error');
         return;
       }
 
@@ -277,14 +279,14 @@ export const UploadInventory: React.FC = () => {
       console.log('Prepared rows for backend:', sanitizedRows);
       // Send processed rows to backend for DB insertion
       const backendResult = await inventoryAPI.uploadProcessed(sanitizedRows, pharmacy.id);
-      showToast(`✓ Backend: ${backendResult.message}`, 'success');
+      showToast(`${t('inventory.backendSuccess')} ${backendResult.message}`, 'success');
 
       // Reset state
       setDisabledUploadingButton(true);
       setOriginalFile(null);
       setProcessedRows([]);
 
-      showToast('Successfully uploaded to backend!', 'success');
+      showToast(t('inventory.uploadSuccess'), 'success');
     } catch (err) {
       console.log("upload error front",JSON.stringify(err, null, 2));
       
@@ -310,7 +312,7 @@ export const UploadInventory: React.FC = () => {
       > */}
         <div className="space-y-4">
           <p className="text-gray-600">
-            Upload a CSV or Excel file with your inventory data.
+            {t('inventory.description')}
           </p>
           <input
             type="file"

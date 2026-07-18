@@ -11,6 +11,7 @@ export const userAPI = {
     username: string;
     role_id:number;
     pharmacy_id:number;
+    instance_name:string
   }): Promise<RegisterResponse> => {
     const response = await api.post<RegisterResponse>('/users/new', data);
     return response.data;

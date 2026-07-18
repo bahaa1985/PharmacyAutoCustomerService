@@ -1,15 +1,19 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { messagesAPI } from '../../api/messagesAPI';
 import { contactsAPI } from '../../api/contactsAPI';
 import { userAPI } from '../../api/userAPI';
 import type { Message } from '../../types/message';
 import type { Contact } from '../../types/contact';
+import type { User } from '../../types/user';
 import { useAuth } from '../../context/AuthContext';
 import { supabaseClient } from '../../lib/supabaseClient';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { ContactsList } from './ContactsList';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const MessagesList: React.FC = () => {
   const { user, setUser } = useAuth();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedClient, setSelectedClient] = useState('');
@@ -22,22 +26,23 @@ export const MessagesList: React.FC = () => {
   const [error, setError] = useState('');
   const [isSavingContact, setIsSavingContact] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAiMode, setIsAiMode] = useState(user?.ai_mode ?? true);
+  const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const isOwner = user?.role_id === 1;
   const currentUserMobile = user?.mobile || '';
+  const instanceName = user?.instance_name || (user as User & { instanceName?: string }).instanceName || '';
 
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
     try {
       const data = await contactsAPI.getContacts();
       setContacts(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load contacts');
     }
-  };
+  }, []);
 
-  const loadMessages = async (clientPhone?: string) => {
+  const loadMessages = useCallback(async (clientPhone?: string) => {
     if (!user) return;
     setIsLoading(true);
     setError('');
@@ -51,16 +56,17 @@ export const MessagesList: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isOwner, user]);
 
   useEffect(() => {
     if (user) {
-      setIsAiMode(user.ai_mode ?? true);
+      // setIsAiMode(user.ai_mode ?? true);
       loadContacts();
       loadMessages(selectedClient || undefined);
     }
-  }, [user, selectedClient]);
+  }, [user, selectedClient, loadContacts, loadMessages]);
 
+  //supabase messages table realtime subscription:
   useEffect(() => {
     if (!supabaseClient || !user) return;
     const client = supabaseClient;
@@ -78,7 +84,7 @@ export const MessagesList: React.FC = () => {
           const matchesCurrentUser = (msg: Message) => {
             if (!user) return false;
             if (isOwner) {
-              return msg.pharmacy_id === String(user.pharmacy_id);
+              return String(msg.pharmacy_id) === String(user.pharmacy_id);
             }
             return msg.from_number === user.mobile || msg.to_number === user.mobile;
           };
@@ -103,11 +109,11 @@ export const MessagesList: React.FC = () => {
           }
 
           if (payload.eventType === 'UPDATE' && newMessageData && matchesCurrentUser(newMessageData)) {
-            setMessages((prev) => prev.map((message) => (message.id === newMessageData.id ? { ...message, ...newMessageData } : message)));
+            setMessages((prev) => prev.map((message) => (String(message.id) === String(newMessageData.id) ? { ...message, ...newMessageData } : message)));
           }
 
           if (payload.eventType === 'DELETE' && oldMessageData) {
-            setMessages((prev) => prev.filter((message) => message.id !== oldMessageData.id));
+            setMessages((prev) => prev.filter((message) => String(message.id) !== String(oldMessageData.id)));
           }
         },
       )
@@ -118,6 +124,7 @@ export const MessagesList: React.FC = () => {
     };
   }, [user, selectedClient, isOwner, currentUserMobile]);
 
+  // Auto-select the first client if none is selected and there are messages
   useEffect(() => {
     if (!selectedClient && !isOwner && messages.length > 0 && user) {
       const firstClient = messages.find((message) => message.from_number !== user.mobile)?.from_number ||
@@ -128,6 +135,7 @@ export const MessagesList: React.FC = () => {
     }
   }, [messages, selectedClient, isOwner, user]);
 
+  // Scroll to the bottom of the message list when messages change
   useEffect(() => {
     if (messageContainerRef.current) {
       messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
@@ -139,30 +147,6 @@ export const MessagesList: React.FC = () => {
     contacts.forEach((contact) => map.set(contact.phone, contact));
     return map;
   }, [contacts]);
-
-  const participants = useMemo(() => {
-    const set = new Set<string>();
-    messages.forEach((message) => {
-      const other = message.from_number === currentUserMobile ? message.to_number : message.from_number;
-      if (other && other !== currentUserMobile) set.add(other);
-    });
-    contacts.forEach((contact) => {
-      if (contact.phone !== currentUserMobile) set.add(contact.phone);
-    });
-    return Array.from(set).sort((a, b) => {
-      const nameA = contactMap.get(a)?.name || a;
-      const nameB = contactMap.get(b)?.name || b;
-      return nameA.localeCompare(nameB);
-    });
-  }, [messages, contacts, contactMap, currentUserMobile]);
-
-  const filteredParticipants = useMemo(() => {
-    return participants.filter((phone) => {
-      const name = contactMap.get(phone)?.name || phone;
-      const term = clientSearch.toLowerCase();
-      return name.toLowerCase().includes(term) || phone.includes(term);
-    });
-  }, [participants, contactMap, clientSearch]);
 
   const conversationMessages = useMemo(() => {
     const items = selectedClient
@@ -195,12 +179,16 @@ export const MessagesList: React.FC = () => {
       setError('Please enter a message.');
       return;
     }
-
     setError('');
+    
     try {
       const created = await messagesAPI.createMessage({
         to_number: selectedClient,
         message: newMessage.trim(),
+        instance_name: instanceName,
+        from_number: currentUserMobile,
+        image_url: "",
+        pharmacyId: user?.pharmacy_id || 0,
       });
       setMessages((prev) => [...prev, created]);
       setNewMessage('');
@@ -251,6 +239,7 @@ export const MessagesList: React.FC = () => {
       const contact = await contactsAPI.createContact({
         name: saveContactName.trim(),
         phone: selectedClient,
+        userId: Number(user?.id),
       });
       setContacts((prev) => [contact, ...prev]);
       setSaveContactName('');
@@ -264,8 +253,9 @@ export const MessagesList: React.FC = () => {
   const handleToggleAiMode = async () => {
     if (!user) return;
     try {
-      const updatedUser = await userAPI.updateUser(BigInt(user.id), { ai_mode: !isAiMode });
-      setIsAiMode(updatedUser.ai_mode);
+      const newAiMode = !user.ai_mode;
+      setIsAiMode(newAiMode);
+      const updatedUser = await userAPI.updateUser(BigInt(user.id), { ai_mode: newAiMode });
       setUser({ ...user, ai_mode: updatedUser.ai_mode });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update AI mode');
@@ -273,60 +263,30 @@ export const MessagesList: React.FC = () => {
   };
 
   if (!user) {
-    return <div className="text-center py-8">Please sign in to view messages.</div>;
+    return <div className="text-center py-8">{t('auth.pleaseSignIn')}</div>;
   }
 
-  if (isLoading) return <div className="text-center py-8">Loading messages...</div>;
+  if (isLoading) return <div className="text-center py-8">{t('common.loading')}</div>;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-      <aside className="space-y-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Clients</h2>
-          <p className="text-sm text-gray-500 mt-1">Search and choose a client to open the conversation.</p>
-          <input
-            type="text"
-            value={clientSearch}
-            onChange={(e) => setClientSearch(e.target.value)}
-            placeholder="Search clients"
-            className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm h-[calc(100vh-220px)] overflow-y-auto">
-          {filteredParticipants.length === 0 ? (
-            <p className="text-sm text-gray-500">No clients match your search.</p>
-          ) : (
-            <ul className="space-y-2">
-              {filteredParticipants.map((phone) => {
-                const contact = contactMap.get(phone);
-                return (
-                  <li key={phone}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedClient(phone)}
-                      className={`w-full rounded-xl px-3 py-3 text-left transition ${
-                        selectedClient === phone
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
-                      }`}
-                    >
-                      <div className="font-semibold">{contact?.name || phone}</div>
-                      <div className="text-xs text-gray-500">{phone}</div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </aside>
+      <ContactsList
+        contacts={contacts}
+        messages={messages}
+        selectedClient={selectedClient}
+        clientSearch={clientSearch}
+        currentUserMobile={currentUserMobile}
+        contactMap={contactMap}
+        onClientSearchChange={setClientSearch}
+        onSelectClient={setSelectedClient}
+      />
 
       <section className="space-y-4">
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Conversation</h2>
-              <p className="text-sm text-gray-500">{selectedClient ? `${selectedClientName}` : isOwner ? 'Viewing all pharmacy messages' : 'Select a client to start chatting'}</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('messages.conversation')}</h2>
+              <p className="text-sm text-gray-500">{selectedClient ? `${selectedClientName}` : isOwner ? t('messages.viewingAll') : t('messages.selectClient')}</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
@@ -334,7 +294,7 @@ export const MessagesList: React.FC = () => {
                 onClick={handleToggleAiMode}
                 className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
               >
-                AI mode: {isAiMode ? 'Enabled' : 'Disabled'}
+                {isAiMode ? t('messages.aiEnabled') : t('messages.aiDisabled')}
               </button>
               {isOwner && selectedClient && (
                 <button
@@ -342,31 +302,31 @@ export const MessagesList: React.FC = () => {
                   onClick={() => setSelectedClient('')}
                   className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 >
-                  Show all messages
+                  {t('messages.showAll')}
                 </button>
               )}
             </div>
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">User</span>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">{t('messages.user')}</span>
               <p className="mt-1 text-sm text-gray-700">{user.username}</p>
             </div>
             <div>
-              <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">Role</span>
-              <p className="mt-1 text-sm text-gray-700">{isOwner ? 'Owner' : 'Team member'}</p>
+              <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">{t('layout.role')}</span>
+              <p className="mt-1 text-sm text-gray-700">{isOwner ? t('messages.roleOwner') : t('messages.roleMember')}</p>
             </div>
           </div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('messages.messagesTitle')}</h3>
             <input
               type="text"
               value={messageSearch}
               onChange={(e) => setMessageSearch(e.target.value)}
-              placeholder="Search messages"
+              placeholder={t('messages.searchMessages')}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:w-64"
             />
           </div>
@@ -376,12 +336,12 @@ export const MessagesList: React.FC = () => {
             className="mt-4 flex h-[calc(100vh-380px)] flex-col gap-3 overflow-y-auto rounded-xl border border-gray-200 bg-slate-50 p-4"
           >
             {conversationMessages.length === 0 ? (
-              <div className="text-center text-sm text-gray-500">No messages in this conversation yet.</div>
+              <div className="text-center text-sm text-gray-500">{t('messages.noMessages')}</div>
             ) : (
               conversationMessages.map((message) => {
                 const isOwnMessage = message.from_number === currentUserMobile;
                 const otherPhone = isOwnMessage ? message.to_number : message.from_number;
-                const senderName = isOwnMessage ? 'You' : contactMap.get(otherPhone)?.name || otherPhone;
+                const senderName = isOwnMessage ? t('messages.you') : contactMap.get(otherPhone)?.name || otherPhone;
                 return (
                   <div
                     key={message.id}
@@ -436,14 +396,14 @@ export const MessagesList: React.FC = () => {
                                   onClick={() => handleStartEditing(message)}
                                   className="rounded-md px-2 py-1 text-blue-600 hover:bg-blue-50"
                                 >
-                                  Edit
+                                  {t('common.edit')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDelete(message.id)}
                                   className="rounded-md px-2 py-1 text-red-600 hover:bg-red-50"
                                 >
-                                  Delete
+                                  {t('common.delete')}
                                 </button>
                               </div>
                             )}
@@ -459,12 +419,12 @@ export const MessagesList: React.FC = () => {
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900">Send a message</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('messages.sendTitle')}</h3>
           <textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             rows={4}
-            placeholder={selectedClient ? `Message ${selectedClientName}` : 'Select a client before sending a message...'}
+            placeholder={selectedClient ? `${t('messages.messagePreview')}: ${selectedClientName}` : t('messages.placeholder')}
             className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
           />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -474,7 +434,7 @@ export const MessagesList: React.FC = () => {
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
               disabled={!selectedClient || !newMessage.trim()}
             >
-              Send Message
+              {t('messages.sendButton')}
             </button>
             {selectedClient && !contactMap.has(selectedClient) && (
               <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
@@ -482,7 +442,7 @@ export const MessagesList: React.FC = () => {
                   type="text"
                   value={saveContactName}
                   onChange={(e) => setSaveContactName(e.target.value)}
-                  placeholder="Contact name"
+                  placeholder={t('messages.contactName')}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
                 <button
@@ -491,7 +451,7 @@ export const MessagesList: React.FC = () => {
                   className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
                   disabled={isSavingContact}
                 >
-                  Save contact
+                  {t('messages.saveContact')}
                 </button>
               </div>
             )}

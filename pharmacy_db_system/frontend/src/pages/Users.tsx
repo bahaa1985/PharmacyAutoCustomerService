@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { PageWrapper } from "../components/layout/PageWrapper";
 import { NewUser } from "../features/users/NewUser";
 import { UsersList } from "../features/users/UsersList";
+import { useLanguage } from "../context/LanguageContext";
 
 export const UsersPage: React.FC = () => {
+  const { t } = useLanguage();
   const tabs = [
-    { label: "Users List", value: "list" },
-    { label: "New User", value: "new" },
+    { label: t('users.listTab'), value: "list" },
+    { label: t('users.newTab'), value: "new" },
   ];
   const [selectedTab, setSelectedTab] = useState<"list" | "new">("list");
 
@@ -14,8 +16,8 @@ export const UsersPage: React.FC = () => {
     <PageWrapper>
       <div className="space-y-8">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">Users</h1>
-          <p className="text-gray-600 mt-2">Manage your pharmacy users.</p>
+          <h1 className="text-4xl font-bold text-gray-900">{t('users.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('users.subtitle')}</p>
           <div className="mt-4">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">

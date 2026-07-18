@@ -4,6 +4,7 @@ import { userAPI } from "../../api/userAPI";
 import { pharmacyAPI } from "../../api/pharmacyAPI";
 import { Modal } from "../../components/ui/Modal";
 import { useToast } from "../../context/ToastContext";
+import { useLanguage } from "../../context/LanguageContext";
 import type { User } from "../../types/user";
 import type { Pharmacy } from "../../types/pharmacy";
 import Switch from "@mui/material/Switch";
@@ -11,6 +12,7 @@ import Switch from "@mui/material/Switch";
 export const UsersList: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<User[]>([]);
   const [pharmacies, setPharamacies] = useState<Pharmacy[]>([]);
   const [pharmacyId, setPharmacyId] = useState(user?.pharmacy_id || 0);
@@ -66,7 +68,7 @@ export const UsersList: React.FC = () => {
         role_id: selectedUser?.role_id,
       });
       if (updatedUser) {
-        showToast(`${selectedUser?.username} updated successfully!`, "success");
+        showToast(`${selectedUser?.username} ${t('users.updateSuccess')}`, "success");
         setShowModal(false);
         await fetchUsers();
       }
@@ -102,7 +104,7 @@ export const UsersList: React.FC = () => {
       )}
 
       {user?.role_id.toString() === "1" && (
-        <button onClick={fetchUsers}>Fetch Users</button>
+        <button onClick={fetchUsers}>{t('users.listTab')}</button>
       )}
       <ul>
         {users.map((user: User) => (
@@ -122,7 +124,7 @@ export const UsersList: React.FC = () => {
           title={modalTitle}
         >
           <div className="my-4">
-            Username:
+            {t('users.firstName')}:
             <input
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded"
@@ -134,7 +136,7 @@ export const UsersList: React.FC = () => {
             {/* <button className="cursor-pointer"  onClick={()=>setEditable(true)}><EditIcon fontSize="medium"/></button> */}
           </div>
           <div className="my-4">
-            Mobile:
+            {t('users.mobile')}:
             <input
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded"
@@ -147,7 +149,7 @@ export const UsersList: React.FC = () => {
             />
           </div>
           <div className="my-4">
-            Active:
+            {t('users.active')}:
             <Switch
               checked={selectedUser?.is_active}
               onChange={handleToggleChange}
@@ -161,7 +163,7 @@ export const UsersList: React.FC = () => {
             className="w-1/4 h-10 flex justify-center items-center px-4 py-auto bg-green-500 text-[#fff] rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => handleUserUpdate(BigInt(selectedUser?.id))}
           >
-            {loading ? "Updating..." : "Update"}
+            {loading ? t('users.updating') : t('common.update')}
           </button>
         </Modal>
       )}

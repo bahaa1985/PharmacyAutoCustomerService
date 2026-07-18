@@ -3,6 +3,7 @@ import { pharmacyAPI } from "../../api/pharmacyAPI";
 import type { Pharmacy } from "../../types/pharmacy";
 import { Modal } from "@mui/material";
 import { useToast } from "../../context/ToastContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 export const PharmaciesList: React.FC = () => {
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
@@ -11,6 +12,7 @@ export const PharmaciesList: React.FC = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   const fetchPharmacies = async () => {
     try {
@@ -37,7 +39,7 @@ export const PharmaciesList: React.FC = () => {
         pharmacy_address: selectedPharmacy?.pharmacy_address || "",
       });
       if (updatedPharmacy) {
-        showToast("Pharmacy updated successfully", "success");
+        showToast(t('pharmacy.updateSuccess'), "success");
         setShowModal(false);
       }
     } catch (error) {
@@ -49,7 +51,7 @@ export const PharmaciesList: React.FC = () => {
 
   return (
     <div>
-      <h2>Pharmacies List</h2>
+      <h2>{t('pharmacy.listHeading')}</h2>
       <ul>
         {pharmacies?.map((pharmacy: Pharmacy) => {
           return (
@@ -79,7 +81,7 @@ export const PharmaciesList: React.FC = () => {
               className="w-1/4 h-10 flex justify-center items-center px-4 py-auto bg-green-500 text-[#fff] rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => handlePharmacyUpdate(BigInt(selectedPharmacy.id))}
             >
-              {loading ? "Updating..." : "Update"}
+              {loading ? t('users.updating') : t('common.update')}
             </button>
           </div>
         </Modal>

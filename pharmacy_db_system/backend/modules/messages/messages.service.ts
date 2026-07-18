@@ -1,11 +1,11 @@
 import { prismaClient } from "../../utils/prisma-adapter";
-
-const getTextMessageType = async (): Promise<bigint> => {
-  const messageType = await prismaClient.message_types.findFirst({
-    where: { message_type: 'text' },
-  });
-  return messageType ? BigInt(messageType.id) : BigInt(1);
-};
+import {sendTextMessage} from "./evolutionSendTextMessage"
+// const getTextMessageType = async (): Promise<bigint> => {
+//   const messageType = await prismaClient.message_types.findFirst({
+//     where: { message_type: 'text' },
+//   });
+//   return messageType ? BigInt(messageType.id) : BigInt(1);
+// };
 
 export const getMessagesByPharmacyIdService = async (
   pharmacyId: bigint,
@@ -69,28 +69,45 @@ export const getMessagesByUserNumberService = async (
 export const createMessageService = async ({
   fromNumber,
   toNumber,
+  instance_name,
   message,
+  message_type,
   imageUrl,
   pharmacyId,
+  original_id,
+  confidence,
   log,
 }: {
   fromNumber: string;
   toNumber: string;
+  instance_name: string;
   message?: string;
+  message_type?: number|bigint;
   imageUrl?: string;
-  pharmacyId: bigint;
+  pharmacyId: number|bigint;
+  original_id?: string;
+  confidence?:number;
   log: string;
 }) => {
   try {
-    const messageType = await getTextMessageType();
+    // const messageType = await getTextMessageType();
+    const evolution_message = await sendTextMessage(toNumber,message||"",instance_name)
+    // if(!evolution_message || evolution_message.status !== "success"){
+    //   throw new Error("Failed to send message via Evolution API");
+    // }
+    // console.log("evo object",evolution_message)
+    original_id = evolution_message.key.id.toString();
+    log = evolution_message.status;
     const newMessage = await prismaClient.messages.create({
       data: {
         from_number: fromNumber,
         to_number: toNumber,
         message,
         image_url: imageUrl,
-        message_type: messageType,
+        message_type: 5,
         pharmacy_id: pharmacyId,
+        original_id,
+        confidence:1.0,
         log,
       },
     });

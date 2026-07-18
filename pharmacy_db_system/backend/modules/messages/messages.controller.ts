@@ -53,6 +53,7 @@ export const createMessageController = async (req: any, res: any) => {
     const newMessage = await createMessageService({
       fromNumber: user.mobile,
       toNumber: to_number,
+      instance_name: user.instance_name,
       message,
       imageUrl: image_url,
       pharmacyId: BigInt(user.pharmacy_id),

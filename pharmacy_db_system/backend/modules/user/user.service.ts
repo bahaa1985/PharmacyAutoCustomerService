@@ -4,13 +4,13 @@ import bcrypt from 'bcrypt';
 // const prismaClient = new PrismaClient()
 
 export const createUserService = async (username: string, password:string, mobile:string,
-    role_id: bigint, pharmacy_id: bigint) => {
+    role_id: bigint, pharmacy_id: bigint,instance_name:string) => {
         try{
             const saltRounds=10
             const hashedPassword:string = await bcrypt.hash(password,saltRounds)
             const newUser = await prismaClient.users.create({
                 data:{
-                    username, password:hashedPassword, mobile, role_id, pharmacy_id
+                    username, password:hashedPassword, mobile, role_id, pharmacy_id,instance_name
                 }
             })
             return newUser
@@ -23,7 +23,7 @@ export const createUserService = async (username: string, password:string, mobil
 
 export const updateUserService = async (userId: bigint, updateData: any) => {
     try {
-        if (updateData.password) {
+        if (updateData.password?.length >=8) {
             const saltRounds = 10;
             updateData.password = await bcrypt.hash(updateData.password as string, saltRounds);
         }

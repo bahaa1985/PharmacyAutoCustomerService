@@ -4,9 +4,11 @@ import { userAPI } from "../../api/userAPI";
 import { Modal } from "../../components/ui/Modal";
 import { pharmacyAPI } from "../../api/pharmacyAPI";
 import type{ Pharmacy } from "../../types/pharmacy";
+import { useLanguage } from "../../context/LanguageContext";
 
 export const NewUser: React.FC = () => {
   const currentUser = useAuth().user;
+  const { t } = useLanguage();
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -15,6 +17,7 @@ export const NewUser: React.FC = () => {
     password: "",
     confirmPassword: "",
     roleId: 2,
+    instance_name:""
   });
 
   const [pharmacies,setPharamacies] = useState<Pharmacy[]>([]); 
@@ -50,13 +53,13 @@ export const NewUser: React.FC = () => {
       e.preventDefault();
       const newErrors: Record<string, string> = {};
       if (!formData.firstName.trim())
-        newErrors.firstName = "First name is required";
+        newErrors.firstName = t('users.requiredFirstName');
       // if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-      if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
-      if( formData.mobile.length != 13) newErrors.mobile = "Mobile must be 11 digits";
-      if (!formData.password) newErrors.password = "Password is required";
+      if (!formData.mobile.trim()) newErrors.mobile = t('users.requiredMobile');
+      if( formData.mobile.length != 13) newErrors.mobile = t('users.invalidMobile');
+      if (!formData.password) newErrors.password = t('users.requiredPassword');
       if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match";
+        newErrors.confirmPassword = t('users.passwordMismatch');
       }
 
       setErrors(newErrors);
@@ -70,8 +73,9 @@ export const NewUser: React.FC = () => {
           username: formData.firstName,
           role_id: formData.roleId,
           pharmacy_id: currentUser?.role_id.toString() === '1' ? pharmacyId : currentUser?.pharmacy_id || 0,
+          instance_name: formData.instance_name+'_'+formData.mobile
         });
-        setMessage("User registered successfully!");
+        setMessage(t('users.success'));
         setShowSuccessModal(true);
         setFormData({
           firstName: "",
@@ -80,6 +84,7 @@ export const NewUser: React.FC = () => {
           password: "",
           confirmPassword: "",
           roleId: 2,
+          instance_name:""
         });
       }
     } catch (err) {
@@ -90,19 +95,19 @@ export const NewUser: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Register New User</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('users.registerTitle')}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {
           currentUser?.role_id.toString() === '1' ? (
             <div>
-          <label className="block text-sm font-medium mb-1">Pharmacy</label>
+          <label className="block text-sm font-medium mb-1">{t('users.pharmacy')}</label>
           <select
             name="pharmacyId"
             value={pharmacyId}
             onChange={(e) => setPharmacyId(Number(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded"
           >
-            <option value={0}>Select Pharmacy</option>
+            <option value={0}>{t('users.selectPharmacy')}</option>
             {pharmacies?.map((pharmacy) => (
               <option key={pharmacy.id} value={pharmacy.id}>
                 {pharmacy.pharmacy_name}
@@ -114,7 +119,7 @@ export const NewUser: React.FC = () => {
         }
         
         <div>
-          <label className="block text-sm font-medium mb-1">First Name</label>
+          <label className="block text-sm font-medium mb-1">{t('users.firstName')}</label>
           <input
             type="text"
             name="firstName"
@@ -128,7 +133,7 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Last Name</label>
+          <label className="block text-sm font-medium mb-1">{t('users.lastName')}</label>
           <input
             type="text"
             name="lastName"
@@ -142,7 +147,7 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Mobile</label>
+          <label className="block text-sm font-medium mb-1">{t('users.mobile')}</label>
           <input
             type="number"
             name="mobile"
@@ -156,7 +161,7 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
+          <label className="block text-sm font-medium mb-1">{t('users.password')}</label>
           <input
             type="password"
             name="password"
@@ -171,7 +176,7 @@ export const NewUser: React.FC = () => {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Confirm Password
+            {t('users.confirmPassword')}
           </label>
           <input
             type="password"
@@ -188,16 +193,16 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Role</label>
+          <label className="block text-sm font-medium mb-1">{t('users.role')}</label>
           <select
             name="roleId"
             value={formData.roleId}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded"
           >
-            <option value={2}>Owner</option>
-            <option value={3}>Pharmacist</option>
-            <option value={4}>Delivery</option>
+            <option value={2}>{t('users.owner')}</option>
+            <option value={3}>{t('users.pharmacist')}</option>
+            <option value={4}>{t('users.delivery')}</option>
           </select>
         </div>
 
@@ -205,7 +210,7 @@ export const NewUser: React.FC = () => {
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700"
         >
-          Register
+          {t('users.registerButton')}
         </button>
       </form>
 

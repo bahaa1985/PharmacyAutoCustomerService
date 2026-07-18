@@ -12,6 +12,7 @@ import { LoginPage } from "../pages/Login";
 import { DashboardPage } from "../pages/Dashboard";
 import { MessagesPage } from "../pages/Messages";
 import { UsersPage } from "../pages/Users";
+import { UserPage } from "../pages/UserPage";
 import { InventoryPage } from "../pages/Inventory";
 import { PharmacyPage } from "../pages/Pharmacy";
 import { NotFoundPage } from "../pages/NotFound";
@@ -56,6 +57,14 @@ export const AppRouter: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
 
         {/* Protected Routes */}
+        <Route
+          path="/users/:id"
+          element={
+            <ProtectedRoute>
+              <UserPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={

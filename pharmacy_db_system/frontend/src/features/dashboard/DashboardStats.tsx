@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface StatCardProps {
   label: string;
@@ -19,12 +20,13 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon }) => (
 );
 
 export const DashboardStats: React.FC = () => {
+  const { t } = useLanguage();
   // TODO: Fetch real data from API
   const stats = [
-    { label: 'Total Inventory Items', value: 1250, icon: '📦' },
-    { label: 'Messages', value: 42, icon: '💬' },
-    { label: 'Total Users', value: 8, icon: '👥' },
-    { label: 'This Month Orders', value: 156, icon: '📈' },
+    { label: t('dashboard.stats.inventory'), value: 1250, icon: '📦' },
+    { label: t('dashboard.stats.messages'), value: 42, icon: '💬' },
+    { label: t('dashboard.stats.users'), value: 8, icon: '👥' },
+    { label: t('dashboard.stats.orders'), value: 156, icon: '📈' },
   ];
 
   return (

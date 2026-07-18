@@ -7,7 +7,7 @@ export const contactsAPI = {
     return response.data;
   },
 
-  createContact: async (data: { name: string; phone: string }): Promise<Contact> => {
+  createContact: async (data: { name: string, phone: string, userId: number }): Promise<Contact> => {
     const response = await api.post<Contact>('/contacts/new', data);
     return response.data;
   },

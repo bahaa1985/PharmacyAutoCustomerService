@@ -23,7 +23,7 @@ export const messagesAPI = {
   },
 
   createMessage: async (data: CreateMessageDto): Promise<Message> => {
-    const response = await api.post<Message>(`/messages/new`, data);
+    const response = await api.post<Message>(`/messages/new`,data);
     return response.data;
   },
 

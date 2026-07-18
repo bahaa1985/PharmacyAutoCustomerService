@@ -22,6 +22,7 @@ export const getContactsController = async (req: any, res: any) => {
 
 export const createContactController = async (req: any, res: any) => {
   const user = req.user;
+  console.log("Creating contact for user:", user);
   if (!user) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -32,7 +33,7 @@ export const createContactController = async (req: any, res: any) => {
   }
 
   try {
-    const contact = await createContactService(name, phone, BigInt(user.id));
+    const contact = await createContactService(name, phone, Number(user.id));
     res.status(201).json(serializeContact(contact));
   } catch (error) {
     res.status(500).json({ message: 'Error creating contact', error });

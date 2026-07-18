@@ -16,6 +16,9 @@ export interface Message {
 
 export interface CreateMessageDto {
   to_number: string;
+  from_number: string;
+  pharmacyId: number;
   message?: string;
   image_url?: string;
+  instance_name?: string;
 }

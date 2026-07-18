@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 // import { usePharmacy } from '../../context/PharamcyContext';
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useLanguage();
   // const { pharmacy} = usePharmacy()
 
   const [mobile, setMobile] = useState('');
@@ -24,7 +26,7 @@ export const LoginForm: React.FC = () => {
       await login(mobile, password);
       navigate('/dashboard');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed';
+      const message = err instanceof Error ? err.message : t('auth.loginFailed');
       setError(message);
     } finally {
       setIsLoading(false);
@@ -34,7 +36,7 @@ export const LoginForm: React.FC = () => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
-        label="Mobile"
+        label={t('auth.mobile')}
         type="number"
         value={mobile}
         onChange={(e) => setMobile(e.target.value)}
@@ -42,7 +44,7 @@ export const LoginForm: React.FC = () => {
         required
       />
       <Input
-        label="Password"
+        label={t('auth.password')}
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -51,7 +53,7 @@ export const LoginForm: React.FC = () => {
       />
       {error && <p className="text-red-500 text-sm">{error}</p>}
       <Button type="submit" fullWidth isLoading={isLoading}>
-        Login
+        {t('auth.login')}
       </Button>
     </form>
   );

@@ -1,5 +1,6 @@
 import api from './axios';
 import type { LoginCredentials, AuthResponse, User } from '../types/user';
+import { redirect } from 'react-router-dom';
 
 /**
  * Login with mobile and password.
@@ -33,5 +34,6 @@ export const authAPI = {
    */
   logout: async (): Promise<void> => {
     await api.post('/logout');
+    redirect('/login'); // Redirect to login page after logout
   },
 };

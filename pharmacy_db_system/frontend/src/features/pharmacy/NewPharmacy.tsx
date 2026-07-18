@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { pharmacyAPI } from "../../api/pharmacyAPI";
 import { Modal } from "../../components/ui/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 
 export const NewPharmacy: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ export const NewPharmacy: React.FC = () => {
     address: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { t } = useLanguage();
   const [message, setMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -22,9 +24,9 @@ export const NewPharmacy: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Pharmacy name is required";
+    if (!formData.name.trim()) newErrors.name = t('pharmacy.requiredName');
     if (!formData.address.trim())
-      newErrors.address = "Pharmacy address is required";
+      newErrors.address = t('pharmacy.requiredAddress');
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       try {
@@ -33,7 +35,7 @@ export const NewPharmacy: React.FC = () => {
           formData.address,
         );
         setMessage(
-          "Pharmacy" + newPharmacy.pharmacy_name + " created successfully!",
+          newPharmacy.pharmacy_name + t('pharmacy.created'),
         );
         setShowSuccessModal(true);
         setFormData({ name: "", address: "" });
@@ -46,11 +48,11 @@ export const NewPharmacy: React.FC = () => {
   };
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">Add New Pharmacy</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('pharmacy.addTitle')}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">
-            Pharmacy Name
+            {t('pharmacy.name')}
           </label>
           <input
             type="text"
@@ -65,7 +67,7 @@ export const NewPharmacy: React.FC = () => {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">
-            Pharmacy Address
+            {t('pharmacy.address')}
           </label>
           <input
             type="text"
@@ -83,7 +85,7 @@ export const NewPharmacy: React.FC = () => {
           className="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           onClick={() => handleSubmit}
         >
-          Create Pharmacy
+          {t('pharmacy.createButton')}
         </button>
       </form>
       <Modal
