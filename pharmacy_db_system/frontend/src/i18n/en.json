@@ -10,7 +10,9 @@
     "back": "Back",
     "create": "Create",
     "delete": "Delete",
-    "edit": "Edit"
+    "edit": "Edit",
+    "active":"Active",
+    "deactive":"Deactive"
   },
   "auth": {
     "mobile": "Mobile",
@@ -28,7 +30,9 @@
     "users": "Users",
     "pharmacies": "Pharmacies",
     "language": "Language",
-    "role": "Role"
+    "role": "Role",
+    "aiEnabled": "Auto Response Mode: Enabled",
+    "aiDisabled": "Auto Response Mode: Disabled"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -63,7 +67,7 @@
     "saveContact": "Save contact",
     "aiEnabled": "AI mode: Enabled",
     "aiDisabled": "AI mode: Disabled",
-    "showAll": "Show all messages",
+    "showAll": "Show all contacts",
     "you": "You",
     "imageMessage": "Image message",
     "noContent": "No content",
@@ -94,8 +98,17 @@
     "addTitle": "Add New Pharmacy",
     "name": "Pharmacy Name",
     "address": "Pharmacy Address",
+    "workTime":"Work Time",
+    "delivery":"Delivery Available?",
     "requiredName": "Pharmacy name is required",
+    "nameTooLong":"الاسم أطول من 50 حرف",
+    "nameTooShort":"الاسم أقل من 9 حروف",
     "requiredAddress": "Pharmacy address is required",
+    "addressTooLong":"العنوان أطول من 50 حرف",
+    "addressTooShort":"العنوان أقل من 5 حروف",
+    "requiredWorkTime":"مواعيد العمل مطلوبة",
+    "workTimeTooShort":"مواعيد العمل أقل من 50 حرف",
+    "workTimeTooLong":"مواعيد العمل أقل من 10 حروف",
     "createButton": "Create Pharmacy",
     "created": "created successfully!",
     "updateSuccess": "Pharmacy updated successfully",
@@ -103,7 +116,7 @@
   },
   "users": {
     "title": "Users",
-    "subtitle": "Manage your pharmacy users.",
+    "subtitle": "Manage your pharmacy employees.",
     "listTab": "Users List",
     "newTab": "New User",
     "registerTitle": "Register New User",

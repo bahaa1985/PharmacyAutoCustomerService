@@ -4,12 +4,16 @@ import { prismaClient } from "../../utils/prisma-adapter"
 export const createPharmacyService = async (
   pharmacy_name: string,
   pharmacy_address: string,
+  work_time:string,
+  delivery:boolean
 ) => {
   try {
     const pharmacy = await prismaClient.pharmacies.create({
       data: {
         pharmacy_name,
         pharmacy_address,
+        work_time,
+        delivery
       },
     });
     return pharmacy;

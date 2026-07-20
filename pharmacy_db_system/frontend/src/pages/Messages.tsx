@@ -7,16 +7,19 @@ export const MessagesPage: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <PageWrapper>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900">{t('messages.title')}</h1>
-          <p className="text-gray-600 mt-2">
+        <PageWrapper>
+      <div className="space-y-4 sm:space-y-8 h-full flex flex-col">
+        <div className="px-4 sm:px-0">
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">{t('messages.title')}</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
             {t('messages.subtitle')}
           </p>
         </div>
-        <MessagesList />
+        <div className="flex-1 min-h-0">
+          <MessagesList />
+        </div>
       </div>
     </PageWrapper>
+
   );
 };

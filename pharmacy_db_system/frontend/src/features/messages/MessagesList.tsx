@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { messagesAPI } from '../../api/messagesAPI';
 import { contactsAPI } from '../../api/contactsAPI';
-import { userAPI } from '../../api/userAPI';
+// import { userAPI } from '../../api/userAPI';
 import type { Message } from '../../types/message';
 import type { Contact } from '../../types/contact';
 import type { User } from '../../types/user';
@@ -26,7 +26,7 @@ export const MessagesList: React.FC = () => {
   const [error, setError] = useState('');
   const [isSavingContact, setIsSavingContact] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
+  // const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const isOwner = user?.role_id === 1;
@@ -197,31 +197,31 @@ export const MessagesList: React.FC = () => {
     }
   };
 
-  const handleDelete = async (messageId: string) => {
-    try {
-      await messagesAPI.deleteMessage(messageId);
-      setMessages((prev) => prev.filter((message) => message.id !== messageId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete message');
-    }
-  };
+  // const handleDelete = async (messageId: string) => {
+  //   try {
+  //     await messagesAPI.deleteMessage(messageId);
+  //     setMessages((prev) => prev.filter((message) => message.id !== messageId));
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : 'Failed to delete message');
+  //   }
+  // };
 
-  const handleStartEditing = (message: Message) => {
-    setEditingMessageId(message.id);
-    setEditingText(message.message || '');
-  };
+  // const handleStartEditing = (message: Message) => {
+  //   setEditingMessageId(message.id);
+  //   setEditingText(message.message || '');
+  // };
 
-  const handleSaveEdit = async () => {
-    if (!editingMessageId) return;
-    try {
-      const updated = await messagesAPI.updateMessage(editingMessageId, { message: editingText });
-      setMessages((prev) => prev.map((message) => (message.id === updated.id ? updated : message)));
-      setEditingMessageId(null);
-      setEditingText('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update message');
-    }
-  };
+  // const handleSaveEdit = async () => {
+  //   if (!editingMessageId) return;
+  //   try {
+  //     const updated = await messagesAPI.updateMessage(editingMessageId, { message: editingText });
+  //     setMessages((prev) => prev.map((message) => (message.id === updated.id ? updated : message)));
+  //     setEditingMessageId(null);
+  //     setEditingText('');
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : 'Failed to update message');
+  //   }
+  // };
 
   const handleSaveContact = async () => {
     if (!selectedClient) {
@@ -250,17 +250,17 @@ export const MessagesList: React.FC = () => {
     }
   };
 
-  const handleToggleAiMode = async () => {
-    if (!user) return;
-    try {
-      const newAiMode = !user.ai_mode;
-      setIsAiMode(newAiMode);
-      const updatedUser = await userAPI.updateUser(BigInt(user.id), { ai_mode: newAiMode });
-      setUser({ ...user, ai_mode: updatedUser.ai_mode });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update AI mode');
-    }
-  };
+  // const handleToggleAiMode = async () => {
+  //   if (!user) return;
+  //   try {
+  //     const newAiMode = !user.ai_mode;
+  //     setIsAiMode(newAiMode);
+  //     const updatedUser = await userAPI.updateUser(BigInt(user.id), { ai_mode: newAiMode });
+  //     setUser({ ...user, ai_mode: updatedUser.ai_mode });
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : 'Failed to update AI mode');
+  //   }
+  // };
 
   if (!user) {
     return <div className="text-center py-8">{t('auth.pleaseSignIn')}</div>;
@@ -288,14 +288,14 @@ export const MessagesList: React.FC = () => {
               <h2 className="text-xl font-semibold text-gray-900">{t('messages.conversation')}</h2>
               <p className="text-sm text-gray-500">{selectedClient ? `${selectedClientName}` : isOwner ? t('messages.viewingAll') : t('messages.selectClient')}</p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button
+             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {/*<button
                 type="button"
                 onClick={handleToggleAiMode}
                 className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
               >
                 {isAiMode ? t('messages.aiEnabled') : t('messages.aiDisabled')}
-              </button>
+              </button>*/}
               {isOwner && selectedClient && (
                 <button
                   type="button"
@@ -305,9 +305,9 @@ export const MessagesList: React.FC = () => {
                   {t('messages.showAll')}
                 </button>
               )}
-            </div>
+            </div> 
           </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {/* <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
               <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">{t('messages.user')}</span>
               <p className="mt-1 text-sm text-gray-700">{user.username}</p>
@@ -316,7 +316,7 @@ export const MessagesList: React.FC = () => {
               <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">{t('layout.role')}</span>
               <p className="mt-1 text-sm text-gray-700">{isOwner ? t('messages.roleOwner') : t('messages.roleMember')}</p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -359,7 +359,7 @@ export const MessagesList: React.FC = () => {
                             rows={3}
                             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                           />
-                          <div className="flex gap-2">
+                          {/* <div className="flex gap-2">
                             <button
                               type="button"
                               onClick={handleSaveEdit}
@@ -374,7 +374,7 @@ export const MessagesList: React.FC = () => {
                             >
                               Cancel
                             </button>
-                          </div>
+                          </div> */}
                         </div>
                       ) : (
                         <>
@@ -389,7 +389,7 @@ export const MessagesList: React.FC = () => {
                           )}
                           <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-500">
                             <span>{new Date(message.created_at).toLocaleString()}</span>
-                            {isOwnMessage && (
+                            {/* {isOwnMessage && (
                               <div className="flex gap-2">
                                 <button
                                   type="button"
@@ -406,7 +406,7 @@ export const MessagesList: React.FC = () => {
                                   {t('common.delete')}
                                 </button>
                               </div>
-                            )}
+                            )} */}
                           </div>
                         </>
                       )}

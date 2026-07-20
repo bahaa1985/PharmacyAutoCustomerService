@@ -10,7 +10,9 @@
     "back": "رجوع",
     "create": "إنشاء",
     "delete": "حذف",
-    "edit": "تعديل"
+    "edit": "تعديل",
+    "active":"نشط",
+    "deactive":"غير نشط"
   },
   "auth": {
     "mobile": "الجوال",
@@ -28,7 +30,10 @@
     "users": "المستخدمون",
     "pharmacies": "الصيدليات",
     "language": "اللغة",
-    "role": "الدور"
+    "role": "الدور",
+    "aiEnabled": "وضع الرد الآلي: مفعل",
+    "aiDisabled": "وضع الرد الآلي: معطل"
+
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -61,9 +66,7 @@
     "sendButton": "إرسال الرسالة",
     "contactName": "اسم جهة الاتصال",
     "saveContact": "حفظ جهة الاتصال",
-    "aiEnabled": "وضع الذكاء الاصطناعي: مفعل",
-    "aiDisabled": "وضع الذكاء الاصطناعي: معطل",
-    "showAll": "عرض جميع الرسائل",
+    "showAll": "عرض جميع العملاء",
     "you": "أنت",
     "imageMessage": "رسالة صورة",
     "noContent": "لا يوجد محتوى",
@@ -94,8 +97,17 @@
     "addTitle": "إضافة صيدلية جديدة",
     "name": "اسم الصيدلية",
     "address": "عنوان الصيدلية",
+    "workTime":"مواعيد العمل",
+    "delivery":"يوجد توصيل؟",
     "requiredName": "اسم الصيدلية مطلوب",
+    "nameTooLong":"الاسم أطول من 50 حرف",
+    "nameTooShort":"الاسم أقل من 9 حروف",
     "requiredAddress": "عنوان الصيدلية مطلوب",
+    "addressTooLong":"العنوان أطول من 50 حرف",
+    "addressTooShort":"العنوان أقل من 5 حروف",
+    "requiredWorkTime":"مواعيد العمل مطلوبة",
+    "workTimeTooShort":"مواعيد العمل أقل من 50 حرف",
+    "workTimeTooLong":"مواعيد العمل أقل من 10 حروف",
     "createButton": "إنشاء صيدلية",
     "created": "تم إنشاؤها بنجاح!",
     "updateSuccess": "تم تحديث الصيدلية بنجاح",
@@ -103,7 +115,7 @@
   },
   "users": {
     "title": "المستخدمون",
-    "subtitle": "إدارة مستخدمي صيدليتك.",
+    "subtitle": "إدارة موظفي صيدليتك.",
     "listTab": "قائمة المستخدمين",
     "newTab": "مستخدم جديد",
     "registerTitle": "تسجيل مستخدم جديد",

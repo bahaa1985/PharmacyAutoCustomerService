@@ -75,7 +75,7 @@ export const AppRouter: React.FC = () => {
         />
         {useAuth().user?.role_id === 1 && (
           <Route
-            path="/pharmacy"
+            path="/pharmacies"
             element={
               <ProtectedRoute>
                 <PharmacyPage />

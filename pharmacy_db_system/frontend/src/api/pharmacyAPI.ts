@@ -18,8 +18,8 @@ export const pharmacyAPI = {
     /**
      * Create a new pharmacy
      * */
-    createPharmacy: async (pharmacy_name: string, pharmacy_address: string):Promise<Pharmacy> =>{
-        const response = await api.post('/pharmacy/create',{pharmacy_name, pharmacy_address})
+    createPharmacy: async (pharmacy_name: string, pharmacy_address: string, work_time:string,delivery:boolean):Promise<Pharmacy> =>{
+        const response = await api.post('/pharmacy/create',{pharmacy_name, pharmacy_address, work_time, delivery})
         return response.data
     },
 

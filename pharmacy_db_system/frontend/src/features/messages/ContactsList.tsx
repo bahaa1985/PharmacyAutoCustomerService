@@ -57,25 +57,25 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     });
   }, [participants, contactMap, clientSearch]);
 
-  return (
-    <aside className="space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">{t('messages.clients')}</h2>
-        <p className="mt-1 text-sm text-gray-500">{t('messages.clientsHint')}</p>
+    return (
+    <aside className="flex flex-col gap-4 h-full">
+      <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm shrink-0">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900">{t('messages.clients')}</h2>
+        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">{t('messages.clientsHint')}</p>
         <input
           type="text"
           value={clientSearch}
           onChange={(event) => onClientSearchChange(event.target.value)}
           placeholder={t('messages.searchClients')}
-          className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="mt-2 sm:mt-3 w-full rounded-md border border-gray-300 px-3 py-1.5 sm:py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
         />
       </div>
 
-      <div className="h-[calc(100vh-220px)] overflow-y-auto rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 sm:p-4 shadow-sm">
         {filteredParticipants.length === 0 ? (
-          <p className="text-sm text-gray-500">{t('messages.noClients')}</p>
+          <p className="text-sm text-gray-500 text-center py-4">{t('messages.noClients')}</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-1.5 sm:space-y-2">
             {filteredParticipants.map((phone) => {
               const contact = contactMap.get(phone);
 
@@ -84,14 +84,14 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectClient(phone)}
-                    className={`w-full rounded-xl px-3 py-3 text-left transition ${
+                    className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-left transition ${
                       selectedClient === phone
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-600 text-white shadow-sm'
                         : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    <div className="font-semibold">{contact?.name || phone}</div>
-                    <div className={`text-xs ${selectedClient === phone ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <div className="font-semibold text-sm sm:text-base truncate">{contact?.name || phone}</div>
+                    <div className={`text-[10px] sm:text-xs ${selectedClient === phone ? 'text-blue-100' : 'text-gray-500'}`}>
                       {phone}
                     </div>
                   </button>
@@ -103,4 +103,5 @@ export const ContactsList: React.FC<ContactsListProps> = ({
       </div>
     </aside>
   );
+
 };
