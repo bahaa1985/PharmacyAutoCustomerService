@@ -11,9 +11,10 @@ export const pharmacyAPI = {
     /**
      * Fetch a pharmacy by its ID
      * */
-    getPharmacyById: async (id: number):Promise<Pharmacy> =>{
-        const response = await api.get(`/pharmacy/${id}`)
+    getPharmacyById: async (id: number):Promise<Pharmacy|undefined> =>{
+        if(id){const response = await api.get(`/pharmacy/${id}`)
         return response.data
+        }
     },
     /**
      * Create a new pharmacy

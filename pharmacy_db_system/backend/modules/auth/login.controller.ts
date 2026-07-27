@@ -38,7 +38,7 @@ export const userLoginController = async (req: any, res: any) =>  {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: 5 * 60 * 1000,
+            maxAge: 60 * 60 * 1000,
         })
         return res.status(200).json({ success: true, user: serializedUser })
     }

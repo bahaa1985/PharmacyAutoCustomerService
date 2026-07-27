@@ -46,9 +46,11 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
             </button>
           </>
         )}
-        <main className={`flex-1 p-4 sm:p-8 bg-gradient-to-br ${theme.shell} transition-all duration-300`}>
-          <div className="rounded-2xl bg-white/95 p-4 sm:p-6 shadow-sm backdrop-blur">
-            {children}
+                <main className={`flex-1 p-4 sm:p-8 bg-gray-50/50 transition-all duration-300`}>
+          <div className="max-w-7xl mx-auto">
+            <div className="rounded-3xl bg-white border border-gray-100 p-4 sm:p-8 shadow-sm">
+              {children}
+            </div>
           </div>
         </main>
       </div>

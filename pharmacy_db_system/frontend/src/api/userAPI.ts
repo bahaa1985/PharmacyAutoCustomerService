@@ -20,9 +20,11 @@ export const userAPI = {
   /**
    * Fetch all users by pharmacy ID
    */
-  getUsers: async (pharmacyId:bigint):Promise<User[]> =>{
+  getUsers: async (pharmacyId:number):Promise<User[]|undefined> =>{
+    if(pharmacyId){
     const response = await api.get(`/users/all/${pharmacyId}`)
     return response.data
+    }
   },
 
   /**

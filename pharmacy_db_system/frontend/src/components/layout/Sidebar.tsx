@@ -55,27 +55,31 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClick={onClose}
       />
 
-      <aside
+            <aside
         className={`fixed lg:sticky inset-y-0 ${
           dir === "rtl" ? "right-0" : "left-0"
-        } w-64 bg-gray-900 text-white h-screen lg:h-[calc(100vh-64px)] lg:top-16 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${
+        } w-64 ${theme.sidebar} border-x h-screen lg:h-[calc(100vh-64px)] lg:top-16 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen
             ? "translate-x-0"
             : dir === "rtl"
               ? "translate-x-full"
               : "-translate-x-full"
-        } lg:translate-x-0`}
+        } lg:translate-x-0 shadow-lg lg:shadow-none`}
         dir={dir}
       >
-        <div className="p-6 border-b border-gray-700">
-          <h1 className="text-2xl font-bold">{pharmacy?.pharmacy_name}</h1>
+        <div className="p-6 border-b border-gray-100">
+          <h1 className={`text-xl font-bold bg-gradient-to-r ${theme.shell} bg-clip-text text-transparent`}>
+            {pharmacy?.pharmacy_name}
+          </h1>
         </div>
-        <nav className="flex-1 p-6">
-          <ul className="space-y-2 py-2">
+        <nav className="flex-1 p-4 overflow-y-auto">
+          <ul className="space-y-1 py-2">
             {links.map((link) => {
               const showLink =
-                link.path !== "/users" || (user && user.role_id <= 2);
+                 (link.path !== "/users" || (user && user.role_id <= 2)) &&
+                (link.path !== "/pharmacies" || (user && user.role_id === 1));
               if (!showLink) return null;
+              const isActive = location.pathname === link.path;
               return (
                 <li key={link.path}>
                   <Link
@@ -83,10 +87,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     onClick={() => {
                       if (window.innerWidth < 1024) onClose();
                     }}
-                    className={`block px-4 py-2 rounded-md transition-colors ${
-                      location.pathname === link.path
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-300 hover:bg-gray-800"
+                    className={`block px-4 py-2.5 rounded-xl transition-all duration-200 font-medium ${
+                      isActive
+                        ? `${theme.active} shadow-sm`
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
                     {link.label}
@@ -95,26 +99,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               );
             })}
           </ul>
-          <hr className="border-slate-600"></hr>
-          <div className="py-2">
-            <div className="flex items-center">
-              <Switch
-                checked={user?.ai_mode}
-                onChange={handleToggleAiMode}
-                className="py-1"
-              ></Switch>
-              <span className="text-gray-300">
+          <div className="my-4 border-t border-gray-100"></div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <span className="text-sm font-medium text-gray-600">
                 {isAiMode ? t("layout.aiEnabled") : t("layout.aiDisabled")}
               </span>
+              <Switch
+                checked={!!user?.ai_mode}
+                onChange={handleToggleAiMode}
+                size="small"
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: theme.active.split(' ')[1].replace('text-', ''),
+                  },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: theme.active.split(' ')[1].replace('text-', ''),
+                  },
+                }}
+              />
             </div>
-            <div className="mt-4 px-2">
-              <label className="block text-xs text-gray-500 mb-1 px-2 uppercase font-bold">
+            <div className="px-2">
+              {/* <label className="block text-[10px] text-gray-400 mb-1.5 px-1 uppercase tracking-wider font-bold">
                 {language === "ar" ? "اللغة" : "Language"}
-              </label>
+              </label> */}
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as "en" | "ar")}
-                className="w-full bg-gray-800 text-gray-300 border border-gray-700 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className={`w-full bg-gray-50 text-gray-700 border border-gray-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 ${theme.ring} focus:border-transparent text-sm transition-all`}
               >
                 <option value="en">English</option>
                 <option value="ar">عربي</option>

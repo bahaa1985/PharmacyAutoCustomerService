@@ -1,4 +1,5 @@
-import { createContactService, getContactsByUserService } from './contacts.service';
+import { createContactService, getContactsByUserService, getBlockedContactsService, toggleBlockContactService } from './contacts.service';
+
 
 const serializeContact = (contact: any) => ({
   ...contact,
@@ -19,6 +20,30 @@ export const getContactsController = async (req: any, res: any) => {
     res.status(500).json({ message: 'Error fetching contacts', error });
   }
 };
+
+export const getBlockedContactsController = async (req: any, res: any) => {
+  try {
+    const blockedContacts = await getBlockedContactsService();
+    res.status(200).json(blockedContacts);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching blocked contacts', error });
+  }
+};
+
+export const toggleBlockContactController = async (req: any, res: any) => {
+  const { phone, block } = req.body;
+  if (!phone) {
+    return res.status(400).json({ message: 'Phone number is required' });
+  }
+
+  try {
+    const result = await toggleBlockContactService(phone, block);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Error toggling block status', error });
+  }
+};
+
 
 export const createContactController = async (req: any, res: any) => {
   const user = req.user;

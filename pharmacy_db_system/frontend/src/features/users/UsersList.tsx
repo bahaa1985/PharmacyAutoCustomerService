@@ -41,7 +41,7 @@ export const UsersList: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await userAPI.getUsers(BigInt(pharmacyId));
+        const response = await userAPI.getUsers(pharmacyId);
         setUsers(response);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -84,7 +84,7 @@ export const UsersList: React.FC = () => {
         );
         setShowModal(false);
         // Refresh users list
-        const response = await userAPI.getUsers(BigInt(pharmacyId));
+        const response = await userAPI.getUsers(pharmacyId);
         setUsers(response);
       }
     } catch (error) {
@@ -99,7 +99,7 @@ export const UsersList: React.FC = () => {
     <div className="space-y-6">
       {user?.role_id.toString() === "1" && (
         <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 mb-6">
-          <label className="block text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+          <label className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
             <StoreIcon fontSize="small" />
             {t("users.selectPharmacy") || "Select Pharmacy"}
           </label>
@@ -200,7 +200,7 @@ export const UsersList: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">{t("users.active")}</p>
-                  <p className="text-xs text-gray-500">{selectedUser.is_active ? 'Account is currently active' : 'Account is suspended'}</p>
+                  <p className="text-xs text-gray-500">{selectedUser.is_active ? t('users.accountIsCurrentlyActive') : t('users.accountIsSuspended')}</p>
                 </div>
               </div>
               <Switch

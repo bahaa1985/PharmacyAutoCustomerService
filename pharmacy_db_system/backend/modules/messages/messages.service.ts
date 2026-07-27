@@ -1,3 +1,4 @@
+import { log } from "console";
 import { prismaClient } from "../../utils/prisma-adapter";
 import {sendTextMessage} from "./evolutionSendTextMessage"
 // const getTextMessageType = async (): Promise<bigint> => {
@@ -39,24 +40,16 @@ export const getMessagesByUserNumberService = async (
   contactPhone?: string,
 ) => {
   try {
-    const where: any = {
-      OR: [
-        { from_number: userNumber },
-        { to_number: userNumber },
-      ],
-    };
-    if (contactPhone) {
-      where.AND = [
-        {
-          OR: [
-            { from_number: contactPhone },
-            { to_number: contactPhone },
-          ],
-        },
-      ];
-    }
+    if (!contactPhone) return [];
     const messages = await prismaClient.messages.findMany({
-      where,
+      where:{
+        AND:{
+          OR: [
+            { from_number: contactPhone.trim() ,to_number: userNumber.trim() },
+            {from_number:userNumber.trim(),to_number:contactPhone.trim()}
+          ],
+        }
+      },
       orderBy: { created_at: 'asc' },
     });
     return messages;

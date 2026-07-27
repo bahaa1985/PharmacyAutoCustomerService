@@ -8,9 +8,9 @@ const serializePharmacy = (pharmacy: any) => {
 }
 
 export const createPharamcyController = async (req: any, res: any) => {
-    const { pharmacy_name, pharmacy_address } = req.body
+    const { pharmacy_name, pharmacy_address,work_time,delivery,logo } = req.body
     try {
-        const newPharmacy = await createPharmacyService(pharmacy_name, pharmacy_address)
+        const newPharmacy = await createPharmacyService(pharmacy_name, pharmacy_address,work_time,delivery,logo)
         res.status(201).json(serializePharmacy(newPharmacy))
     }
     catch (error) {
@@ -41,9 +41,9 @@ export const getPharmacyByIdController = async (req: any, res: any) => {
 
 export const updatePharmacyController = async (req: any, res: any) => {
     const { id } = req.params
-    const { pharmacy_name, pharmacy_address } = req.body
+    const { pharmacy_name, pharmacy_address,work_time,delivery,logo } = req.body
     try {
-        await updatePharmacyService(id, pharmacy_name, pharmacy_address)
+        await updatePharmacyService(id, pharmacy_name, pharmacy_address,work_time,delivery,logo)
         res.status(200).json({ message: 'Pharmacy updated successfully' })
     }
     catch (error) {

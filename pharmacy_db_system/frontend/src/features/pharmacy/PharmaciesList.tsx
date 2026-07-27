@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { pharmacyAPI } from "../../api/pharmacyAPI";
 import type { Pharmacy } from "../../types/pharmacy";
-import { Modal } from "@mui/material";
+import { Modal, Switch } from "@mui/material";
 import { useToast } from "../../context/ToastContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { Button } from "../../components/ui/Button";
@@ -38,6 +38,9 @@ export const PharmaciesList: React.FC = () => {
       const updatedPharmacy = await pharmacyAPI.updatePharmacy(pharmacyId, {
         pharmacy_name: selectedPharmacy?.pharmacy_name || "",
         pharmacy_address: selectedPharmacy?.pharmacy_address || "",
+        work_time:selectedPharmacy?.work_time||"",
+        delivery:selectedPharmacy?.delivery,
+        logo:selectedPharmacy?.logo||null
       });
       if (updatedPharmacy) {
         showToast(t('pharmacy.updateSuccess'), "success");
@@ -51,7 +54,7 @@ export const PharmaciesList: React.FC = () => {
   };
 
     return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden`}>
       <div className="p-6 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-800">{t('pharmacy.listHeading')}</h2>
       </div>
@@ -61,7 +64,7 @@ export const PharmaciesList: React.FC = () => {
             <tr className="bg-gray-50 border-b border-gray-100">
               <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('pharmacy.name')}</th>
               <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('pharmacy.address')}</th>
-              <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider text-right">Actions</th>
+              <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider text-right"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -111,11 +114,20 @@ export const PharmaciesList: React.FC = () => {
             <div className="space-y-4 mb-8">
               <div>
                 <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.name')}</label>
-                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" value={selectedPharmacy.pharmacy_name}></input>
+                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" defaultValue={selectedPharmacy.pharmacy_name} onChange={(e)=>selectedPharmacy.pharmacy_name=e.target.value}></input>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.address')}</label>
-                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" value={selectedPharmacy.pharmacy_address}></input>
+                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" defaultValue={selectedPharmacy.pharmacy_address} onChange={(e)=>selectedPharmacy.pharmacy_address=e.target.value}></input>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.workTime')}</label>
+                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" defaultValue={selectedPharmacy.work_time}onChange={(e)=>selectedPharmacy.work_time=e.target.value}></input>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.delivery')}</label>
+                {/* <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" value={selectedPharmacy.pharmacy_address}></input> */}
+                <Switch color="primary" defaultChecked={selectedPharmacy.delivery} onChange={(e)=>selectedPharmacy.delivery=e.target.checked}></Switch>
               </div>
             </div>
             <div className="pt-4 flex gap-3">              

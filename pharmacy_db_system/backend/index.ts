@@ -56,22 +56,3 @@ app.use('/inventory', INVENTORY_ROUTER)
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
 });
-
-// process.on('uncaughtException', (err) => {
-//   console.error('uncaughtException', err);
-//   try {
-//     fs.writeFileSync(path.join(process.cwd(), 'tmp_uncaught.json'), JSON.stringify({ error: String(err), stack: err?.stack }, null, 2));
-//   } catch (e) {
-//     console.error('Failed writing uncaught exception file', e);
-//   }
-//   process.exit(1);
-// });
-
-// process.on('unhandledRejection', (reason) => {
-//   console.error('unhandledRejection', reason);
-//   try {
-//     fs.writeFileSync(path.join(process.cwd(), 'tmp_unhandled_rejection.json'), JSON.stringify({ reason: String(reason) }, null, 2));
-//   } catch (e) {
-//     console.error('Failed writing unhandled rejection file', e);
-//   }
-// });

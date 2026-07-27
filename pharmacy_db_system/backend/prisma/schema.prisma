@@ -73,9 +73,10 @@ model pharmacies {
   id               BigInt      @id @default(autoincrement())
   pharmacy_name    String      @db.VarChar(50)
   pharmacy_address String      @db.VarChar(50)
-  created_at       DateTime    @default(now()) @db.Timestamptz(6)
   delivery         Boolean     @default(false)
-  work_time String @db.VarChar(50) @default("24 ساعة في اليوم 7 أيام في الأسبوع")
+  work_time        String      @default("24 ساعة في اليوم 7 أيام في الأسبوع") @db.VarChar(50)
+  logo             String?     @db.VarChar
+  created_at       DateTime    @default(now()) @db.Timestamptz(6)
   inventory        inventory[]
   messages         messages[]
   users            users[]
@@ -95,6 +96,7 @@ model users {
   username      String     @db.VarChar(50)
   password      String     @db.VarChar
   mobile        String     @unique @db.VarChar(13)
+  picture String? @db.VarChar
   created_at    DateTime   @default(now()) @db.Timestamptz(6)
   pharmacy_id   BigInt
   is_logging_in Boolean    @default(false)
@@ -102,7 +104,7 @@ model users {
   is_active     Boolean    @default(true)
   last_login_at DateTime?  @db.Timestamptz(6)
   ai_mode       Boolean    @default(true)
-  instance_name String? 
+  instance_name String?
   contacts      contacts[]
   pharmacies    pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user_roles    user_roles @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -135,4 +137,13 @@ model n8n_logs {
   created_at    DateTime    @default(now()) @db.Timestamptz(6)
   execution_id  String?     @db.VarChar
   executions    executions? @relation(fields: [execution_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model blocked_contacts{
+  contact_number String @db.VarChar() @id
+  ten_minutes_messages Int? @db.Integer
+  daily_messages Int? @db.Integer
+  blocked Boolean @db.Boolean @default(false)
+  blocked_until DateTime? @db.Timestamptz(6)
+  alerted Boolean @default(false)
 }

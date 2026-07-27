@@ -12,7 +12,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "active":"Active",
-    "deactive":"Deactive"
+    "inactive":"Deactive",
+    "blocked":"Blocked"
   },
   "auth": {
     "mobile": "Mobile",
@@ -20,6 +21,7 @@
     "login": "Login",
     "welcomeTitle": "Welcome back. Please login to continue.",
     "loginFailed": "Login failed",
+    "loading...":"Loading...",
     "pleaseSignIn": "Please sign in to view messages."
   },
   "layout": {
@@ -38,7 +40,7 @@
     "title": "Dashboard",
     "welcome": "Welcome back! Here's an overview of your pharmacy.",
     "stats": {
-      "inventory": "Total Inventory Items",
+      "inventory": "Total Drugs Items",
       "messages": "Messages",
       "users": "Total Users",
       "orders": "This Month Orders"
@@ -146,6 +148,8 @@
     "failedUpdate": "Failed to update user",
     "details": "Details",
     "active": "Active",
-    "updating": "Updating..."
+    "updating": "Updating...",
+    "accountIsCurrentlyActive":"Account Is Currently Active",
+    "accountIsSuspended":"Account Is Suspended"
   }
 }

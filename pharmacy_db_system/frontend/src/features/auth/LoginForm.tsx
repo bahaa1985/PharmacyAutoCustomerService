@@ -10,8 +10,6 @@ export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { t } = useLanguage();
-  // const { pharmacy} = usePharmacy()
-
   const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,7 +19,6 @@ export const LoginForm: React.FC = () => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
     try {
       await login(mobile, password);
       navigate('/dashboard');

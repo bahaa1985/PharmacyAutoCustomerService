@@ -34,6 +34,6 @@ export const authAPI = {
    */
   logout: async (): Promise<void> => {
     await api.post('/logout');
-    redirect('/login'); // Redirect to login page after logout
+    window.location.href='/login'; // Redirect to login page after logout
   },
 };

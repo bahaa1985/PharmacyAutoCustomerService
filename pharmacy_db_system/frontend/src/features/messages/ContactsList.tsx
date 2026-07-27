@@ -10,8 +10,10 @@ interface ContactsListProps {
   clientSearch: string;
   currentUserMobile: string;
   contactMap: Map<string, Contact>;
+  blockedPhones: Set<string>;
   onClientSearchChange: (value: string) => void;
   onSelectClient: (phone: string) => void;
+  onToggleBlock: (phone: string, block: boolean) => void;
 }
 
 export const ContactsList: React.FC<ContactsListProps> = ({
@@ -21,21 +23,24 @@ export const ContactsList: React.FC<ContactsListProps> = ({
   clientSearch,
   currentUserMobile,
   contactMap,
+  blockedPhones,
   onClientSearchChange,
   onSelectClient,
+  onToggleBlock,
 }) => {
+
   const { t } = useLanguage();
   const participants = useMemo(() => {
     const set = new Set<string>();
 
-    messages.forEach((message) => {
+    messages?.forEach((message) => {
       const other = message.from_number === currentUserMobile ? message.to_number : message.from_number;
       if (other && other !== currentUserMobile) {
         set.add(other);
       }
     });
 
-    contacts.forEach((contact) => {
+    contacts?.forEach((contact) => {
       if (contact.phone !== currentUserMobile) {
         set.add(contact.phone);
       }
@@ -78,9 +83,10 @@ export const ContactsList: React.FC<ContactsListProps> = ({
           <ul className="space-y-1.5 sm:space-y-2">
             {filteredParticipants.map((phone) => {
               const contact = contactMap.get(phone);
+              const isBlocked = blockedPhones.has(phone);
 
               return (
-                <li key={phone}>
+                <li key={phone} className="group relative">
                   <button
                     type="button"
                     onClick={() => onSelectClient(phone)}
@@ -90,13 +96,37 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                         : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    <div className="font-semibold text-sm sm:text-base truncate">{contact?.name || phone}</div>
+                    <div className="font-semibold text-sm sm:text-base truncate flex items-center gap-2">
+                      {contact?.name || phone}
+                      {isBlocked && (
+                        <span className="text-[10px] bg-red-600 text-red-100 px-1.5 py-0.5 rounded-full uppercase">
+                          {t('common.blocked')}
+                        </span>
+                      )}
+                    </div>
                     <div className={`text-[10px] sm:text-xs ${selectedClient === phone ? 'text-blue-100' : 'text-gray-500'}`}>
                       {phone}
                     </div>
                   </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleBlock(phone, !isBlocked);
+                    }}
+                    title={isBlocked ? "Unblock" : "Block"}
+                    className={`absolute top-1/2 -translate-y-1/2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
+                      isBlocked ? 'text-green-600 hover:bg-green-50' : 'text-red-600 hover:bg-red-50'
+                    }`}
+                  >
+                    {isBlocked ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    )}
+                  </button>
                 </li>
               );
+
             })}
           </ul>
         )}

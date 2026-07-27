@@ -2,24 +2,24 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { userAPI } from "../api/userAPI";
-import type {User} from '../types/user';
+import type { User } from "../types/user";
 import { useLanguage } from "../context/LanguageContext";
 import { PageWrapper } from "../components/layout/PageWrapper";
 import { Modal } from "../components/ui/Modal";
-
 
 export const UserPage: React.FC = () => {
   const currentUser = useAuth().user;
   const { t } = useLanguage();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
-  const [updatedUser,setUpdatedUser]=useState<User>()
- const [showSuccessModal, setShowSuccessModal] = useState(false);
- const navigate = useNavigate();
+  const [updatedUser, setUpdatedUser] = useState<User>();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     username: currentUser?.username || "",
     mobile: currentUser?.mobile || "",
+    picture: currentUser?.picture || "",
     password: "",
     confirmPassword: "",
   });
@@ -33,29 +33,30 @@ export const UserPage: React.FC = () => {
       if (formData.username.length < 3)
         newErrors.username = t("users.invalidUserName");
       if (!formData.mobile.trim()) newErrors.mobile = t("users.requiredMobile");
-      if (formData.mobile.length != 12) newErrors.mobile = t("users.invalidMobile");
-        // if (!formData.password) newErrors.password = t("users.requiredPassword");
-        if(formData.password.length <8 && formData.password.length >0) 
-            newErrors.password= t("users.passwordTooShort")
-        if(formData.password.length >20) 
-            newErrors.password= t("users.passwordtTooLong")
+      if (formData.mobile.length != 12)
+        newErrors.mobile = t("users.invalidMobile");
+      // if (!formData.password) newErrors.password = t("users.requiredPassword");
+      if (formData.password.length < 8 && formData.password.length > 0)
+        newErrors.password = t("users.passwordTooShort");
+      if (formData.password.length > 20)
+        newErrors.password = t("users.passwordtTooLong");
       if (formData.password !== formData.confirmPassword)
         newErrors.confirmPassword = t("users.passwordMismatch");
       setErrors(newErrors);
-      console.log("errors",newErrors);
-      
+      console.log("errors", newErrors);
+
       if (Object.keys(newErrors).length == 0) {
         setFormData({
           username: formData.username,
           mobile: formData.mobile,
           password: formData.password,
           confirmPassword: formData.confirmPassword,
+          picture: formData.picture,
         });
-        setUpdatedUser(await userAPI.updateUser(
-          BigInt(currentUser?.id || 0),
-          formData,
-        ));
-        setShowSuccessModal(true)
+        setUpdatedUser(
+          await userAPI.updateUser(BigInt(currentUser?.id || 0), formData),
+        );
+        setShowSuccessModal(true);
         return updatedUser;
       }
     } catch (error) {
@@ -102,7 +103,21 @@ export const UserPage: React.FC = () => {
                 {errors.mobile && <span>{errors.mobile}</span>}
               </div>
             ))}
-
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              {t("users.picture")}
+            </label>
+            <input
+              type="file"
+              name="picture"
+              value={formData.picture}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+              onChange={(e) =>
+                setFormData({ ...formData, picture: e.target.value })
+              }
+            />
+            {errors.mobile && <span>{errors.mobile}</span>}
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1">
               {t("users.password")}
@@ -154,12 +169,13 @@ export const UserPage: React.FC = () => {
           title={t("users.updateSuccess")}
           onClose={() => setShowSuccessModal(false)}
           confirmText="OK"
-          onConfirm={()=>{
-                            setShowSuccessModal(false);
-                            navigate("/login")
-                          }
-                        }
-        > <p>{message}</p>
+          onConfirm={() => {
+            setShowSuccessModal(false);
+            navigate("/login");
+          }}
+        >
+          {" "}
+          <p>{message}</p>
         </Modal>
       </div>
     </PageWrapper>

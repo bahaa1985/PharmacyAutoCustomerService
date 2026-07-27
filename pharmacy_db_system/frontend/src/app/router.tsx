@@ -24,9 +24,8 @@ import { NotFoundPage } from "../pages/NotFound";
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  // const [user,setUser] = useState<User>(useAuth().user||undefined)
-  // setUser(useAuth().user||undefined)
+  const { user, isLoading } = useAuth();
+  console.log("user",user);
 
   if (isLoading) {
     return (
@@ -38,7 +37,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
