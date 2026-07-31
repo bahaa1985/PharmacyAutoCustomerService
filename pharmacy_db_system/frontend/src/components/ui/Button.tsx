@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { useLanguage } from '../../context/LanguageContext';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
   isLoading?: boolean;
@@ -23,6 +23,8 @@ export const Button: React.FC<ButtonProps> = ({
     danger: 'bg-red-600 text-white hover:bg-red-700',
   };
 
+  const {t} = useLanguage();
+
   const widthStyle = fullWidth ? 'w-full' : '';
 
   return (
@@ -31,7 +33,7 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled || isLoading}
       {...props}
     >
-      {isLoading ? 'Loading...' : children}
+      {isLoading ? t("auth.loging") : children}
     </button>
   );
 };

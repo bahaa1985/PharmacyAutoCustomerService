@@ -2,7 +2,7 @@ export interface User {
   id: number;
   mobile: string;
   username: string;
-  picture:string;
+  avatar:string;
   role_id: number;
   pharmacy_id: number;
   ai_mode: boolean;

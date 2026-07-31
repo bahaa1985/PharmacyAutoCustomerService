@@ -1,7 +1,5 @@
 import api from './axios';
 import type { LoginCredentials, AuthResponse, User } from '../types/user';
-import { redirect } from 'react-router-dom';
-
 /**
  * Login with mobile and password.
  * Sets the HTTP-only cookie automatically via Axios credentials.

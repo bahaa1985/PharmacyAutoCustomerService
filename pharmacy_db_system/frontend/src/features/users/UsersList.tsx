@@ -80,7 +80,7 @@ export const UsersList: React.FC = () => {
       if (updatedUser) {
         showToast(
           `${selectedUser?.username} ${t("users.updateSuccess")}`,
-          "success"
+          "success",
         );
         setShowModal(false);
         // Refresh users list
@@ -127,10 +127,20 @@ export const UsersList: React.FC = () => {
             className="group relative bg-white border border-gray-200 p-5 rounded-xl hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-16 h-16 -mr-8 -mt-8 bg-blue-50 rounded-full group-hover:bg-blue-100 transition-colors" />
-            
+
             <div className="relative flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                <PersonIcon />
+               {user?.avatar !== "/public/avatar.png" ? (
+              <img
+                src={user?.avatar}
+                className="rounded-full w-12 h-12 m-auto"
+              />
+            ) : (
+              <PersonIcon
+                className="mx-auto text-gray-400 mb-2"
+                fontSize="large"
+              />
+            )}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
@@ -142,13 +152,17 @@ export const UsersList: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <span className={`flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full ${
-                  user.is_active 
-                    ? "bg-green-100 text-green-700" 
-                    : "bg-red-100 text-red-700"
-                }`}>
+                <span
+                  className={`flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full ${
+                    user.is_active
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
                   <CircleIcon sx={{ fontSize: 8 }} />
-                  {user.is_active ? t('common.active') || 'Active' : t('common.inactive') || 'Inactive'}
+                  {user.is_active
+                    ? t("common.active") || "Active"
+                    : t("common.inactive") || "Inactive"}
                 </span>
                 {/* <span className="text-[10px] font-medium text-gray-400">
                   ID: #{user.id.toString()}
@@ -160,8 +174,13 @@ export const UsersList: React.FC = () => {
 
         {users.length === 0 && (
           <div className="col-span-full py-12 text-center bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-            <PersonIcon className="mx-auto text-gray-400 mb-2" fontSize="large" />
-            <p className="text-gray-500 font-medium">{t('users.noUsersFound') || 'No users found'}</p>
+              <PersonIcon
+                className="mx-auto text-gray-400 mb-2"
+                fontSize="large"
+              />
+            <p className="text-gray-500 font-medium">
+              {t("users.noUsersFound") || "No users found"}
+            </p>
           </div>
         )}
       </div>
@@ -195,12 +214,20 @@ export const UsersList: React.FC = () => {
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-full ${selectedUser.is_active ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                <div
+                  className={`p-2 rounded-full ${selectedUser.is_active ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
+                >
                   <CircleIcon sx={{ fontSize: 16 }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">{t("users.active")}</p>
-                  <p className="text-xs text-gray-500">{selectedUser.is_active ? t('users.accountIsCurrentlyActive') : t('users.accountIsSuspended')}</p>
+                  <p className="font-semibold text-gray-900">
+                    {t("users.active")}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {selectedUser.is_active
+                      ? t("users.accountIsCurrentlyActive")
+                      : t("users.accountIsSuspended")}
+                  </p>
                 </div>
               </div>
               <Switch
@@ -232,4 +259,3 @@ export const UsersList: React.FC = () => {
     </div>
   );
 };
-

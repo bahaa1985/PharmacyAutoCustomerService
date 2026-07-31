@@ -67,10 +67,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         } lg:translate-x-0 shadow-lg lg:shadow-none`}
         dir={dir}
       >
-        <div className="p-6 border-b border-gray-100">
-          <h1 className={`text-xl font-bold bg-gradient-to-r ${theme.shell} bg-clip-text text-transparent`}>
-            {pharmacy?.pharmacy_name}
-          </h1>
+                <div className="flex justify-evenly align-middle p-6 border-b border-gray-100">
+          <Link
+            to="/pharmacy-settings"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <h1
+              className={`text-xl font-bold my-auto bg-gradient-to-r ${theme.shell} bg-clip-text text-transparent`}
+            >
+              {pharmacy?.pharmacy_name}
+            </h1>
+            <img src={pharmacy?.logo} className="size-10 m-auto rounded-full" />
+          </Link>
         </div>
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1 py-2">

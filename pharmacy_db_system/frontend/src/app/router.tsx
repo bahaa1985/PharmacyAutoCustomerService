@@ -14,7 +14,8 @@ import { MessagesPage } from "../pages/Messages";
 import { UsersPage } from "../pages/Users";
 import { UserPage } from "../pages/UserPage";
 import { InventoryPage } from "../pages/Inventory";
-import { PharmacyPage } from "../pages/Pharmacy";
+import { PharmacyPage as AdminPharmacyPage } from "../pages/Pharmacy";
+import { PharmacyPage } from "../pages/PharmacyPage";
 import { NotFoundPage } from "../pages/NotFound";
 
 /**
@@ -25,7 +26,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { user, isLoading } = useAuth();
-  console.log("user",user);
+  // console.log("user",user);
 
   if (isLoading) {
     return (
@@ -72,16 +73,24 @@ export const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        {useAuth().user?.role_id === 1 && (
+                {useAuth().user?.role_id === 1 && (
           <Route
             path="/pharmacies"
             element={
               <ProtectedRoute>
-                <PharmacyPage />
+                <AdminPharmacyPage />
               </ProtectedRoute>
             }
           />
         )}
+        <Route
+          path="/pharmacy-settings"
+          element={
+            <ProtectedRoute>
+              <PharmacyPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/messages"

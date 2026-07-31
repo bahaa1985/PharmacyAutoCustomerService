@@ -13,7 +13,7 @@ const serializeUser = (user: any) => {
 export const createUserController = async (req: any, res: any) => {
     const { username, password, mobile, role_id, pharmacy_id,instance_name,picture } = req.body
     try {
-        const newUser = await createUserService(username, password, mobile, BigInt(role_id), BigInt(pharmacy_id),instance_name,picture  )
+        const newUser = await createUserService(username, password, mobile, BigInt(role_id), BigInt(pharmacy_id),instance_name,"/public/avatar.png")
         res.status(201).json(serializeUser(newUser))
     }
     catch (error) {
@@ -23,7 +23,7 @@ export const createUserController = async (req: any, res: any) => {
 
 export const updateUserController = async (req: any, res: any) => {
     const { id } = req.params
-    const { username, password, mobile, role_id, pharmacy_id, is_active, ai_mode,picture } = req.body
+    const { username, password, mobile, role_id, pharmacy_id, is_active, ai_mode,avatar } = req.body
     const updateData: any = {}
     if (username) updateData.username = username
     if (password) updateData.password = password
@@ -36,8 +36,8 @@ export const updateUserController = async (req: any, res: any) => {
     if (is_active !== undefined && is_active !== null) {
         updateData.is_active = String(is_active).toLowerCase() === 'true';
     }
-    if(picture!==null){
-        updateData.picture=picture
+    if(avatar!==null){
+        updateData.avatar=avatar
     }
     try {
         const updatedUser = await updateUserService(BigInt(id), updateData)

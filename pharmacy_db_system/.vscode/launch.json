@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "pwa-chrome",
+            "type": "chrome",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
+            "name": "Debug Frontend",
             "url": "http://localhost:5173",
             "webRoot": "${workspaceFolder}/frontend",
             "sourceMaps": true,
-            "breakOnLoad": true,
+            // "breakOnLoad": true,
             "sourceMapPathOverrides": {
                 "webpack:///src/*": "${webRoot}/src/*",
                 "/src/*": "${webRoot}/src/*",
@@ -19,26 +19,29 @@
             }
         },
         {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Backend",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "tsx",
-        "${workspaceFolder}/backend/index.ts"
-      ],
-      "console": "integratedTerminal",
-      "skipFiles": [
-        "<node_internals>/**"
-      ]
-    }
+  "type": "node",
+  "request": "launch",
+  "name": "Debug Backend",
+  "runtimeExecutable": "npx",
+  "runtimeArgs": [
+    "tsx",
+    "${workspaceFolder}/backend/index.ts"
+  ],
+  "cwd": "${workspaceFolder}/backend",
+  "sourceMaps": true,
+  "autoAttachChildProcesses": true,
+  "console": "integratedTerminal",
+  "skipFiles": [
+    "<node_internals>/**"
+  ]
+}
     ],
     "compounds": [
         {
             "name": "Debug Backend + Frontend",
             "configurations": [
                 "Debug Backend",
-                "Launch Chrome against localhost"
+                "Debug Frontend"
             ]
         }
     ]

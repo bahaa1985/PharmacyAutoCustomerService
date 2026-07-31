@@ -3,6 +3,7 @@ import {prismaClient} from "../../utils/prisma-adapter"
 
 
 export const userLoginService = async (mobile: string, password: string) => {
+    debugger
     try {
         const user_data = await prismaClient.users.findUnique({ 
             

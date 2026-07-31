@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { userAPI } from "../api/userAPI";
 import type { User } from "../types/user";
 import { useLanguage } from "../context/LanguageContext";
+import { useSupabaseUpload } from "../hooks/useSupabaseUpload";
 import { PageWrapper } from "../components/layout/PageWrapper";
 import { Modal } from "../components/ui/Modal";
 
@@ -14,15 +15,34 @@ export const UserPage: React.FC = () => {
   const [message, setMessage] = useState("");
   const [updatedUser, setUpdatedUser] = useState<User>();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { uploadFile, uploading, error } = useSupabaseUpload({
+        bucketName: "avatars",
+      });
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     username: currentUser?.username || "",
     mobile: currentUser?.mobile || "",
-    picture: currentUser?.picture || "",
+    avatar: currentUser?.avatar,
     password: "",
     confirmPassword: "",
   });
+
+  const handleAvatarChange = async (
+      event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      if (event.target.files) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const publicUrl = await uploadFile(file);
+        if (publicUrl) {
+          setFormData((prev) => ({
+            ...prev,
+            avatar: publicUrl,
+          }));
+        }
+      }
+    };
 
   const handleUpdateSettings = async (e: React.FormEvent) => {
     try {
@@ -51,7 +71,7 @@ export const UserPage: React.FC = () => {
           mobile: formData.mobile,
           password: formData.password,
           confirmPassword: formData.confirmPassword,
-          picture: formData.picture,
+          avatar: formData.avatar,
         });
         setUpdatedUser(
           await userAPI.updateUser(BigInt(currentUser?.id || 0), formData),
@@ -61,13 +81,16 @@ export const UserPage: React.FC = () => {
       }
     } catch (error) {
       const err = error as Error;
+      console.log(err)
       setShowSuccessModal(false);
       setMessage(t("users.failedUpdate"));
     }
   };
   return (
-    <PageWrapper>
+        <PageWrapper>
       <div className="max-w-md mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-2">{t("users.title")}</h1>
+        <p className="text-gray-600 mb-6">{t("users.subtitle")}</p>
         <form onSubmit={handleUpdateSettings} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -105,19 +128,16 @@ export const UserPage: React.FC = () => {
             ))}
           <div>
             <label className="block text-sm font-medium mb-1">
-              {t("users.picture")}
+              {t("users.avatar")}
             </label>
-            <input
-              type="file"
-              name="picture"
-              value={formData.picture}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-              onChange={(e) =>
-                setFormData({ ...formData, picture: e.target.value })
-              }
-            />
-            {errors.mobile && <span>{errors.mobile}</span>}
-          </div>
+          <input
+            type="file"
+            onChange={handleAvatarChange}
+            disabled={uploading}
+          />
+          {uploading && <p>جاري الرفع...</p>}
+          {error && <p style={{ color: "red" }}>{error}</p>}
+        </div>
           <div>
             <label className="block text-sm font-medium mb-1">
               {t("users.password")}

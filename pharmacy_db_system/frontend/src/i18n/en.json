@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading...",
+    "uploading":"Uploading...",
     "logout": "Logout",
     "save": "Save",
     "cancel": "Cancel",
@@ -13,7 +14,8 @@
     "edit": "Edit",
     "active":"Active",
     "inactive":"Deactive",
-    "blocked":"Blocked"
+    "blocked":"Blocked",
+    "details":"Details"
   },
   "auth": {
     "mobile": "Mobile",
@@ -22,7 +24,8 @@
     "welcomeTitle": "Welcome back. Please login to continue.",
     "loginFailed": "Login failed",
     "loading...":"Loading...",
-    "pleaseSignIn": "Please sign in to view messages."
+    "pleaseSignIn": "Please sign in to view messages.",
+    "loging":"Loging..."
   },
   "layout": {
     "appName": "PharmacyDB",
@@ -78,7 +81,7 @@
   "inventory": {
     "title": "Inventory",
     "subtitle": "Upload and manage your pharmacy inventory.",
-    "description": "Upload a CSV or Excel file with your inventory data.",
+    "description": "Upload an Excel file with your inventory data.",
     "uploadSuccess": "Successfully uploaded to backend!",
     "uploadFailed": "Upload failed",
     "processing": "Processing...",
@@ -90,7 +93,8 @@
     "processedSuccess": "File validated and processed successfully! Ready to upload.",
     "noFile": "No file to upload. Please select and process a file first.",
     "pharmacyMissing": "Cannot upload: pharmacy not loaded. Please ensure you are logged in and a pharmacy is selected.",
-    "backendSuccess": "✓ Backend:"
+    "backendSuccess": "✓ Backend:",
+    "uploadInventoryFile":"Upload File"
   },
   "pharmacy": {
     "title": "Pharmacies",
@@ -100,6 +104,7 @@
     "addTitle": "Add New Pharmacy",
     "name": "Pharmacy Name",
     "address": "Pharmacy Address",
+    "logo":"Pharmacy Logo",
     "workTime":"Work Time",
     "delivery":"Delivery Available?",
     "requiredName": "Pharmacy name is required",
@@ -114,6 +119,8 @@
     "createButton": "Create Pharmacy",
     "created": "created successfully!",
     "updateSuccess": "Pharmacy updated successfully",
+    "updateInfoTitle": "Update Pharmacy Information",
+    "updateInfoSubtitle": "Update your pharmacy's working hours and logo.",
     "listHeading": "Pharmacies List"
   },
   "users": {
@@ -131,6 +138,7 @@
     "mobile": "Mobile",
     "password": "Password",
     "confirmPassword": "Confirm Password",
+    "avatar":"Profile Picture",
     "role": "Role",
     "owner": "Owner",
     "pharmacist": "Pharmacist",

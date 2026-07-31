@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 // const prismaClient = new PrismaClient()
 
 export const createUserService = async (username: string, password:string, mobile:string,
-    role_id: bigint, pharmacy_id: bigint,instance_name:string,picture:string) => {
+    role_id: bigint, pharmacy_id: bigint,instance_name:string,avatar:string) => {
         try{
             const saltRounds=10
             const hashedPassword:string = await bcrypt.hash(password,saltRounds)

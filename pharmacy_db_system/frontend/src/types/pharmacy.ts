@@ -4,5 +4,5 @@ export interface Pharmacy{
     pharmacy_address:string,
     work_time:string,
     delivery:boolean,
-    logo:string|null
+    logo:string
 }

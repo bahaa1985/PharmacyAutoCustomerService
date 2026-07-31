@@ -75,7 +75,7 @@ model pharmacies {
   pharmacy_address String      @db.VarChar(50)
   delivery         Boolean     @default(false)
   work_time        String      @default("24 ساعة في اليوم 7 أيام في الأسبوع") @db.VarChar(50)
-  logo             String?     @db.VarChar
+  logo             String?     @db.VarChar @default("/public/logo.png")
   created_at       DateTime    @default(now()) @db.Timestamptz(6)
   inventory        inventory[]
   messages         messages[]
@@ -96,7 +96,7 @@ model users {
   username      String     @db.VarChar(50)
   password      String     @db.VarChar
   mobile        String     @unique @db.VarChar(13)
-  picture String? @db.VarChar
+  avatar  String? @db.VarChar @default("/public/avatar.png")
   created_at    DateTime   @default(now()) @db.Timestamptz(6)
   pharmacy_id   BigInt
   is_logging_in Boolean    @default(false)

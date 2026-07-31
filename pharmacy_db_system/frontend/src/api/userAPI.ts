@@ -9,6 +9,7 @@ export const userAPI = {
     mobile: string;
     password: string;
     username: string;
+    avatar:string;
     role_id:number;
     pharmacy_id:number;
     instance_name:string

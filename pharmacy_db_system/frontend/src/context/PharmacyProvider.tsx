@@ -14,10 +14,11 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({
     useEffect(() => {
         const fetchPharmacy = async (pharmacyId:number) => {
             try {
-                const data = await pharmacyAPI.getPharmacyById(pharmacyId); // Assuming pharmacy ID is 1 for now
+                const data = await pharmacyAPI.getPharmacyById(pharmacyId);
+                if(data){
                 setPharmacy(data);
                 console.log("pharmacy from provider",data);
-                
+                }
                 // setIsLoading(true)
             } catch {
                 setPharmacy(null);

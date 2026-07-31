@@ -13,8 +13,8 @@ export const PharmaciesList: React.FC = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
-  const { t } = useLanguage();
-
+  const { t,dir } = useLanguage();
+  
   const fetchPharmacies = async () => {
     try {
       const pharmaciesData = await pharmacyAPI.getPharmacies();
@@ -40,7 +40,7 @@ export const PharmaciesList: React.FC = () => {
         pharmacy_address: selectedPharmacy?.pharmacy_address || "",
         work_time:selectedPharmacy?.work_time||"",
         delivery:selectedPharmacy?.delivery,
-        logo:selectedPharmacy?.logo||null
+        logo:selectedPharmacy?.logo
       });
       if (updatedPharmacy) {
         showToast(t('pharmacy.updateSuccess'), "success");
@@ -59,15 +59,15 @@ export const PharmaciesList: React.FC = () => {
         <h2 className="text-xl font-bold text-gray-800">{t('pharmacy.listHeading')}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className={`w-full text-left border-collapse`} dir={dir}>
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('pharmacy.name')}</th>
-              <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('pharmacy.address')}</th>
+            <tr className={`${dir === 'rtl' ? 'text-right': 'text-left'} bg-gray-50 border-b border-gray-100`}>
+              <th className={`${dir==="rtl"? 'text-right' : 'text-left'} px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider`}>{t('pharmacy.name')}</th>
+              <th className={`${dir==="rtl"? 'text-right' : "text-left"} px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider`}>{t('pharmacy.address')}</th>
               <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider text-right"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className={`divide-y divide-gray-100`}>
             {pharmacies?.map((pharmacy: Pharmacy) => {
               return (
                 <tr
@@ -76,10 +76,12 @@ export const PharmaciesList: React.FC = () => {
                   onClick={() => handlePharmacyClick(pharmacy)}
                 >
                   <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{pharmacy.pharmacy_name}</div>
+                    <div className={`font-medium text-gray-900 ${dir==="rtl"? 'text-right' : 'text-left'}`}>
+                      {pharmacy.pharmacy_name}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-gray-600 text-sm">{pharmacy.pharmacy_address}</div>
+                    <div className={`text-gray-600 text-sm ${dir==="rtl"? 'text-right' : "text-left"}`}>{pharmacy.pharmacy_address}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 

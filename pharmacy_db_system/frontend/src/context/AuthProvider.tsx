@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { AuthContext } from './AuthContext';
 import type { User } from '../types/user';
 import { authAPI } from '../api/authAPI';
-import { redirect } from 'react-router-dom';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

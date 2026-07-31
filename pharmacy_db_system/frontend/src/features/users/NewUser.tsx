@@ -3,40 +3,59 @@ import { useAuth } from "../../context/AuthContext";
 import { userAPI } from "../../api/userAPI";
 import { Modal } from "../../components/ui/Modal";
 import { pharmacyAPI } from "../../api/pharmacyAPI";
-import type{ Pharmacy } from "../../types/pharmacy";
+import type { Pharmacy } from "../../types/pharmacy";
+import { useSupabaseUpload } from "../../hooks/useSupabaseUpload";
 import { useLanguage } from "../../context/LanguageContext";
 
 export const NewUser: React.FC = () => {
   const currentUser = useAuth().user;
   const { t } = useLanguage();
-  
+  // const { uploadFile, uploading, error } = useSupabaseUpload({
+  //   bucketName: "avatars",
+  // });
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     mobile: "",
+    avatar: "",
     password: "",
     confirmPassword: "",
     roleId: 2,
-    instance_name:""
+    instance_name: "",
   });
 
-  const [pharmacies,setPharamacies] = useState<Pharmacy[]>([]); 
-  const [pharmacyId,setPharmacyId] = useState(0);
+  const [pharmacies, setPharamacies] = useState<Pharmacy[]>([]);
+  const [pharmacyId, setPharmacyId] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-   useEffect(()=>{
-    
-      const getPharmaciesAsync = async() =>{        
-          const pharmacies = await  pharmacyAPI.getPharmacies()
-           setPharamacies(pharmacies)
-      }
-      if (currentUser?.role_id.toString() === '1') {
-        getPharmaciesAsync()
-      }
-    },[])
+  useEffect(() => {
+    const getPharmaciesAsync = async () => {
+      const pharmacies = await pharmacyAPI.getPharmacies();
+      setPharamacies(pharmacies);
+    };
+    if (currentUser?.role_id.toString() === "1") {
+      getPharmaciesAsync();
+    }
+  }, [currentUser?.role_id]);
 
+  // const handleAvatarChange = async (
+  //   event: React.ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   if (event.target.files) {
+  //     const file = event.target.files[0];
+  //     if (!file) return;
+  //     const publicUrl = await uploadFile(file);
+  //     if (publicUrl) {
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         avatar: publicUrl,
+  //       }));
+  //     }
+  //   }
+  // };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -53,13 +72,14 @@ export const NewUser: React.FC = () => {
       e.preventDefault();
       const newErrors: Record<string, string> = {};
       if (!formData.firstName.trim())
-        newErrors.firstName = t('users.requiredFirstName');
+        newErrors.firstName = t("users.requiredFirstName");
       // if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-      if (!formData.mobile.trim()) newErrors.mobile = t('users.requiredMobile');
-      if( formData.mobile.length != 13) newErrors.mobile = t('users.invalidMobile');
-      if (!formData.password) newErrors.password = t('users.requiredPassword');
+      if (!formData.mobile.trim()) newErrors.mobile = t("users.requiredMobile");
+      if (formData.mobile.length != 13)
+        newErrors.mobile = t("users.invalidMobile");
+      if (!formData.password) newErrors.password = t("users.requiredPassword");
       if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = t('users.passwordMismatch');
+        newErrors.confirmPassword = t("users.passwordMismatch");
       }
 
       setErrors(newErrors);
@@ -71,55 +91,63 @@ export const NewUser: React.FC = () => {
           mobile: formData.mobile,
           password: formData.password,
           username: formData.firstName,
+          avatar: formData.avatar,
           role_id: formData.roleId,
-          pharmacy_id: currentUser?.role_id.toString() === '1' ? pharmacyId : currentUser?.pharmacy_id || 0,
-          instance_name: formData.instance_name+'_'+formData.mobile
+          pharmacy_id:
+            currentUser?.role_id.toString() === "1"
+              ? pharmacyId
+              : currentUser?.pharmacy_id || 0,
+          instance_name: formData.instance_name + "_" + formData.mobile,
         });
-        setMessage(t('users.success'));
+        setMessage(t("users.success"));
         setShowSuccessModal(true);
         setFormData({
           firstName: "",
           lastName: "",
           mobile: "",
+          avatar: "",
           password: "",
           confirmPassword: "",
           roleId: 2,
-          instance_name:""
+          instance_name: "",
         });
       }
     } catch (err) {
-      const errMessage = err instanceof Error ? err.message : "Registration failed";
+      const errMessage =
+        err instanceof Error ? err.message : "Registration failed";
       setMessage(errMessage);
     }
   };
 
   return (
     <div className="max-w-md mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">{t('users.registerTitle')}</h2>
+      <h2 className="text-2xl font-bold mb-6">{t("users.registerTitle")}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {
-          currentUser?.role_id.toString() === '1' ? (
-            <div>
-          <label className="block text-sm font-medium mb-1">{t('users.pharmacy')}</label>
-          <select
-            name="pharmacyId"
-            value={pharmacyId}
-            onChange={(e) => setPharmacyId(Number(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded"
-          >
-            <option value={0}>{t('users.selectPharmacy')}</option>
-            {pharmacies?.map((pharmacy) => (
-              <option key={pharmacy.id} value={pharmacy.id}>
-                {pharmacy.pharmacy_name}
-              </option>
-            ))}
-          </select>
-        </div>
-          ):null
-        }
-        
+        {currentUser?.role_id.toString() === "1" ? (
+          <div>
+            <label className="after:content-['*'] after:m-0.5 after:text-red-700 block text-sm font-medium mb-1">
+              {t("users.pharmacy")}
+            </label>
+            <select
+              name="pharmacyId"
+              value={pharmacyId}
+              onChange={(e) => setPharmacyId(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+            >
+              <option value={0}>{t("users.selectPharmacy")}</option>
+              {pharmacies?.map((pharmacy) => (
+                <option key={pharmacy.id} value={pharmacy.id}>
+                  {pharmacy.pharmacy_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+
         <div>
-          <label className="block text-sm font-medium mb-1">{t('users.firstName')}</label>
+          <label className="after:content-['*'] after:m-0.5 after:text-red-700 block text-sm font-medium mb-1">
+            {t("users.firstName")}
+          </label>
           <input
             type="text"
             name="firstName"
@@ -133,7 +161,9 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">{t('users.lastName')}</label>
+          <label className="block text-sm font-medium mb-1">
+            {t("users.lastName")}
+          </label>
           <input
             type="text"
             name="lastName"
@@ -147,7 +177,9 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">{t('users.mobile')}</label>
+          <label className="after:content-['*'] after:m-0.5 after:text-red-700 block text-sm font-medium mb-1">
+            {t("users.mobile")}
+          </label>
           <input
             type="number"
             name="mobile"
@@ -160,8 +192,23 @@ export const NewUser: React.FC = () => {
           )}
         </div>
 
+        {/* <div>
+          <label className="block text-sm font-medium mb-1">
+            {t("users.avatar")}
+          </label>
+          <input
+            type="file"
+            onChange={handleAvatarChange}
+            disabled={uploading}
+          />
+          {uploading && <p>{t("common.uploading")}</p>}
+          {error && <p style={{ color: "red" }}>{error}</p>}
+        </div> */}
+
         <div>
-          <label className="block text-sm font-medium mb-1">{t('users.password')}</label>
+          <label className="after:content-['*'] after:m-0.5 after:text-red-700 block text-sm font-medium mb-1">
+            {t("users.password")}
+          </label>
           <input
             type="password"
             name="password"
@@ -175,8 +222,8 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
-            {t('users.confirmPassword')}
+          <label className="after:content-['*'] after:m-0.5 after:text-red-700 block text-sm font-medium mb-1">
+            {t("users.confirmPassword")}
           </label>
           <input
             type="password"
@@ -193,16 +240,18 @@ export const NewUser: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">{t('users.role')}</label>
+          <label className="after:content-['*'] after:m-0.5 after:text-red-700 block text-sm font-medium mb-1">
+            {t("users.role")}
+          </label>
           <select
             name="roleId"
             value={formData.roleId}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded"
           >
-            <option value={2}>{t('users.owner')}</option>
-            <option value={3}>{t('users.pharmacist')}</option>
-            <option value={4}>{t('users.delivery')}</option>
+            <option value={2}>{t("users.owner")}</option>
+            <option value={3}>{t("users.pharmacist")}</option>
+            <option value={4}>{t("users.delivery")}</option>
           </select>
         </div>
 
@@ -210,7 +259,7 @@ export const NewUser: React.FC = () => {
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700"
         >
-          {t('users.registerButton')}
+          {t("users.registerButton")}
         </button>
       </form>
 

@@ -126,7 +126,6 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                   </button>
                 </li>
               );
-
             })}
           </ul>
         )}

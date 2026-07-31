@@ -21,6 +21,7 @@ export const generateToken = (user: any) => {
             aiMode: user.ai_mode ?? user.aiMode,
             instance_name: user.instance_name ?? user.instanceName ?? '',
             instanceName: user.instance_name ?? user.instanceName ?? '',
+            avatar:user.avatar ?? user.avatar ?? ''
         },
         JWT_SECRET,
         { expiresIn: '30d' }

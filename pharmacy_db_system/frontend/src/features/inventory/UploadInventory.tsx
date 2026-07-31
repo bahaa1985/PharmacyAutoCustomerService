@@ -336,7 +336,7 @@ export const UploadInventory: React.FC = () => {
                 }}
               ></progress>
               <p className="text-xs text-gray-500 mt-2">
-                Processing: {Math.round((progressStep / chunksCount) * 100)}%
+                {t("inventory.Processing")}: {Math.round((progressStep / chunksCount) * 100)}%
               </p>
             </div>
           )}
@@ -364,7 +364,7 @@ export const UploadInventory: React.FC = () => {
       )} */}
 
       <Button onClick={handleUploadButtonClick} variant="primary" style={{marginTop:'16px'}} disabled={disabledUploadingButton || isLoading}>
-        Upload Inventory File
+        {t("inventory.uploadInventoryFile")}
       </Button>
     </div>
   );
