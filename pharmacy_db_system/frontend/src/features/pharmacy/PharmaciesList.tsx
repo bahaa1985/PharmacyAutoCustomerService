@@ -54,38 +54,38 @@ export const PharmaciesList: React.FC = () => {
   };
 
     return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden`}>
-      <div className="p-6 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-800">{t('pharmacy.listHeading')}</h2>
+    <div className={`dark:bg-slate-900 rounded-xl shadow-sm border dark:border-slate-700 overflow-hidden`}>
+      <div className="p-6 border-b dark:border-slate-700">
+        <h2 className="text-xl font-bold dark:text-slate-100">{t('pharmacy.listHeading')}</h2>
       </div>
       <div className="overflow-x-auto">
         <table className={`w-full text-left border-collapse`} dir={dir}>
           <thead>
-            <tr className={`${dir === 'rtl' ? 'text-right': 'text-left'} bg-gray-50 border-b border-gray-100`}>
-              <th className={`${dir==="rtl"? 'text-right' : 'text-left'} px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider`}>{t('pharmacy.name')}</th>
-              <th className={`${dir==="rtl"? 'text-right' : "text-left"} px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider`}>{t('pharmacy.address')}</th>
-              <th className="px-6 py-4 text-sm font-semibold text-gray-600 uppercase tracking-wider text-right"></th>
+            <tr className={`${dir === 'rtl' ? 'text-right': 'text-left'} dark:bg-slate-800 border-b dark:border-slate-700`}>
+              <th className={`${dir==="rtl"? 'text-right' : 'text-left'} px-6 py-4 text-sm font-semibold dark:text-slate-300 uppercase tracking-wider`}>{t('pharmacy.name')}</th>
+              <th className={`${dir==="rtl"? 'text-right' : "text-left"} px-6 py-4 text-sm font-semibold dark:text-slate-300 uppercase tracking-wider`}>{t('pharmacy.address')}</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-300 uppercase tracking-wider text-right"></th>
             </tr>
           </thead>
-          <tbody className={`divide-y divide-gray-100`}>
+          <tbody className={`divide-y dark:divide-slate-700`}>
             {pharmacies?.map((pharmacy: Pharmacy) => {
               return (
                 <tr
                   key={pharmacy.id}
-                  className="hover:bg-blue-50/50 transition-colors duration-200 group cursor-pointer"
+                  className="dark:hover:bg-slate-800/70 transition-colors duration-200 group cursor-pointer"
                   onClick={() => handlePharmacyClick(pharmacy)}
                 >
                   <td className="px-6 py-4">
-                    <div className={`font-medium text-gray-900 ${dir==="rtl"? 'text-right' : 'text-left'}`}>
+                    <div className={`font-medium dark:text-slate-100 ${dir==="rtl"? 'text-right' : 'text-left'}`}>
                       {pharmacy.pharmacy_name}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className={`text-gray-600 text-sm ${dir==="rtl"? 'text-right' : "text-left"}`}>{pharmacy.pharmacy_address}</div>
+                    <div className={`dark:text-slate-400 text-sm ${dir==="rtl"? 'text-right' : "text-left"}`}>{pharmacy.pharmacy_address}</div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 
-                      className="text-sm font-medium text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-blue-800"
+                      className="text-sm font-medium dark:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 dark:hover:text-slate-100"
                       onClick={(e) => {
                         e.stopPropagation();
                         handlePharmacyClick(pharmacy);
@@ -100,7 +100,7 @@ export const PharmaciesList: React.FC = () => {
           </tbody>
         </table>
         {(!pharmacies || pharmacies.length === 0) && (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center dark:text-slate-300 dark:bg-slate-900 rounded-b-xl border-t border-slate-700">
             No pharmacies found.
           </div>
         )}
@@ -109,26 +109,25 @@ export const PharmaciesList: React.FC = () => {
         <Modal
           open={showModal}
           onClose={() => setShowModal(false)}
-          aria-labelledby="modal-modal-title"
+          // aria-labelledby="modal-modal-title"
         >
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-white rounded-xl shadow-2xl focus:outline-none">
-            <h2 id="modal-modal-title" className="text-2xl font-bold text-gray-900 mb-6">{modalTitle}</h2>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-gray-50 dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-700 focus:outline-none">
+            <h2 id="modal-modal-title" className="text-2xl font-bold dark:text-slate-100 mb-6">{modalTitle}</h2>
             <div className="space-y-4 mb-8">
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.name')}</label>
-                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" defaultValue={selectedPharmacy.pharmacy_name} onChange={(e)=>selectedPharmacy.pharmacy_name=e.target.value}></input>
+                <label className="block text-sm font-semibold dark:text-slate-200 mb-1">{t('pharmacy.name')}</label>
+                <input className="w-full p-3 rounded-lg dark:bg-slate-800 bg-gray-50 dark:text-slate-100 border dark:border-slate-700" defaultValue={selectedPharmacy.pharmacy_name} onChange={(e)=>selectedPharmacy.pharmacy_name=e.target.value}></input>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.address')}</label>
-                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" defaultValue={selectedPharmacy.pharmacy_address} onChange={(e)=>selectedPharmacy.pharmacy_address=e.target.value}></input>
+                <label className="block text-sm font-semibold dark:text-slate-200 mb-1">{t('pharmacy.address')}</label>
+                <input className="w-full p-3 rounded-lg dark:bg-slate-800 bg-gray-50 dark:text-slate-100 border dark:border-slate-700" defaultValue={selectedPharmacy.pharmacy_address} onChange={(e)=>selectedPharmacy.pharmacy_address=e.target.value}></input>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.workTime')}</label>
-                <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" defaultValue={selectedPharmacy.work_time}onChange={(e)=>selectedPharmacy.work_time=e.target.value}></input>
+                <label className="block text-sm font-semibold dark:text-slate-200 mb-1">{t('pharmacy.workTime')}</label>
+                <input className="w-full p-3 rounded-lg dark:bg-slate-800 bg-gray-50 dark:text-slate-100 border dark:border-slate-700" defaultValue={selectedPharmacy.work_time}onChange={(e)=>selectedPharmacy.work_time=e.target.value}></input>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1">{t('pharmacy.delivery')}</label>
-                {/* <input className="w-full p-3 rounded-lg text-gray-900 border border-gray-100" value={selectedPharmacy.pharmacy_address}></input> */}
+                <label className="block text-sm font-semibold dark:text-slate-200 mb-1">{t('pharmacy.delivery')}</label>
                 <Switch color="primary" defaultChecked={selectedPharmacy.delivery} onChange={(e)=>selectedPharmacy.delivery=e.target.checked}></Switch>
               </div>
             </div>
@@ -136,7 +135,6 @@ export const PharmaciesList: React.FC = () => {
               <Button
                 disabled={loading}
                 fullWidth
-                // className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm focus:ring-4 focus:ring-blue-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
                 onClick={() => handlePharmacyUpdate(BigInt(selectedPharmacy.id))}
               >
                 {loading ? (
@@ -149,7 +147,6 @@ export const PharmaciesList: React.FC = () => {
                 )}
               </Button>
               <Button
-                // className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200"
                 variant="secondary"
                 onClick={() => setShowModal(false)}
                 disabled={loading}

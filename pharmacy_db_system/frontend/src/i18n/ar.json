@@ -154,8 +154,22 @@
     "failedUpdate": "فشل تحديث المستخدم",
     "details": "التفاصيل",
     "active": "نشط",
-    "updating": "جارٍ التحديث...",
+        "updating": "جارٍ التحديث...",
     "accountIsCurrentlyActive":"المستخدم حالياً نشط",
-    "accountIsSuspended":"المستخدم موقوف"
+    "accountIsSuspended":"المستخدم موقوف",
+    "whatsapp": {
+      "instance": "اتصال واتساب",
+      "status": "الحالة",
+      "connected": "متصل بنجاح",
+      "disconnected": "غير متصل",
+      "connect": "ربط الواتساب",
+      "pairingCode": "كود الربط",
+      "expiresIn": "ينتهي خلال",
+      "scanQR": "امسح رمز QR من خلال تطبيق واتساب",
+            "pairingExpired": "انتهت صلاحية كود الربط. يرجى المحاولة مرة أخرى.",
+      "connecting": "جارٍ الاتصال...",
+      "failedToGetPairingCode": "فشل في الحصول على كود الربط",
+      "errorConnecting": "خطأ في الاتصال بالواتساب"
+    }
   }
 }

@@ -8,6 +8,9 @@ import { useSupabaseUpload } from "../hooks/useSupabaseUpload";
 import { PageWrapper } from "../components/layout/PageWrapper";
 import { Modal } from "../components/ui/Modal";
 
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
+
 export const UserPage: React.FC = () => {
   const currentUser = useAuth().user;
   const { t } = useLanguage();
@@ -88,116 +91,96 @@ export const UserPage: React.FC = () => {
   };
   return (
         <PageWrapper>
-      <div className="max-w-md mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-2">{t("users.title")}</h1>
-        <p className="text-gray-600 mb-6">{t("users.subtitle")}</p>
-        <form onSubmit={handleUpdateSettings} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("users.username")}
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              max={30}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
-            />
-            {errors.usrname && <span>{errors.username}</span>}
-          </div>
-          {currentUser?.role_id == 1 ||
-            (currentUser?.role_id == 2 && (
+          <div className="max-w-md mx-auto p-6">
+            <h1 className="text-2xl font-bold mb-2 dark:text-white">{t("users.title")}</h1>
+            <p className="text-gray-600 dark:text-slate-400 mb-6">{t("users.subtitle")}</p>
+            <form onSubmit={handleUpdateSettings} className="space-y-4">
+              <Input
+                label={t("users.username")}
+                type="text"
+                name="username"
+                value={formData.username}
+                maxLength={30}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
+                error={errors.username}
+              />
+
+              {currentUser?.role_id == 1 ||
+                (currentUser?.role_id == 2 && (
+                  <Input
+                    label={t("users.mobile")}
+                    type="text"
+                    name="mobile"
+                    value={formData.mobile}
+                    onChange={(e) =>
+                      setFormData({ ...formData, mobile: e.target.value })
+                    }
+                    error={errors.mobile}
+                  />
+                ))}
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  {t("users.mobile")}
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">
+                  {t("users.avatar")}
                 </label>
                 <input
-                  type="text"
-                  name="mobile"
-                  value={formData.mobile}
-                  className="w-full px-3 py-2 border border-gray-300 rounded"
-                  onChange={(e) =>
-                    setFormData({ ...formData, mobile: e.target.value })
-                  }
+                  type="file"
+                  onChange={handleAvatarChange}
+                  disabled={uploading}
+                  className="block w-full text-sm text-gray-500 dark:text-slate-400
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    dark:file:bg-slate-800 dark:file:text-blue-400
+                    hover:file:bg-blue-100 dark:hover:file:bg-slate-700"
                 />
-                {errors.mobile && <span>{errors.mobile}</span>}
+                {uploading && <p className="text-sm text-blue-500 mt-1">{t("common.uploading") || "Uploading..."}</p>}
+                {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
               </div>
-            ))}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("users.avatar")}
-            </label>
-          <input
-            type="file"
-            onChange={handleAvatarChange}
-            disabled={uploading}
-          />
-          {uploading && <p>جاري الرفع...</p>}
-          {error && <p style={{ color: "red" }}>{error}</p>}
-        </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("users.password")}
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-            />
-            {errors.password && (
-              <span className="text-red-500 text-sm mt-1">
-                {errors.password}
-              </span>
-            )}
+              <Input
+                label={t("users.password")}
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                error={errors.password}
+              />
+              <Input
+                label={t("users.confirmPassword")}
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmPassword: e.target.value })
+                }
+                error={errors.confirmPassword}
+              />
+              <Button
+                type="submit"
+                fullWidth
+                isLoading={uploading}
+              >
+                {t("users.updateSettingsTitle")}
+              </Button>
+            </form>
+            {message && <p className="mt-4 text-center text-red-500">{message}</p>}
+            <Modal
+              isOpen={showSuccessModal}
+              title={t("users.updateSuccess")}
+              onClose={() => setShowSuccessModal(false)}
+              confirmText={t("common.ok") || "OK"}
+              onConfirm={() => {
+                setShowSuccessModal(false);
+                navigate("/login");
+              }}
+            >
+              <p className="dark:text-slate-300">{message || t("users.updateSuccess")}</p>
+            </Modal>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("users.confirmPassword")}
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-              onChange={(e) =>
-                setFormData({ ...formData, confirmPassword: e.target.value })
-              }
-            />
-            {errors.confirmPassword && (
-              <span className="text-red-500 text-sm mt-1">
-                {errors.confirmPassword}
-              </span>
-            )}
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700"
-          >
-            {t("users.updateSettingsTitle")}
-          </button>
-        </form>
-        {message && <p>{message}</p>}
-        <Modal
-          isOpen={showSuccessModal}
-          title={t("users.updateSuccess")}
-          onClose={() => setShowSuccessModal(false)}
-          confirmText="OK"
-          onConfirm={() => {
-            setShowSuccessModal(false);
-            navigate("/login");
-          }}
-        >
-          {" "}
-          <p>{message}</p>
-        </Modal>
-      </div>
-    </PageWrapper>
+        </PageWrapper>
   );
 };

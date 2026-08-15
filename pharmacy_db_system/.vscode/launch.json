@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -9,36 +6,28 @@
             "request": "launch",
             "name": "Debug Frontend",
             "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}/frontend",
-            "sourceMaps": true,
-            // "breakOnLoad": true,
-            "sourceMapPathOverrides": {
-                "webpack:///src/*": "${webRoot}/src/*",
-                "/src/*": "${webRoot}/src/*",
-                "/*": "${webRoot}/*"
-            }
+            "webRoot": "${workspaceFolder}/frontend"
         },
         {
-  "type": "node",
-  "request": "launch",
-  "name": "Debug Backend",
-  "runtimeExecutable": "npx",
-  "runtimeArgs": [
-    "tsx",
-    "${workspaceFolder}/backend/index.ts"
-  ],
-  "cwd": "${workspaceFolder}/backend",
-  "sourceMaps": true,
-  "autoAttachChildProcesses": true,
-  "console": "integratedTerminal",
-  "skipFiles": [
-    "<node_internals>/**"
-  ]
-}
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Debug Backend",
+            "cwd": "${workspaceFolder}/backend",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": ["tsx", "index.ts"],
+            "sourceMaps": true,
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/backend/.env",
+            "env":{"PORT":"5000"},
+            "skipFiles": [
+                "<node_internals>/**",
+                "**/node_modules/**"
+            ]
+        }
     ],
     "compounds": [
         {
-            "name": "Debug Backend + Frontend",
+            "name": "Debug Full Stack",
             "configurations": [
                 "Debug Backend",
                 "Debug Frontend"

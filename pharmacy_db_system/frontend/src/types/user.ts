@@ -7,10 +7,12 @@ export interface User {
   pharmacy_id: number;
   ai_mode: boolean;
   is_active: boolean;
-  is_logging_at: string;
+    is_logging_at: string;
   instance_name: string;
+  instance_status: string;
   createdAt: string;
 }
+
 
 export interface LoginCredentials {
   mobile: string;

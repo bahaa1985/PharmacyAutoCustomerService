@@ -11,9 +11,9 @@ const serializeUser = (user: any) => {
 }
 
 export const createUserController = async (req: any, res: any) => {
-    const { username, password, mobile, role_id, pharmacy_id,instance_name,picture } = req.body
+    const { username, password, mobile, role_id, pharmacy_id,instance_name} = req.body
     try {
-        const newUser = await createUserService(username, password, mobile, BigInt(role_id), BigInt(pharmacy_id),instance_name,"/public/avatar.png")
+        const newUser = await createUserService(username, password, mobile, BigInt(role_id), BigInt(pharmacy_id),"/public/avatar.png")
         res.status(201).json(serializeUser(newUser))
     }
     catch (error) {

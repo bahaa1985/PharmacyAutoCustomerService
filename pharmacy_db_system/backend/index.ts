@@ -1,7 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
+import ngrok from '@ngrok/ngrok';
+import { authenticateToken } from './middleware/authenticateToken';
 import { USER_ROUTER } from './modules/user/user.route';
 import { AUTH_LOGIN_ROUTER } from './modules/auth/login.route'
 import { AUTH_LOGGED_ROUTER } from './modules/auth/logged.route';
@@ -9,8 +12,10 @@ import { AUTH_LOGOUT_ROUTER } from './modules/auth/logout.route';
 import { PHARMACY_ROUTER } from './modules/pharmacy/pharmacy.route';
 import { MESSAGES_ROUTER } from './modules/messages/messages.route';
 import { CONTACTS_ROUTER } from './modules/contacts/contacts.route';
-import {INVENTORY_ROUTER} from './modules/inventory/inventory.route';
-import { authenticateToken } from './middleware/authenticateToken';
+import { INVENTORY_ROUTER } from './modules/inventory/inventory.route';
+import { EVOLUTION_INSTANCE_ROUTER } from './modules/evolution_instance/instance.route';
+
+
 
 const app = express();
 
@@ -35,7 +40,31 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(require('cookie-parser')())
+//ngrok public url
+async function forwardToApp() {
+	const forwarder = await ngrok.forward({
+		addr: "localhost:3000",
+		authtoken_from_env: true,
+		domain: "cotton-guidance-uncouple.ngrok-free.dev",
+	});
+	console.log(`Available at: ${forwarder.url()}`);
+}
+forwardToApp();
+// Cleanup function to disconnect ngrok on exit
+const cleanup = async () => {
+  try {
+    await ngrok.disconnect();
+    await ngrok.kill();
+  } catch (err) {
+    // ignore
+  }
+  process.exit(0);
+};
 
+// الاستماع لإشارات إغلاق التطبيق
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+// Routes
 app.get('/',authenticateToken, (req: any, res: any) => {
   if(!req.user){
     res.redirect('/login')
@@ -52,7 +81,9 @@ app.use('/pharmacy', PHARMACY_ROUTER)
 app.use('/messages', MESSAGES_ROUTER)
 app.use('/contacts', CONTACTS_ROUTER)
 app.use('/inventory', INVENTORY_ROUTER)
+app.use('/evolution', EVOLUTION_INSTANCE_ROUTER)
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+const PORT = Number(process.env.PORT ?? 3000);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

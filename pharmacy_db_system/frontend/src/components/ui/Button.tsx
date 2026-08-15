@@ -9,13 +9,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   isLoading = false,
-  fullWidth = false,
+  // fullWidth = false,
   disabled,
   children,
   ...props
 }) => {
   const baseStyles =
-    'px-4 py-2 rounded font-medium transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+    'py-2 rounded font-medium transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variantStyles = {
     primary: 'bg-blue-600 text-white hover:bg-blue-700',
@@ -23,9 +23,9 @@ export const Button: React.FC<ButtonProps> = ({
     danger: 'bg-red-600 text-white hover:bg-red-700',
   };
 
-  const {t} = useLanguage();
+  const widthStyle = 'w-full sm:w-3/4 md:w-1/2';
 
-  const widthStyle = fullWidth ? 'w-full' : '';
+  const {t} = useLanguage();
 
   return (
     <button

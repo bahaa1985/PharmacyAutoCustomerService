@@ -8,10 +8,10 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <PageWrapper>
-      <div className="space-y-8">
+      <div className="space-y-8 p-6 shadow-md transition-colors duration-300">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">{t('dashboard.title')}</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-slate-100">{t('dashboard.title')}</h1>
+          <p className="text-gray-600 dark:text-slate-300 mt-2">
             {t('dashboard.welcome')}
           </p>
         </div>

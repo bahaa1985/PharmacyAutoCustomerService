@@ -19,6 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
   const [error, setError] = useState("");
   const { t, dir, language, setLanguage } = useLanguage();
+  //  const { theme: currentTheme, toggleTheme } = useTheme();
   const theme = getRoleTheme(user?.role_id);
 
   const links = [
@@ -64,7 +65,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             : dir === "rtl"
               ? "translate-x-full"
               : "-translate-x-full"
-        } lg:translate-x-0 shadow-lg lg:shadow-none`}
+        } lg:translate-x-0 shadow-lg lg:shadow-none
+      dark:bg-slate-900
+        dark:border-slate-800
+        transition-colors
+        duration-300`}
         dir={dir}
       >
                 <div className="flex justify-evenly align-middle p-6 border-b border-gray-100">
@@ -98,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     className={`block px-4 py-2.5 rounded-xl transition-all duration-200 font-medium ${
                       isActive
                         ? `${theme.active} shadow-sm`
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
                     {link.label}
@@ -119,10 +124,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 size="small"
                 sx={{
                   '& .MuiSwitch-switchBase.Mui-checked': {
-                    color: theme.active.split(' ')[1].replace('text-', ''),
+                    color: theme.active.split(' ')[0]
                   },
                   '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                    backgroundColor: theme.active.split(' ')[1].replace('text-', ''),
+                    backgroundColor: theme.active.split(' ')[0]
                   },
                 }}
               />

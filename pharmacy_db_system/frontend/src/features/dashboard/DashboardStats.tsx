@@ -20,11 +20,11 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ label, value, icon }) => (
-  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-slate-900 dark:text-slate-100">
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-gray-500 text-sm font-medium">{label}</p>
-        <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
+        <p className="text-gray-500 dark:text-slate-100 text-sm font-medium">{label}</p>
+        <p className="text-3xl font-bold text-gray-900 dark:text-slate-100 mt-2">{value}</p>
       </div>
       {icon && (
         <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">

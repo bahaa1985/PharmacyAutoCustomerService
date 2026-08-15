@@ -311,7 +311,7 @@ export const UploadInventory: React.FC = () => {
         }}
       > */}
         <div className="space-y-4">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-slate-300">
             {t('inventory.description')}
           </p>
           <input

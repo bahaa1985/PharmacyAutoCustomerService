@@ -21,11 +21,12 @@ export const userAPI = {
   /**
    * Fetch all users by pharmacy ID
    */
-  getUsers: async (pharmacyId:number):Promise<User[]|undefined> =>{
+  getUsers: async (pharmacyId:number):Promise<User[]> =>{
     if(pharmacyId){
     const response = await api.get(`/users/all/${pharmacyId}`)
     return response.data
     }
+    return []
   },
 
   /**

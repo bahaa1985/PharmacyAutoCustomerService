@@ -350,7 +350,8 @@ export const MessagesList: React.FC = () => {
     return <div className="text-center py-8">{t("common.loading")}</div>;
 
   return (
-        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      {/* Sidebar: contact and client selection list */}
       <ContactsList
         contacts={contacts}
         messages={messages}
@@ -364,15 +365,15 @@ export const MessagesList: React.FC = () => {
         onToggleBlock={handleToggleBlock}
       />
 
-
       <section className="space-y-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        {/* Conversation header: current chat info and controls */}
+        <div className="rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
                 {t("messages.conversation")}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-slate-300">
                 {selectedClient
                   ? `${selectedClientName}`
                   : isOwner
@@ -411,9 +412,10 @@ export const MessagesList: React.FC = () => {
           </div> */}
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        {/* Message list and search section */}
+        <div className="rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
               {t("messages.messagesTitle")}
             </h3>
             <input
@@ -421,13 +423,13 @@ export const MessagesList: React.FC = () => {
               value={messageSearch}
               onChange={(e) => setMessageSearch(e.target.value)}
               placeholder={t("messages.searchMessages")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:w-64"
+              className="w-full dark:text-slate-900 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:w-64"
             />
           </div>
 
           <div
             ref={messageContainerRef}
-            className="mt-4 flex h-[calc(100vh-380px)] flex-col gap-3 overflow-y-auto rounded-xl border border-gray-200 bg-slate-50 p-4"
+            className="mt-4 flex h-[calc(100vh-380px)] flex-col gap-3 overflow-y-auto rounded-xl border border-gray-200 bg-slate-50 dark:bg-slate-500 p-4"
           >
             {conversationMessages?.length === 0 ? (
               <div className="text-center text-sm text-gray-500">
@@ -529,8 +531,9 @@ export const MessagesList: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900">
+        {/* New message composer and contact save section */}
+        <div className="rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
             {t("messages.sendTitle")}
           </h3>
           <textarea
@@ -542,7 +545,7 @@ export const MessagesList: React.FC = () => {
                 ? `${t("messages.messagePreview")}: ${selectedClientName}`
                 : t("messages.placeholder")
             }
-            className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="mt-3 w-full rounded-md border dark:text-slate-900 border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
           />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button

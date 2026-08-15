@@ -1,16 +1,17 @@
 import { prismaClient } from "../../utils/prisma-adapter";
 import bcrypt from 'bcrypt';
-
-// const prismaClient = new PrismaClient()
+import axios from 'axios'; 
+const EVOLUTION_URL=process.env.EVOLUTION_URL || "http://localhost:3000"
+const EVOLUTION_API_KEY=process.env.EVOLUTION_API_KEY || "default_api_key"
 
 export const createUserService = async (username: string, password:string, mobile:string,
-    role_id: bigint, pharmacy_id: bigint,instance_name:string,avatar:string) => {
+    role_id: bigint, pharmacy_id: bigint,avatar:string) => {
         try{
             const saltRounds=10
             const hashedPassword:string = await bcrypt.hash(password,saltRounds)
             const newUser = await prismaClient.users.create({
                 data:{
-                    username, password:hashedPassword, mobile, role_id, pharmacy_id,instance_name,picture
+                    username, password:hashedPassword, mobile, role_id, pharmacy_id,avatar
                 }
             })
             return newUser
@@ -39,6 +40,7 @@ export const updateUserService = async (userId: bigint, updateData: any) => {
 }
 
 export const getAllUsersService = async (pharmacyId:bigint)=>{
+    // console.log("get all users")
     try{
         const users = await prismaClient.users.findMany({
             where:{pharmacy_id:pharmacyId}

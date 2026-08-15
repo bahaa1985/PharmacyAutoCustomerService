@@ -64,19 +64,19 @@ export const ContactsList: React.FC<ContactsListProps> = ({
 
     return (
     <aside className="flex flex-col gap-4 h-full">
-      <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm shrink-0">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-900">{t('messages.clients')}</h2>
-        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">{t('messages.clientsHint')}</p>
+      <div className="rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-3 sm:p-4 shadow-sm shrink-0">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-slate-100">{t('messages.clients')}</h2>
+        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-slate-300">{t('messages.clientsHint')}</p>
         <input
           type="text"
           value={clientSearch}
           onChange={(event) => onClientSearchChange(event.target.value)}
           placeholder={t('messages.searchClients')}
-          className="mt-2 sm:mt-3 w-full rounded-md border border-gray-300 px-3 py-1.5 sm:py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="mt-2 sm:mt-3 w-full rounded-md border border-gray-300 px-3 py-1.5 sm:py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:text-slate-800"
         />
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 sm:p-4 shadow-sm">
+      <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-2 sm:p-4 shadow-sm">
         {filteredParticipants.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-4">{t('messages.noClients')}</p>
         ) : (
@@ -86,17 +86,17 @@ export const ContactsList: React.FC<ContactsListProps> = ({
               const isBlocked = blockedPhones.has(phone);
 
               return (
-                <li key={phone} className="group relative">
+                <li key={phone} className="group relative ">
                   <button
                     type="button"
                     onClick={() => onSelectClient(phone)}
-                    className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-left transition ${
+                    className={`w-full dark:bg-slate-500 rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-left transition ${
                       selectedClient === phone
-                        ? 'bg-blue-600 text-white shadow-sm'
+                        ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-sm'
                         : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    <div className="font-semibold text-sm sm:text-base truncate flex items-center gap-2">
+                    <div className="font-semibold text-sm sm:text-base dark:text-slate-100 truncate flex items-center gap-2">
                       {contact?.name || phone}
                       {isBlocked && (
                         <span className="text-[10px] bg-red-600 text-red-100 px-1.5 py-0.5 rounded-full uppercase">
@@ -104,7 +104,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                         </span>
                       )}
                     </div>
-                    <div className={`text-[10px] sm:text-xs ${selectedClient === phone ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <div className={`text-[10px] sm:text-xs dark:text-slate-100`}>
                       {phone}
                     </div>
                   </button>

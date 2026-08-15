@@ -156,8 +156,22 @@
     "failedUpdate": "Failed to update user",
     "details": "Details",
     "active": "Active",
-    "updating": "Updating...",
+        "updating": "Updating...",
     "accountIsCurrentlyActive":"Account Is Currently Active",
-    "accountIsSuspended":"Account Is Suspended"
+    "accountIsSuspended":"Account Is Suspended",
+    "whatsapp": {
+      "instance": "WhatsApp Instance",
+      "status": "Status",
+      "connected": "Connected Successfully",
+      "disconnected": "Disconnected",
+      "connect": "Connect WhatsApp",
+      "pairingCode": "Pairing Code",
+      "expiresIn": "Expires in",
+      "scanQR": "Scan the QR code with your WhatsApp",
+            "pairingExpired": "Pairing code expired. Please try again.",
+      "connecting": "Connecting...",
+      "failedToGetPairingCode": "Failed to get pairing code",
+      "errorConnecting": "Error connecting WhatsApp"
+    }
   }
 }

@@ -46,9 +46,9 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
             </button>
           </>
         )}
-                <main className={`flex-1 p-4 sm:p-8 bg-gray-50/50 transition-all duration-300`}>
+                <main className={`flex-1 p-2 sm:p-8 bg-gray-50/50 transition-all duration-300`}>
           <div className="max-w-7xl mx-auto">
-            <div className="rounded-3xl bg-white border border-gray-100 p-4 sm:p-8 shadow-sm">
+            <div className="rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 p-4 sm:p-8 shadow-sm">
               {children}
             </div>
           </div>
