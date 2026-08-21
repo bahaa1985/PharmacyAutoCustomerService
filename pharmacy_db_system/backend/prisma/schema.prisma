@@ -29,7 +29,7 @@ model inventory {
   dosage_form     String?
   drug_type       String?     @db.VarChar
   active_material String?     @db.VarChar
-  quantity        Float? @default(0)
+  quantity        Float?      @default(0)
   pharmacies      pharmacies? @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
@@ -63,8 +63,8 @@ model messages {
   confidence        Float?        @db.Real
   original_id       String?       @unique @db.VarChar(100)
   quoted_message_id String?       @db.VarChar(100)
-  input_tokens Int @db.Integer @default(0)
-  output_tokens Int @db.Integer @default(0)
+  input_tokens      Int           @default(0) @db.Integer
+  output_tokens     Int           @default(0) @db.Integer
   message_types     message_types @relation(fields: [message_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
   pharmacies        pharmacies    @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -72,16 +72,19 @@ model messages {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model pharmacies {
-  id               BigInt      @id @default(autoincrement())
-  pharmacy_name    String      @db.VarChar(50)
-  pharmacy_address String      @db.VarChar(50)
-  delivery         Boolean     @default(false)
-  work_time        String      @default("24 ساعة في اليوم 7 أيام في الأسبوع") @db.VarChar(50)
-  logo             String?     @db.VarChar @default("/public/logo.png")
-  created_at       DateTime    @default(now()) @db.Timestamptz(6)
-  inventory        inventory[]
-  messages         messages[]
-  users            users[]
+  id                   BigInt                 @id @default(autoincrement())
+  pharmacy_name        String                 @db.VarChar(50)
+  pharmacy_address     String                 @db.VarChar(50)
+  delivery             Boolean                @default(false)
+  work_time            String                 @default("24 ساعة في اليوم 7 أيام في الأسبوع") @db.VarChar(50)
+  logo                 String?                @default("/public/logo.png") @db.VarChar
+  is_active            Boolean                @default(true)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  inventory            inventory[]
+  messages             messages[]
+  users                users[]
+  pharmacy_plan        pharmacy_plan[]
+  monthly_billing_logs monthly_billing_logs[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -94,26 +97,24 @@ model user_roles {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
-  id            BigInt     @id @default(autoincrement())
-  username      String     @db.VarChar(50)
-  password      String     @db.VarChar
-  mobile        String     @unique @db.VarChar(13)
-  avatar  String? @db.VarChar @default("/public/avatar.png")
-  created_at    DateTime   @default(now()) @db.Timestamptz(6)
-  pharmacy_id   BigInt
-  is_logging_in Boolean    @default(false)
-  role_id       BigInt
-  is_active     Boolean    @default(true)
-  last_login_at DateTime?  @db.Timestamptz(6)
-  ai_mode       Boolean    @default(true)
-  instance_name String?
-  instance_status String? @db.VarChar
-  contacts      contacts[]
-  pharmacies    pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user_roles    user_roles @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id              BigInt     @id @default(autoincrement())
+  username        String     @db.VarChar(50)
+  password        String     @db.VarChar
+  mobile          String     @unique @db.VarChar(13)
+  avatar          String?    @default("/public/avatar.png") @db.VarChar
+  created_at      DateTime   @default(now()) @db.Timestamptz(6)
+  pharmacy_id     BigInt
+  is_logging_in   Boolean    @default(false)
+  role_id         BigInt
+  is_active       Boolean    @default(true)
+  last_login_at   DateTime?  @db.Timestamptz(6)
+  ai_mode         Boolean    @default(true)
+  instance_name   String?
+  instance_status String?    @db.VarChar
+  contacts        contacts[]
+  pharmacies      pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_roles      user_roles @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
-
-
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model contacts {
@@ -144,11 +145,65 @@ model n8n_logs {
   executions    executions? @relation(fields: [execution_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model blocked_contacts{
-  contact_number String @db.VarChar() @id
-  ten_minutes_messages Int? @db.Integer
-  daily_messages Int? @db.Integer
-  blocked Boolean @db.Boolean @default(false)
-  blocked_until DateTime? @db.Timestamptz(6)
-  alerted Boolean @default(false)
+model blocked_contacts {
+  contact_number       String    @id @db.VarChar()
+  ten_minutes_messages Int?      @db.Integer
+  daily_messages       Int?      @db.Integer
+  blocked              Boolean   @default(false) @db.Boolean
+  blocked_until        DateTime? @db.Timestamptz(6)
+  alerted              Boolean   @default(false)
+}
+
+model plans {
+  id                      Int                    @id @default(autoincrement())
+  name                    String                 @db.VarChar(50)
+  messages_limit          Int                    @db.Integer
+  price                   Decimal                @db.Decimal()
+  common_replies          Boolean                @default(true) @db.Boolean
+  prescription_reader_100 Boolean                @default(false) @db.Boolean
+  prescription_reader     Boolean                @default(false) @db.Boolean
+  order_notification      Boolean                @default(false) @db.Boolean
+  basic_dashboard         Boolean                @default(true) @db.Boolean
+  advanced_dashboard      Boolean                @default(false) @db.Boolean
+  pharmacy_plan           pharmacy_plan[]
+  monthly_billing_logs    monthly_billing_logs[]
+}
+
+enum PlanState {
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  CANCELED
+}
+
+model pharmacy_plan {
+  id                 BigInt     @id @default(autoincrement())
+  pharmacy_id        BigInt     @db.BigInt
+  plan_id            Int        @db.Integer
+  subscription_start DateTime   @default(now()) @db.Timestamp()
+  pharmacies         pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plans              plans      @relation(fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Index مهم جداً لتسريع البحث عن حالة اشتراك الصيدلية مع كل رسالة بتوصل
+  @@index([pharmacy_id])
+}
+
+//(History / Billing Logs) model
+model monthly_billing_logs {
+  id            BigInt     @id @default(autoincrement())
+  pharmacy_id   BigInt     @db.BigInt
+  plan_id       Int        @db.Integer // عشان تعرف كانوا على أي خطة الشهر ده
+  bill_due      DateTime   @db.Date()
+  state         PlanState  @default(ACTIVE)
+  billing_month DateTime   @default(now()) @db.Date // عشان تسجل إن ده شهر 7، 8، الخ
+  messages_used Int        @db.Integer // كمية الرسائل اللي تم استهلاكها فعلياً في الشهر ده
+  amount_paid   Decimal    @db.Decimal(10, 2) // لو حبيت تسجل الدفع المالي
+  created_at    DateTime   @default(now()) // وقت أرشفة السجل
+  pharmacies    pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plans         plans      @relation(fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // فهرس عشان لو حبيت تطلع تقارير الاستهلاك لصيدلية معينة
+  @@index([pharmacy_id])
+  @@index([billing_month])
+  @@index([state]) // اختياري لو هتعمل استعلامات يومية تجيب كل الاشتراكات المنتهية
 }

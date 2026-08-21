@@ -14,6 +14,8 @@ import { MESSAGES_ROUTER } from './modules/messages/messages.route';
 import { CONTACTS_ROUTER } from './modules/contacts/contacts.route';
 import { INVENTORY_ROUTER } from './modules/inventory/inventory.route';
 import { EVOLUTION_INSTANCE_ROUTER } from './modules/evolution_instance/instance.route';
+import { SUBSCRIPTION_ROUTER } from './modules/subscriptions/subscriptions.route';
+
 
 
 
@@ -64,6 +66,7 @@ const cleanup = async () => {
 // الاستماع لإشارات إغلاق التطبيق
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
+
 // Routes
 app.get('/',authenticateToken, (req: any, res: any) => {
   if(!req.user){
@@ -82,6 +85,8 @@ app.use('/messages', MESSAGES_ROUTER)
 app.use('/contacts', CONTACTS_ROUTER)
 app.use('/inventory', INVENTORY_ROUTER)
 app.use('/evolution', EVOLUTION_INSTANCE_ROUTER)
+app.use('/subscriptions', SUBSCRIPTION_ROUTER)
+
 
 const PORT = Number(process.env.PORT ?? 3000);
 app.listen(PORT, () => {

@@ -15,18 +15,59 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const { user, setUser } = useAuth();
-  const { pharmacy } = usePharmacy();
+  const { pharmacy, plan } = usePharmacy();
   const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
   const [error, setError] = useState("");
   const { t, dir, language, setLanguage } = useLanguage();
-  //  const { theme: currentTheme, toggleTheme } = useTheme();
   const theme = getRoleTheme(user?.role_id);
+
+  const getPlanBadge = () => {
+    if (!plan || !plan.plans) return null;
+    
+    const isLimitReached = plan.messages_count >= plan.plans.messages_limit;
+    if (isLimitReached) {
+      return {
+        name: plan.plans.name,
+        classes: "bg-gray-100 text-gray-500 border-gray-300 dark:bg-gray-700 dark:text-gray-400"
+      };
+    }
+
+    const name = plan.plans.name.toLowerCase();
+    if (name.includes("gold") || name.includes("شاملة")) {
+      return {
+        name: plan.plans.name,
+        classes: "bg-yellow-100 text-yellow-700 border-yellow-300 font-bold"
+      };
+    }
+    if (name.includes("silver") || name.includes("إحترافية")) {
+      return {
+        name: plan.plans.name,
+        classes: "bg-slate-100 text-slate-700 border-slate-300  font-bold"
+      };
+    }
+    if (name.includes("bronze") || name.includes("أساسية")) {
+      return {
+        name: plan.plans.name,
+        classes: "bg-orange-100 text-orange-700 border-orange-300  font-bold"
+      };
+    }
+    
+    return {
+      name: plan.plans.name,
+      classes: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400"
+    };
+  };
+
+  const badge = getPlanBadge();
+  const usagePercent = plan && plan.plans ? Math.min((plan.messages_count / plan.plans.messages_limit) * 100, 100) : 0;
+  const isLimitReached = usagePercent >= 100;
 
   const links = [
     { path: "/dashboard", label: t("layout.dashboard") },
     { path: "/messages", label: t("layout.messages") },
     { path: "/inventory", label: t("layout.inventory") },
     { path:"/pharmacies", label: t("layout.pharmacies")},
+    { path: "/subscriptions", label: t("layout.subscriptions") },
     { path: "/users", label: t("layout.users") },
   ];
 
@@ -72,25 +113,64 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         duration-300`}
         dir={dir}
       >
-                <div className="flex justify-evenly align-middle p-6 border-b border-gray-100">
+                <div className="p-4 border-b border-gray-100 dark:border-gray-800">
           <Link
             to="/pharmacy-settings"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            className="flex flex-col gap-2 hover:opacity-90 transition-all"
           >
-            <h1
-              className={`text-xl font-bold my-auto bg-gradient-to-r ${theme.shell} bg-clip-text text-transparent`}
-            >
-              {pharmacy?.pharmacy_name}
-            </h1>
-            <img src={pharmacy?.logo} className="size-10 m-auto rounded-full" />
+            <div className="flex items-center gap-3">
+              <img src={pharmacy?.logo} className="size-10 rounded-full object-cover border dark:border-gray-700" />
+              <h1
+                className={`text-lg font-bold truncate bg-gradient-to-r ${theme.shell} bg-clip-text text-transparent`}
+              >
+                {pharmacy?.pharmacy_name}
+              </h1>
+            </div>
+            
+            {badge && (
+              <div className="mt-1">
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${badge.classes}`}>
+                  {badge.name}
+                </span>
+              </div>
+            )}
           </Link>
+
+          {plan && plan.plans && (
+            <div className="mt-4 px-1">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+                  {t("subscriptions.messages")}
+                </span>
+                <span className={`text-[10px] font-bold ${isLimitReached ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                  {plan.messages_count} / {plan.plans.messages_limit}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    isLimitReached ? 'bg-red-500' : usagePercent > 80 ? 'bg-orange-500' : 'bg-primary'
+                  }`}
+                  style={{ width: `${usagePercent}%` }}
+                />
+              </div>
+              {isLimitReached && (
+                <p className="text-[10px] text-red-500 mt-1 font-medium leading-tight">
+                  {t("layout.renewSubscription")}
+                </p>
+              )}
+            </div>
+          )}
         </div>
         <nav className="flex-1 p-4 overflow-y-auto">
+
           <ul className="space-y-1 py-2">
             {links.map((link) => {
-              const showLink =
+                            const showLink =
                  (link.path !== "/users" || (user && user.role_id <= 2)) &&
-                (link.path !== "/pharmacies" || (user && user.role_id === 1));
+                (link.path !== "/pharmacies" || (user && user.role_id === 1)) &&
+                (link.path !== "/subscriptions" || (user && user.role_id === 1));
+
               if (!showLink) return null;
               const isActive = location.pathname === link.path;
               return (

@@ -1,39 +1,44 @@
 import React , {useState, useEffect} from 'react';
 import { PharmacyContext } from './PharamcyContext';
 import type { Pharmacy } from '../types/pharmacy';
+import type { PharmacyPlan } from '../types/subscription';
 import { pharmacyAPI } from '../api/pharmacyAPI';
+import { subscriptionAPI } from '../api/subscriptionAPI';
 import { useAuth } from './AuthContext';
 
 export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
     const [pharmacy, setPharmacy] = useState<Pharmacy | null>(null);
+    const [plan, setPlan] = useState<PharmacyPlan | null>(null);
     const user = useAuth().user
-    // const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchPharmacy = async (pharmacyId:number) => {
+        const fetchData = async (pharmacyId: number) => {
+            if (!pharmacyId) return;
             try {
-                const data = await pharmacyAPI.getPharmacyById(pharmacyId);
-                if(data){
-                setPharmacy(data);
-                console.log("pharmacy from provider",data);
-                }
-                // setIsLoading(true)
-            } catch {
+                const [pharmacyData, planData] = await Promise.all([
+                    pharmacyAPI.getPharmacyById(pharmacyId),
+                    subscriptionAPI.getPharmacyPlan(pharmacyId)
+                ]);
+                
+                if (pharmacyData) setPharmacy(pharmacyData);
+                if (planData) setPlan(planData);
+                
+                console.log("Pharmacy and plan data loaded", { pharmacyData, planData });
+            } catch (error) {
+                console.error("Error fetching pharmacy/plan data:", error);
                 setPharmacy(null);
-            } finally {
-                // setIsLoading(false);
+                setPlan(null);
             }
         };
-        fetchPharmacy(user?.pharmacy_id || 0);
+        fetchData(user?.pharmacy_id || 0);
     }, [user?.pharmacy_id]);
 
-    
-
     return (
-        <PharmacyContext.Provider value={{ pharmacy, setPharmacy}}>
+        <PharmacyContext.Provider value={{ pharmacy, setPharmacy, plan, setPlan }}>
             {children}
         </PharmacyContext.Provider>
     );
 }
+

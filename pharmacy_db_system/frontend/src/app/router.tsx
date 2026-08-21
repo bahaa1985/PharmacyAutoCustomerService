@@ -16,6 +16,7 @@ import { UserPage } from "../pages/UserPage";
 import { InventoryPage } from "../pages/Inventory";
 import { PharmacyPage as AdminPharmacyPage } from "../pages/Pharmacy";
 import { PharmacyPage } from "../pages/PharmacyPage";
+import {SubscriptionsPage} from "../pages/Subscriptions"
 import { NotFoundPage } from "../pages/NotFound";
 
 /**
@@ -115,6 +116,14 @@ export const AppRouter: React.FC = () => {
               <InventoryPage />
             </ProtectedRoute>
           }
+        />
+        <Route
+        path="/subscriptions"
+        element={
+          <ProtectedRoute>
+            <SubscriptionsPage/>
+          </ProtectedRoute>
+        }
         />
 
         {/* Fallback Routes */}

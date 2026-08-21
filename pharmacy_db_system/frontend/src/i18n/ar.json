@@ -10,13 +10,58 @@
     "select": "اختيار",
     "back": "رجوع",
     "create": "إنشاء",
+        "assignSubscription": "تعيين اشتراك لصيدلية",
+        "selectPharmacy": "اختر صيدلية",
+        "selectPlan": "اختر خطة",
+        "billDue": "تاريخ الاستحقاق",
+        "isPaid": "تم الدفع؟",
+        "isTrial": "فترة تجريبية؟",
+        "subscriptionExists": "هذه الصيدلية لديها اشتراك بالفعل",
+
     "delete": "حذف",
     "edit": "تعديل",
     "active":"نشط",
     "inactive":"غير نشط",
     "blocked":"محظور",
-"details":"تفاصيل"
+"details":"تفاصيل",
+"subscriptions": "الاشتراكات",
+"price":"السعر"
   },
+  "subscriptions": {
+    "title": "إدارة الاشتراكات",
+    "subtitle": "إدارة اشتراكات الصيدليات وخططهم.",
+    "pharmacy": "الصيدلية",
+    "plan": "الخطة",
+    "status": "الحالة",
+    "payment": "الدفع",
+    "messages": "الرسائل المستخدمة",
+    "limit": "الحد الأقصى",
+    "expiry": "تاريخ الاستحقاق",
+    "paid": "مدفوع",
+    "unpaid": "غير مدفوع",
+    "active": "نشط",
+        "suspended": "موقوف",
+            "expired": "منتهي",
+            "canceled": "ملغي",
+            "renew": "تجديد",
+            "plans": "خطط الاشتراك",
+
+        "plan name":"اسم الخطة",
+        "plansManagement": "إدارة خطط الاشتراك",
+        "common_replies": "ردود جاهزة",
+        "prescription_reader_100":"قارئ الروشتات و الصور (بحد أقصى 100 روشتة)",
+        "prescription_reader": "قارئ الروشتات و الصور",
+        "order_notification": "إشعارات الطلبات",
+        "basic_dashboard":"لوحة تحكم أساسية",
+        "advanced_dashboard": "لوحة تحكم متقدمة",
+        "setPaid": "تعيين كمدفوع",
+
+    "setUnpaid": "تعيين كغير مدفوع",
+    "activate": "تفعيل",
+    "suspend": "إيقاف",
+    "noSubscriptions": "لا توجد اشتراكات متاحة."
+  },
+
   "auth": {
     "mobile": "الجوال",
     "password": "كلمة المرور",
@@ -33,12 +78,16 @@
     "inventory": "المخزون",
     "users": "المستخدمون",
     "pharmacies": "الصيدليات",
-    "language": "اللغة",
+        "subscriptions": "الاشتراكات",
+        "language": "اللغة",
+
     "role": "الدور",
     "aiEnabled": "وضع الرد الآلي: مفعل",
-    "aiDisabled": "وضع الرد الآلي: معطل"
+        "aiDisabled": "وضع الرد الآلي: معطل",
+    "renewSubscription": "يرجى تجديد اشتراكك لمواصلة الخدمة"
 
   },
+
   "dashboard": {
     "title": "لوحة التحكم",
     "welcome": "مرحبًا بك مرة أخرى! إليك نظرة عامة على صيدليتك.",

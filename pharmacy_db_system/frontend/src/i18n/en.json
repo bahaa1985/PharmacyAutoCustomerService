@@ -10,13 +10,56 @@
     "select": "Select",
     "back": "Back",
     "create": "Create",
+        "assignSubscription": "Assign Subscription to Pharmacy",
+        "selectPharmacy": "Select Pharmacy",
+        "selectPlan": "Select Plan",
+        "billDue": "Bill Due Date",
+        "isPaid": "Paid?",
+        "isTrial": "Trial?",
+        "subscriptionExists": "This pharmacy already has a subscription",
+
     "delete": "Delete",
     "edit": "Edit",
     "active":"Active",
     "inactive":"Deactive",
     "blocked":"Blocked",
-    "details":"Details"
-  },
+    "details":"Details",
+    "price":"Price",
+    "subscriptions": "Subscriptions"
+      },
+      "subscriptions": {
+        "title": "Subscription Management",
+        "subtitle": "Manage pharmacy subscriptions and their plans.",
+        "pharmacy": "Pharmacy",
+        "plan": "Plan",
+        "status": "Status",
+        "payment": "Payment",
+        "messages": "Messages Used",
+        "limit": "Limit",
+        "expiry": "Due Date",
+        "paid": "Paid",
+        "unpaid": "Unpaid",
+        "active": "Active",
+            "suspended": "Suspended",
+                "expired": "Expired",
+                "canceled": "Canceled",
+                "renew": "Renew",
+                "plans": "Subscription Plans",
+
+            "plan name":"Plan Name",
+            "plansManagement": "Subscription Plans Management",
+            "common_replies": "Common Replies",
+            "prescription_reader": "Prescription Reader",
+            "order_notification": "Order Notifications",
+            "advanced_dashboard": "Advanced Dashboard",
+            "setPaid": "Set as Paid",
+
+        "setUnpaid": "Set as Unpaid",
+        "activate": "Activate",
+        "suspend": "Suspend",
+        "noSubscriptions": "No subscriptions available."
+      },
+
   "auth": {
     "mobile": "Mobile",
     "password": "Password",
@@ -34,11 +77,15 @@
     "inventory": "Inventory",
     "users": "Users",
     "pharmacies": "Pharmacies",
-    "language": "Language",
+        "subscriptions": "Subscriptions",
+        "language": "Language",
+
     "role": "Role",
     "aiEnabled": "Auto Response Mode: Enabled",
-    "aiDisabled": "Auto Response Mode: Disabled"
+        "aiDisabled": "Auto Response Mode: Disabled",
+    "renewSubscription": "Please renew your subscription to continue service"
   },
+
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back! Here's an overview of your pharmacy.",

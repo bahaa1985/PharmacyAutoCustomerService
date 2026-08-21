@@ -1,10 +1,14 @@
 import {createContext, useContext} from 'react'
 import type{ Pharmacy } from '../types/pharmacy'
+import type{ PharmacyPlan } from '../types/subscription'
 
 interface PharmacyContextType {
     pharmacy: Pharmacy | null;
     setPharmacy: (pharmacy: Pharmacy | null) => void;
+    plan: PharmacyPlan | null;
+    setPlan: (plan: PharmacyPlan | null) => void;
 }
+
 
 export const PharmacyContext = createContext<PharmacyContextType | undefined>(undefined)
 
