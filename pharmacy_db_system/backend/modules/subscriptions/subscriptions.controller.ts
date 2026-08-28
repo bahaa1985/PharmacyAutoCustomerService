@@ -43,6 +43,7 @@ export const updatePlanState = async (req: Request, res: Response) => {
 
 export const getAllPharmacyPlans = async (req: Request, res: Response) => {
   try {
+     const { pharmacyId } = req.params;
     const plans = await subscriptionService.getAllPharmacyPlans();
     res.status(200).json({ success: true, data: serialize(plans) });
   } catch (error: any) {
@@ -53,7 +54,7 @@ export const getAllPharmacyPlans = async (req: Request, res: Response) => {
 export const getPharmacyPlan = async (req: Request, res: Response) => {
   try {
     const { pharmacyId } = req.params;
-    const subscriptions = await subscriptionService.getAllPharmacyPlans();
+    const subscriptions = await subscriptionService.getSubscriptionsByPharmacy(BigInt(pharmacyId.toString()));
     // const subscription = subscriptions.pop(p => p.pharmacy_id === BigInt(pharmacyId.toString()));
     const subscription = subscriptions.pop();
     

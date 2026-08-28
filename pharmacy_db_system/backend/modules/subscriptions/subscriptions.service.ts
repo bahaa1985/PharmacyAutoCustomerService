@@ -40,6 +40,36 @@ export const updatePlanState = async (pharmacyId: bigint, state: PlanState) => {
   }
 };
 
+export const getSubscriptionsByPharmacy = async (pharmacy_id:bigint) => {
+  try {
+    const plans = await prismaClient.pharmacy_plan.findMany({
+      where:{pharmacy_id:pharmacy_id},
+      include: {
+        pharmacies: true,
+        plans: true,
+      },
+    });
+
+    const enrichedPlans = await Promise.all(plans.map(async (p) => {
+      const latestLog = await prismaClient.monthly_billing_logs.findFirst({
+        where: { plan_id:p.plan_id },
+        orderBy: { billing_month: 'desc' }
+      });
+      return {
+        ...p,
+        state: latestLog?.state,
+        bill_due: latestLog?.bill_due,
+        messages_count: latestLog?.messages_used ?? 0,
+      };
+    }));
+
+    return enrichedPlans;
+  } catch (error) {
+    console.error("Error fetching all pharmacy plans:", error);
+    throw error;
+  }
+};
+
 export const getAllPharmacyPlans = async () => {
   try {
     const plans = await prismaClient.pharmacy_plan.findMany({
@@ -51,7 +81,7 @@ export const getAllPharmacyPlans = async () => {
 
     const enrichedPlans = await Promise.all(plans.map(async (p) => {
       const latestLog = await prismaClient.monthly_billing_logs.findFirst({
-        where: { pharmacy_id: p.pharmacy_id,plan_id:p.plan_id },
+        where: { plan_id:p.plan_id },
         orderBy: { billing_month: 'desc' }
       });
       return {

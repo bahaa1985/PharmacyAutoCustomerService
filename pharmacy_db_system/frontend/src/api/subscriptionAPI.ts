@@ -13,7 +13,7 @@ export const subscriptionAPI = {
   /**
    * Get current plan for a specific pharmacy
    */
-  getPharmacyPlan: async (pharmacyId: number | string): Promise<PharmacyPlan> => {
+  getPharmacyPlan: async (pharmacyId: number): Promise<PharmacyPlan> => {
     const response = await api.get(`/subscriptions/${pharmacyId}`);
     return response.data.data;
   },

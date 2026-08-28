@@ -16,6 +16,8 @@ import { supabaseClient } from "../../lib/supabaseClient";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { ContactsList } from "./ContactsList";
 import { useLanguage } from "../../context/LanguageContext";
+import type{ PharmacyPlan } from "../../types/subscription";
+import { subscriptionAPI } from "../../api/subscriptionAPI";
 
 export const MessagesList: React.FC = () => {
   const { user, setUser } = useAuth();
@@ -30,9 +32,10 @@ export const MessagesList: React.FC = () => {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [error, setError] = useState("");
-    const [isSavingContact, setIsSavingContact] = useState(false);
+  const [isSavingContact, setIsSavingContact] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [blockedPhones, setBlockedPhones] = useState<Set<string>>(new Set());
+  const [pharmPlan, setPharmPlan] = useState<PharmacyPlan>();
   // const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
 
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
@@ -44,19 +47,24 @@ export const MessagesList: React.FC = () => {
     (user as User & { instanceName?: string }).instanceName ||
     "";
 
-    const loadContacts = useCallback(async () => {
+  const loadContacts = useCallback(async () => {
     try {
       const [contactsData, blockedData] = await Promise.all([
         contactsAPI.getContacts(),
-        contactsAPI.getBlockedContacts()
+        contactsAPI.getBlockedContacts(),
       ]);
       setContacts(contactsData);
-      setBlockedPhones(new Set(blockedData.filter((b: any) => b.blocked).map((b: any) => b.contact_number)));
+      setBlockedPhones(
+        new Set(
+          blockedData
+            .filter((b: any) => b.blocked)
+            .map((b: any) => b.contact_number),
+        ),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load contacts");
     }
   }, []);
-
 
   const loadMessages = useCallback(
     async (clientPhone?: string) => {
@@ -64,14 +72,12 @@ export const MessagesList: React.FC = () => {
       setIsLoading(true);
       setError("");
       try {
-        const data = 
-        isOwner
+        const data = isOwner
           ? await messagesAPI.getMessagesByPharmacy(
               user.pharmacy_id,
               clientPhone,
             )
-          : 
-          await messagesAPI.getMessages(user.mobile, clientPhone);
+          : await messagesAPI.getMessages(user.mobile, clientPhone);
         if (data) setMessages(data);
       } catch (err) {
         setError(
@@ -91,6 +97,17 @@ export const MessagesList: React.FC = () => {
       loadMessages(selectedClient || undefined);
     }
   }, [user, selectedClient, loadContacts, loadMessages]);
+
+  useEffect(() => {
+    // get current pharmacy plan
+    const fetchPharmacyPlan = async () => {
+      const subscription = await subscriptionAPI.getPharmacyPlan(
+        Number(user?.pharmacy_id),
+      );
+      setPharmPlan(subscription);
+    };
+    fetchPharmacyPlan();
+  }, [user?.pharmacy_id]);
 
   //supabase messages table realtime subscription:
   useEffect(() => {
@@ -130,6 +147,22 @@ export const MessagesList: React.FC = () => {
             newMessageData &&
             matchesCurrentUser(newMessageData)
           ) {
+            // فحص نوع الرسالة وخطة الاشتراك واستهلاك الصور
+            if (
+              (newMessageData.message_type === "2" ||
+                newMessageData.message_type === "3") &&
+              pharmPlan?.plan_id === 2 &&
+              pharmPlan?.images_count >= 100 // تأكد إن اسم الحقل يطابق الموجود في state عندك
+            ) {
+              messagesAPI.createMessage({
+                to_number: currentUserMobile,
+                message: "You exceeds 100 images",
+                instance_name: instanceName,
+                from_number: currentUserMobile,
+                image_url: "",
+                pharmacyId: user?.pharmacy_id || 0,
+              });
+            }
             if (matchesClientSelection(newMessageData)) {
               setMessages((prev) => {
                 const exists = prev.some(
@@ -177,7 +210,14 @@ export const MessagesList: React.FC = () => {
     return () => {
       client.removeChannel(channel);
     };
-  }, [user, selectedClient, isOwner, currentUserMobile]);
+  }, [
+    user,
+    selectedClient,
+    isOwner,
+    currentUserMobile,
+    pharmPlan,
+    instanceName,
+  ]);
 
   // Auto-select the first client if none is selected and there are messages
   useEffect(() => {
@@ -225,7 +265,7 @@ export const MessagesList: React.FC = () => {
         message.from_number.toLowerCase().includes(term) ||
         message.to_number.toLowerCase().includes(term),
     );
-  }, [messages, selectedClient, messageSearch, currentUserMobile]);
+  }, [messages, selectedClient, messageSearch]);
 
   const selectedClientName = selectedClient
     ? contactMap.get(selectedClient)?.name || selectedClient
@@ -297,7 +337,7 @@ export const MessagesList: React.FC = () => {
 
     setError("");
     setIsSavingContact(true);
-        try {
+    try {
       const contact = await contactsAPI.createContact({
         name: saveContactName.trim(),
         phone: selectedClient,
@@ -315,7 +355,7 @@ export const MessagesList: React.FC = () => {
   const handleToggleBlock = async (phone: string, block: boolean) => {
     try {
       await contactsAPI.toggleBlockContact(phone, block);
-      setBlockedPhones(prev => {
+      setBlockedPhones((prev) => {
         const next = new Set(prev);
         if (block) {
           next.add(phone);
@@ -325,10 +365,11 @@ export const MessagesList: React.FC = () => {
         return next;
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to toggle block status");
+      setError(
+        err instanceof Error ? err.message : "Failed to toggle block status",
+      );
     }
   };
-
 
   // const handleToggleAiMode = async () => {
   //   if (!user) return;
@@ -348,6 +389,8 @@ export const MessagesList: React.FC = () => {
 
   if (isLoading)
     return <div className="text-center py-8">{t("common.loading")}</div>;
+
+  const isAiEnabled = !!user?.ai_mode;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -539,23 +582,27 @@ export const MessagesList: React.FC = () => {
           <textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            disabled={isAiEnabled}
             rows={4}
             placeholder={
-              selectedClient
-                ? `${t("messages.messagePreview")}: ${selectedClientName}`
-                : t("messages.placeholder")
+              isAiEnabled
+                ? t("messages.aiEnabled")
+                : selectedClient
+                  ? `${t("messages.messagePreview")}: ${selectedClientName}`
+                  : t("messages.placeholder")
             }
-            className="mt-3 w-full rounded-md border dark:text-slate-900 border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="mt-3 w-full rounded-md border dark:text-slate-900 border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={handleSendMessage}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-              disabled={!selectedClient || !newMessage.trim()}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isAiEnabled || !selectedClient || !newMessage.trim()}
             >
               {t("messages.sendButton")}
             </button>
+
             {selectedClient && !contactMap.has(selectedClient) && (
               <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
                 <input

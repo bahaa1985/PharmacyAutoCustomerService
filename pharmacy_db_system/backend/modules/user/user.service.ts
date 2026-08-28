@@ -66,3 +66,29 @@ export const deactivateUserService = async (userId: bigint) => {
         throw error
     }
 }
+
+export const updateUserFCMTokenService = async(userId:bigint,fcmToken:string)=>{
+    try{
+        // هنجيب بيانات المستخدم الأول عشان نتأكد إن التوكن مش متسجل قبل كده
+    const user = await prismaClient.users.findUnique({
+      where: { id: BigInt(userId) },
+      select: { fcm_token: true }
+    });
+    // لو التوكن موجود بالفعل في المصفوفة، مش محتاجين نضيفه تاني
+    if (!user?.fcm_token.includes(fcmToken)) {
+      await prismaClient.users.update({
+        where: { id: BigInt(userId) },
+        data: { 
+          fcm_token: {
+            push: fcmToken // بنضيف التوكن الجديد على التوكنز القديمة
+          } 
+        }
+      });
+    }
+    return user
+    }
+    catch(error){
+        console.log("Error updating fcm token",error)
+        throw error
+    }
+}

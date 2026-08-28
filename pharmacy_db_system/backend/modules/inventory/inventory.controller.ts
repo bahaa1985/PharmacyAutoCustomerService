@@ -97,7 +97,6 @@ export const uploadInventory = async (req: any, res: any) => {
 
 export const getInventoryCountController = async (req: any, res: any) => {
   try {
-    console.log("req",req.params.pharmacyId);
     const {pharmacyId} = req.params   
     if (!pharmacyId) return res.status(401).json({ message: 'Unauthorized' });
     const inventoryCount = await getInventoryCountByPharmacyId(BigInt(pharmacyId))

@@ -33,10 +33,57 @@ model inventory {
   pharmacies      pharmacies? @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
+enum NotificationType {
+  ORDER_UPDATE          // إشعارات الطلبات للمستخدم
+  USER_AUTH             // تسجيل دخول/خروج المستخدمين للأدمن
+  SUBSCRIPTION_RENEWED  // تجديد الاشتراك للأدمن والسوبر أدمن
+  SUBSCRIPTION_SUSPENDED// تعليق الاشتراك للأدمن والسوبر أدمن
+  SYSTEM_ALERT          // تنبيهات عامة
+}
+
+enum TargetRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model notification {
+  id           BigInt           @id @default(autoincrement())
+  user_id      BigInt?          // المستلم (سواء يوزر عالي، أدمن صيدلية، أو سوبر أدمن)
+  pharmacy_id  BigInt?          // اختياري لربط الإشعار بكونتكست صيدلية معينة
+  type         NotificationType
+  target_role  TargetRole       // تحديد موجه لمين (عشان يسهل الفلترة)
+  title        String
+  body         String           @db.Text
+  data         Json?            // حمولة إضافية مثل: { "order_id": 123, "plan_id": 2 }
+  is_read      Boolean          @default(false)
+  read_at      DateTime?
+  created_at   DateTime         @default(now())
+
+  user         users?            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  pharmacy     pharmacies?        @relation(fields: [pharmacy_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, is_read])
+  @@index([pharmacy_id])
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model log_types {
-  id         BigInt   @id @default(autoincrement())
-  created_at DateTime @default(now()) @db.Timestamptz(6)
+model system_log {
+  id          BigInt   @id @default(autoincrement())
+  user_id     BigInt?  // الشخص اللي قام بالفعل (Null لو الأكشن اتعمل تلقائي من السيستم)
+  pharmacy_id BigInt?  // الصيدلية المتعلقة بالحدث
+  action      String   // اسم الحدث: "USER_LOGIN", "USER_LOGOUT", "SUBSCRIPTION_RENEWED", "SUBSCRIPTION_SUSPENDED"
+  entity_type String?  // اسم الجدول/الكيان المتأثر: "order", "pharmacy_plan", "user"
+  entity_id   BigInt?  // ID العنصر المتأثر
+  metadata    Json?    // تفاصيل الحجم والبيانات القديمة والجديدة: { "ip": "...", "old_state": "ACTIVE", "new_state": "SUSPENDED" }
+  created_at  DateTime @default(now())
+
+  user        users?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  pharmacy    pharmacies? @relation(fields: [pharmacy_id], references: [id], onDelete: Cascade)
+
+  @@index([pharmacy_id])
+  @@index([action])
+  @@index([created_at])
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -85,6 +132,8 @@ model pharmacies {
   users                users[]
   pharmacy_plan        pharmacy_plan[]
   monthly_billing_logs monthly_billing_logs[]
+  system_logs system_log[]
+   notifications notification[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -110,8 +159,11 @@ model users {
   last_login_at   DateTime?  @db.Timestamptz(6)
   ai_mode         Boolean    @default(true)
   instance_name   String?
+  fcm_token String[] @default([])
   instance_status String?    @db.VarChar
   contacts        contacts[]
+  system_logs system_log[]
+  notifications notification[]
   pharmacies      pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   user_roles      user_roles @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -197,6 +249,7 @@ model monthly_billing_logs {
   state         PlanState  @default(ACTIVE)
   billing_month DateTime   @default(now()) @db.Date // عشان تسجل إن ده شهر 7، 8، الخ
   messages_used Int        @db.Integer // كمية الرسائل اللي تم استهلاكها فعلياً في الشهر ده
+  images_count Int @db.Integer @default(0)
   amount_paid   Decimal    @db.Decimal(10, 2) // لو حبيت تسجل الدفع المالي
   created_at    DateTime   @default(now()) // وقت أرشفة السجل
   pharmacies    pharmacies @relation(fields: [pharmacy_id], references: [id], onDelete: NoAction, onUpdate: NoAction)

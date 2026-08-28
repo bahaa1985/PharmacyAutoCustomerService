@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
 import ngrok from '@ngrok/ngrok';
+import './utils/firebase';
 import { authenticateToken } from './middleware/authenticateToken';
 import { USER_ROUTER } from './modules/user/user.route';
 import { AUTH_LOGIN_ROUTER } from './modules/auth/login.route'
@@ -72,6 +73,8 @@ app.get('/',authenticateToken, (req: any, res: any) => {
   if(!req.user){
     res.redirect('/login')
   }
+  console.log("hello ",req.user.username);
+  
   const username = req.user?.username
   res.send('Hello '+username+ ' !')
 });

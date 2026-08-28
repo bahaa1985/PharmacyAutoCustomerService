@@ -25,7 +25,7 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({
                 if (pharmacyData) setPharmacy(pharmacyData);
                 if (planData) setPlan(planData);
                 
-                console.log("Pharmacy and plan data loaded", { pharmacyData, planData });
+                // console.log("Pharmacy and plan data loaded", { pharmacyData, planData });
             } catch (error) {
                 console.error("Error fetching pharmacy/plan data:", error);
                 setPharmacy(null);

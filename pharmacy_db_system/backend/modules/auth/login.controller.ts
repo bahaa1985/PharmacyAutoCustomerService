@@ -21,12 +21,10 @@ const serializeUser = (user: any) => {
     }
 }
 
-
-
-export const userLoginController = async (req: any, res: any) =>  {
+export const userLoginController = async (req: any, res: any) => {
     try {
         const { mobile, password } = req.body
-        console.log("Received login request:", { mobile, password });
+        // console.log("Received login request:", { mobile, password });
         const user = await userLoginService(mobile, password)
         if (!user) {
             return res.status(401).json({ success: false, message: "Invalid credentials" })
@@ -47,10 +45,10 @@ export const userLoginController = async (req: any, res: any) =>  {
     }
 }
 
-export const getCurrentUserController = async (req:any, res:any) => {
+export const getCurrentUserController = async (req: any, res: any) => {
     try {
         const user = req.user
-        console.log("Current user from token:", user);
+        // console.log("Current user from token:", user);
         if (!user) {
             return res.status(401).json({ success: false, message: 'Unauthorized' })
         }

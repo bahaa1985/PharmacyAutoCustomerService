@@ -1,4 +1,4 @@
-import { createUserController, updateUserController, getAllUsersController, deactivateUserController } from "./user.controller";
+import { createUserController, updateUserController, getAllUsersController, deactivateUserController, updateUserFCMTokenController } from "./user.controller";
 import express from "express";
 import bodyParser from "body-parser";
 
@@ -13,3 +13,4 @@ USER_ROUTER.post('/new',bodyParser.urlencoded({ extended: true }), createUserCon
 USER_ROUTER.patch('/update/:id',bodyParser.urlencoded({ extended: true }), updateUserController)
 USER_ROUTER.get('/all/:pharmacyId', getAllUsersController)
 USER_ROUTER.patch('/deactivate/:id', deactivateUserController)
+USER_ROUTER.post('/update-fcm-token',updateUserFCMTokenController)

@@ -32,6 +32,7 @@ export interface PharmacyPlan {
   state: PlanState;
   bill_due: string;
   messages_count: number;
+  images_count:number,
   paid: boolean;
   pharmacies?: Pharmacy;
   plans?: Plan;

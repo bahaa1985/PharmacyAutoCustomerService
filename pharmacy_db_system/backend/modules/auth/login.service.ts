@@ -1,36 +1,46 @@
 import bcrypt from "bcrypt";
-import {prismaClient} from "../../utils/prisma-adapter"
-
+import { prismaClient } from "../../utils/prisma-adapter"
+import { sendPushNotification } from "../../utils/notificationService";
 
 export const userLoginService = async (mobile: string, password: string) => {
     debugger
     try {
-        const user_data = await prismaClient.users.findUnique({ 
-            
-            where: { mobile:mobile }
+        const user_data = await prismaClient.users.findUnique({
+
+            where: { mobile: mobile }
         })
         // console.log("Fetched user data:", user_data);
         if (!user_data) {
             throw new Error("User not found")
-        }        
+        }
 
-        if(user_data.is_active !== false){
+        if (user_data.is_active !== false) {
             const isMatch = bcrypt.compareSync(password, user_data.password)
 
-        if(isMatch) {
-            const logged_user = await prismaClient.users.update({
-                where:{id:user_data.id},
-                data:{
-                    is_logging_in:true,
-                    last_login_at: new Date()
-                }
-            })
-            return logged_user
+            if (isMatch) {
+                const logged_user = await prismaClient.users.update({
+                    where: { id: user_data.id },
+                    data: {
+                        is_logging_in: true,
+                        last_login_at: new Date()
+                    }
+                })
+                //sendNotification
+                sendPushNotification({
+                    userId: user_data.id, // رقم المستخدم
+                    pharmacyId: user_data.pharmacy_id, // رقم الصيدلية (اختياري)
+                    title: "دخول جديد",
+                    body: "تم تسجيل الدخول بنجاح",
+                    type: "USER_AUTH",
+                    targetRole: "USER",
+                    data: {loggin_id: Date.now().toString() }
+                })
+                return logged_user
+            }
+            // Password did not match
+            throw new Error("Invalid credentials")
         }
-        // Password did not match
-        throw new Error("Invalid credentials")
-        }
-        else{
+        else {
             throw new Error("User is not active")
         }
     }
