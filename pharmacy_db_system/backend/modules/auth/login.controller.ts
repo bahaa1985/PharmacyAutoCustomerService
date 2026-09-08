@@ -36,7 +36,7 @@ export const userLoginController = async (req: any, res: any) => {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: 60 * 60 * 1000,
+            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 يوم بالميللي ثانية,
         })
         return res.status(200).json({ success: true, user: serializedUser })
     }
@@ -48,12 +48,13 @@ export const userLoginController = async (req: any, res: any) => {
 export const getCurrentUserController = async (req: any, res: any) => {
     try {
         const user = req.user
-        // console.log("Current user from token:", user);
+        console.log("Current user from token:", user);
         if (!user) {
             return res.status(401).json({ success: false, message: 'Unauthorized' })
         }
         res.status(200).json(serializeUser(user))
     }
+    
     catch (error) {
         res.status(500).json({ success: false, message: 'Error fetching user data' })
     }

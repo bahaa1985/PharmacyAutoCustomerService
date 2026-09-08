@@ -80,8 +80,13 @@
     "inventory": "Inventory",
     "users": "Users",
     "pharmacies": "Pharmacies",
-    "subscriptions": "Subscriptions",
+        "subscriptions": "Subscriptions",
+        "notifications": "Notifications",
+    "notifications.subtitle": "Manage your alerts and updates",
+    "notifications.empty": "No notifications yet",
     "language": "Language",
+
+
 
     "role": "Role",
     "aiEnabled": "Auto Response Mode: Enabled",

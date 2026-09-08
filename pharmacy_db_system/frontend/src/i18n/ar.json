@@ -81,8 +81,13 @@
     "inventory": "المخزون",
     "users": "المستخدمون",
     "pharmacies": "الصيدليات",
-    "subscriptions": "الاشتراكات",
+        "subscriptions": "الاشتراكات",
+        "notifications": "الإشعارات",
+    "notifications.subtitle": "إدارة التنبيهات والتحديثات الخاصة بك",
+    "notifications.empty": "لا توجد إشعارات بعد",
     "language": "اللغة",
+
+
 
     "role": "الدور",
     "aiEnabled": "وضع الرد الآلي: مفعل",

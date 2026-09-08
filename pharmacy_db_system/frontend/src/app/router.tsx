@@ -14,7 +14,9 @@ import { MessagesPage } from "../pages/Messages";
 import { UsersPage } from "../pages/Users";
 import { UserPage } from "../pages/UserPage";
 import { InventoryPage } from "../pages/Inventory";
+import NotificationsPage from "../pages/Notifications";
 import { PharmacyPage as AdminPharmacyPage } from "../pages/Pharmacy";
+
 import { PharmacyPage } from "../pages/PharmacyPage";
 import {SubscriptionsPage} from "../pages/Subscriptions"
 import { NotFoundPage } from "../pages/NotFound";
@@ -109,8 +111,17 @@ export const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         />
+                <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/inventory"
+
           element={
             <ProtectedRoute>
               <InventoryPage />

@@ -1,229 +1,91 @@
-import { prismaClient } from "../../utils/prisma-adapter";
-import { PlanState } from "@prisma/client";
+import { prismaClient } from '../../utils/prisma-adapter';
 
-// export const updatePaymentStatus = async (pharmacyId: bigint, paid: boolean) => {
-//   try {
-//     // Update the latest billing log
-//     const latestLog = await prismaClient.monthly_billing_logs.findFirst({
-//       where: { pharmacy_id: pharmacyId },
-//       orderBy: { billing_month: 'desc' }
-//     });
-
-//     if (!latestLog) throw new Error("Billing log not found");
-
-//     return await prismaClient.monthly_billing_logs.update({
-//       where: { id: latestLog.id },
-//       data: { paid }
-//     });
-//   } catch (error) {
-//     console.error("Error updating payment status:", error);
-//     throw error;
-//   }
-// };
-
-export const updatePlanState = async (pharmacyId: bigint, state: PlanState) => {
-  try {
-    const latestLog = await prismaClient.monthly_billing_logs.findFirst({
-      where: { pharmacy_id: pharmacyId },
-      orderBy: { billing_month: 'desc' }
-    });
-
-    if (!latestLog) throw new Error("Billing log not found");
-
-    return await prismaClient.monthly_billing_logs.update({
-      where: { id: latestLog.id },
-      data: { state }
-    });
-  } catch (error) {
-    console.error("Error updating plan state:", error);
-    throw error;
-  }
-};
-
-export const getSubscriptionsByPharmacy = async (pharmacy_id:bigint) => {
-  try {
-    const plans = await prismaClient.pharmacy_plan.findMany({
-      where:{pharmacy_id:pharmacy_id},
-      include: {
-        pharmacies: true,
-        plans: true,
-      },
-    });
-
-    const enrichedPlans = await Promise.all(plans.map(async (p) => {
-      const latestLog = await prismaClient.monthly_billing_logs.findFirst({
-        where: { plan_id:p.plan_id },
-        orderBy: { billing_month: 'desc' }
+export class SubscriptionService {
+  // 1. إنشاء أو تحديث الخطط (Plans)
+  async upsertPlan(id: number | undefined, data: { name: string; price: number; messages_limit: number }) {
+    if (id) {
+      return prismaClient.plans.update({
+        where: { id },
+        data,
       });
-      return {
-        ...p,
-        state: latestLog?.state,
-        bill_due: latestLog?.bill_due,
-        messages_count: latestLog?.messages_used ?? 0,
-      };
-    }));
-
-    return enrichedPlans;
-  } catch (error) {
-    console.error("Error fetching all pharmacy plans:", error);
-    throw error;
-  }
-};
-
-export const getAllPharmacyPlans = async () => {
-  try {
-    const plans = await prismaClient.pharmacy_plan.findMany({
-      include: {
-        pharmacies: true,
-        plans: true,
-      },
-    });
-
-    const enrichedPlans = await Promise.all(plans.map(async (p) => {
-      const latestLog = await prismaClient.monthly_billing_logs.findFirst({
-        where: { plan_id:p.plan_id },
-        orderBy: { billing_month: 'desc' }
-      });
-      return {
-        ...p,
-        state: latestLog?.state,
-        bill_due: latestLog?.bill_due,
-        messages_count: latestLog?.messages_used ?? 0,
-      };
-    }));
-
-    return enrichedPlans;
-  } catch (error) {
-    console.error("Error fetching all pharmacy plans:", error);
-    throw error;
-  }
-};
-
-// Plans CRUD
-export const getAllPlans = async () => {
-  try {
-    return await prismaClient.plans.findMany();
-  } catch (error) {
-    console.error("Error fetching all plans:", error);
-    throw error;
-  }
-};
-
-export const createPlan = async (data: any) => {
-  try {
-    return await prismaClient.plans.create({
-      data: {
-        ...data,
-        price: Number(data.price),
-      },
-    });
-  } catch (error) {
-    console.error("Error creating plan:", error);
-    throw error;
-  }
-};
-
-export const updatePlan = async (id: number, data: any) => {
-  try {
-    return await prismaClient.plans.update({
-      where: { id },
-      data: {
-        ...data,
-        price: data.price ? Number(data.price) : undefined,
-      },
-    });
-  } catch (error) {
-    console.error("Error updating plan:", error);
-    throw error;
-  }
-};
-
-export const deletePlan = async (id: number) => {
-  try {
-    return await prismaClient.plans.delete({
-      where: { id },
-    });
-  } catch (error) {
-    console.error("Error deleting plan:", error);
-    throw error;
-  }
-};
-
-export const getPharmacyBillingLogService=async(pharmacy_id:bigint)=>{
-  try{
-    const pharmacyLog=await prismaClient.monthly_billing_logs.findMany({
-      where:{
-        pharmacy_id
-      }
-    });
-    return pharmacyLog
-  }
-  catch(error){
-    console.log("Error fetching pharamcy billing log",error);
-    throw error;
-  }
-}
-
-export const createMonthlyBillingLogService=async(data:any)=>{
-  try{
-    bill_due: (() => {
-      const date = new Date();
-      date.setMonth(date.getMonth() + 1);
-      return  date.toISOString().split('T')[0];
-    })()
-    //create new billing
-const billing = await prismaClient.monthly_billing_logs.create({data: data});
-// //update pharmacy stte after renew
-// await prismaClient.pharmacies.update({
-//   where:{id:data.pharmacy_id},
-//       data:{is_active:true}
-//   })
-    return billing
-  }
-  catch(error){
-    console.error("Error creating pharmacy billing:", error);
-    throw error;
-  }
-}
-
-export const createPharmacyPlan = async (data: any) => {
-  try {
-    // Check if pharmacy already has a plan
-    // const existing = await prismaClient.pharmacy_plan.findFirst({
-    //   where: { pharmacy_id: BigInt(data.pharmacy_id), plan_id:Number(data.plan_id) }
-    // });
-    const validPlan = await prismaClient.monthly_billing_logs.findFirst({
-      where:{pharmacy_id: BigInt(data.pharmacy_id), plan_id:Number(data.plan_id),state : 'ACTIVE'}
-    })
-    if (validPlan) {
-      throw new Error("Pharmacy already has an existing subscription");
     }
+    return prismaClient.plans.create({
+      data,
+    });
+  }
 
-    const plan = await prismaClient.pharmacy_plan.create({
+  // 2. إنشاء اشتراك جديد (التريجر في الداتابيز سيتولى إنهاء القديم وتصفير العدادات)
+  async createSubscription(pharmacyId: number, planId: number, billDue: Date) {
+    return prismaClient.subscriptions.create({
       data: {
-        pharmacy_id: BigInt(data.pharmacy_id),
-        plan_id: Number(data.plan_id),
-      }
+        pharmacy_id: pharmacyId,
+        plan_id: planId,
+        bill_due: billDue,
+        subscription_state: 'ACTIVE',
+        messages_used: 0,
+        images_count: 0,
+        next_month_paid: false,
+      },
+    });
+  }
+
+  // 3. تجديد الاشتراك يدوياً وأرشفة الشهر القديم
+  async renewSubscription(subscriptionId: number) {
+    const sub = await prismaClient.subscriptions.findUnique({
+      where: { id: subscriptionId },
     });
 
-    // Create initial billing log
-//  const bill_due= (() => {
-//       const date = new Date();
-//       date.setMonth(date.getMonth() + 1);
-//       return  date.toISOString().split('T')[0];
-//     })()
-//     createMonthlyBillingLogService({
-//         pharmacy_id: BigInt(data.pharmacy_id),
-//         plan_id: Number(data.plan_id),
-//         bill_due: new Date(bill_due),
-//         messages_used: 0,
-//         state: "ACTIVE",
-//         amount_paid: 0,
-//     })
+    if (!sub) throw new Error('Subscription not found');
 
-    return plan;
-  } catch (error) {
-    console.error("Error creating pharmacy plan:", error);
-    throw error;
+    // نقل بيانات الشهر الحالي إلى سجلات الأرشيف
+    await prismaClient.monthly_subscription_logs.create({
+      data: {
+        pharmacy_plan_id: sub.id,
+        billing_month: sub.bill_due,
+        messages_used: sub.messages_used,
+        images_count: sub.images_count,
+        amount_paid: 0, // يمكن تعديلها حسب نظام الدفع لديك
+        discount: 0,
+      },
+    });
+
+    // تحديث تاريخ الاستحقاق وتصفير العدادات وتفعيل الاشتراك
+    return prismaClient.subscriptions.update({
+      where: { id: subscriptionId },
+      data: {
+        bill_due: new Date(new Date(sub.bill_due).setMonth(new Date(sub.bill_due).getMonth() + 1)),
+        messages_used: 0,
+        images_count: 0,
+        next_month_paid: false,
+        subscription_state: 'ACTIVE',
+      },
+    });
   }
-};
+
+  // 4. تعليق الاشتراك
+  async suspendSubscription(subscriptionId: number) {
+    return prismaClient.subscriptions.update({
+      where: { id: subscriptionId },
+      data: { subscription_state: 'SUSPENDED' },
+    });
+  }
+
+  // 5. تفعيل الاشتراك
+  async activateSubscription(subscriptionId: number) {
+    return prismaClient.subscriptions.update({
+      where: { id: subscriptionId },
+      data: { subscription_state: 'ACTIVE' },
+    });
+  }
+
+  // 6. استعراض كل الاشتراكات مرتبة من الأحدث
+  async listAllSubscriptions() {
+    return prismaClient.subscriptions.findMany({
+      orderBy: { subscription_start: 'desc' },
+      include: {
+        pharmacies: true,
+        plans: true,
+      },
+    });
+  }
+}

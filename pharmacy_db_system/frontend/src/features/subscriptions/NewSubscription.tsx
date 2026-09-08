@@ -131,7 +131,7 @@ export const NewSubscription: React.FC<{ onSuccess: () => void }> = ({ onSuccess
           </label> */}
         </div>
 
-        <div className="lg:col-span-2 flex justify-end">
+        <div className="lg:col-span-3 flex justify-center">
           <Button
           variant="primary"
           type="submit"

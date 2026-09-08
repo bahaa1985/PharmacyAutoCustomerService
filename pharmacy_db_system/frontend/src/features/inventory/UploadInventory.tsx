@@ -299,7 +299,7 @@ export const UploadInventory: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
       
 
       {/* <Modal

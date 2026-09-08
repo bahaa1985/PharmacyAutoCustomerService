@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
-import { notificationsAPI } from "../api/notificationsApi";
+import { userAPI } from "../api/userAPI";
 
 // الكونفيج ده بتجيبه من إعدادات مشروعك في Firebase (Project Settings -> General)
 // ده غير ملف الـ JSON بتاع الباك اند، دي المفاتيح العامة
@@ -33,7 +33,7 @@ export const requestNotificationPermission = async (userId: number) => {
         console.log("FCM Token generated:", currentToken);
         
         // 2. هنا بنستخدم الـ API اللي عملناها في الخطوة التالتة!
-        await notificationsAPI.updateFcmToken({
+        await userAPI.updateFcmToken({
           userId: userId,
           fcmToken: currentToken
         });

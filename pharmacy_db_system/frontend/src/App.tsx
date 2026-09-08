@@ -5,6 +5,7 @@ import { ToastProvider } from "./context/ToastProvider";
 import { PharmacyProvider } from "./context/PharmacyProvider";
 import { LanguageProvider } from "./context/LanguageProvider";
 import { ThemeProvider } from "./context/ThemeContext";
+import { NotificationsProvider } from "./context/NotificationsProvider";
 import { listenForForegroundMessages } from "./utils/firebase-client";
 
 function App() {
@@ -15,11 +16,13 @@ function App() {
     <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
-          <PharmacyProvider>
-            <LanguageProvider>
-              <AppRouter />
-            </LanguageProvider>
-          </PharmacyProvider>
+          <NotificationsProvider>
+            <PharmacyProvider>
+              <LanguageProvider>
+                <AppRouter />
+              </LanguageProvider>
+            </PharmacyProvider>
+          </NotificationsProvider>
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>
@@ -27,3 +30,4 @@ function App() {
 }
 
 export default App;
+

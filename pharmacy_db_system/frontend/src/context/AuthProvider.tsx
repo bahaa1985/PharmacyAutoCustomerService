@@ -15,6 +15,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const checkAuth = async () => {
       try {
         const currentUser = await authAPI.getCurrentUser();
+        console.log("Current user:", currentUser);
         setUser(currentUser);
       } catch {
         setUser(null);
@@ -29,8 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (mobile: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await authAPI.login({ mobile, password });     
-       console.log("send notification!");
+      const response = await authAPI.login({ mobile, password });   
         await requestNotificationPermission(response.user?.id)
       setUser(response.user);
     } finally {

@@ -31,7 +31,7 @@ export interface PharmacyPlan {
   // Enriched fields from latest billing log
   state: PlanState;
   bill_due: string;
-  messages_count: number;
+  messages_used: number;
   images_count:number,
   paid: boolean;
   pharmacies?: Pharmacy;

@@ -3,7 +3,7 @@ export interface Message {
   original_id?: string | null;
   quoted_message_id?: string | null;
   message?: string | null;
-  message_type: string;
+  message_type: number;
   created_at: string;
   pharmacy_id: string;
   from_number: string;
@@ -21,4 +21,5 @@ export interface CreateMessageDto {
   message?: string;
   image_url?: string;
   instance_name?: string;
+  message_type?: number;
 }

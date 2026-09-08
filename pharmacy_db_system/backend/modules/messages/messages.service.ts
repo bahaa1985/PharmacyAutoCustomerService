@@ -1,6 +1,8 @@
-import { log } from "console";
 import { prismaClient } from "../../utils/prisma-adapter";
 import {sendTextMessage} from "./evolutionSendTextMessage"
+import { logAndNotify } from "../logs/log.service";
+import { messaging } from "../../utils/firebase";
+import { NotificationType, TargetRole } from "@prisma/client";
 // const getTextMessageType = async (): Promise<bigint> => {
 //   const messageType = await prismaClient.message_types.findFirst({
 //     where: { message_type: 'text' },
@@ -9,7 +11,7 @@ import {sendTextMessage} from "./evolutionSendTextMessage"
 // };
 
 export const getMessagesByPharmacyIdService = async (
-  pharmacyId: bigint,
+  pharmacyId: number,
   contactPhone?: string,
 ) => {
   try {
@@ -29,8 +31,14 @@ export const getMessagesByPharmacyIdService = async (
       orderBy: { created_at: 'asc' },
     });
     return messages;
-  } catch (error) {
-    console.error("Error fetching messages:", error);
+  } catch (error: any) {
+    console.error("Error fetching messages by pharmacy:", error);
+    logAndNotify({
+        userId: 0,
+        pharmacyId: pharmacyId,
+        action: "APP_ERROR",
+        metadata: { error: error.message, context: "getMessagesByPharmacyIdService" }
+    }).catch(e => console.error(e));
     throw error;
   }
 };
@@ -53,8 +61,13 @@ export const getMessagesByUserNumberService = async (
       orderBy: { created_at: 'asc' },
     });
     return messages;
-  } catch (error) {
-    console.error("Error fetching messages:", error);
+  } catch (error: any) {
+    console.error("Error fetching messages by user number:", error);
+    logAndNotify({
+        userId: 0,
+        action: "APP_ERROR",
+        metadata: { error: error.message, context: "getMessagesByUserNumberService" }
+    }).catch(e => console.error(e));
     throw error;
   }
 };
@@ -75,9 +88,9 @@ export const createMessageService = async ({
   toNumber: string;
   instance_name: string;
   message?: string;
-  message_type?: number|bigint;
+  message_type?: number;
   imageUrl?: string;
-  pharmacyId: number|bigint;
+  pharmacyId: number;
   original_id?: string;
   confidence?:number;
   log: string;
@@ -97,16 +110,43 @@ export const createMessageService = async ({
         to_number: toNumber,
         message,
         image_url: imageUrl,
-        message_type: 5,
+        message_type: Number(message_type) || 5,
         pharmacy_id: pharmacyId,
         original_id,
         confidence:1.0,
         log,
       },
     });
+
+    // Check if message_type is 10 (Order Request)
+    if (Number(message_type) === 10) {
+      const contact = await prismaClient.contacts.findFirst({
+        where: { phone: fromNumber },
+        select: { name: true, phone: true }
+      });
+
+      logAndNotify({
+        userId: 0, // System or associated user
+        pharmacyId: pharmacyId,
+        action: "ORDER_REQUEST",
+        metadata: {
+          from: fromNumber,
+          message,
+          contact_name: contact?.name || fromNumber,
+          contact_number: contact?.phone || fromNumber
+        }
+      }).catch(e => console.error("Error in logAndNotify for ORDER_REQUEST:", e));
+    }
+
     return newMessage;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating message:", error);
+    logAndNotify({
+        userId: 0,
+        pharmacyId: pharmacyId,
+        action: "APP_ERROR",
+        metadata: { error: error.message, context: "createMessageService" }
+    }).catch(e => console.error(e));
     throw error;
   }
 };
@@ -123,18 +163,106 @@ export const updateMessageService = async (
       where: { id },
       data: updateData,
     });
-    return updatedMessage;
-  } catch (error) {
+        return updatedMessage;
+  } catch (error: any) {
     console.error("Error updating message:", error);
+    logAndNotify({
+        userId: 0,
+        action: "APP_ERROR",
+        metadata: { error: error.message, context: "updateMessageService" }
+    }).catch(e => console.error(e));
     throw error;
   }
 };
 
 export const deleteMessageService = async (id: bigint) => {
   try {
-    return prismaClient.messages.delete({ where: { id } });
-  } catch (error) {
+        return prismaClient.messages.delete({ where: { id } });
+  } catch (error: any) {
     console.error("Error deleting message:", error);
+    logAndNotify({
+        userId: 0,
+        action: "APP_ERROR",
+        metadata: { error: error.message, context: "deleteMessageService" }
+    }).catch(e => console.error(e));
+    throw error;
+  }
+};
+
+export const checkOrderMessageService = async ({
+  pharmacyId,
+  fromNumber,
+  message,
+}: {
+  pharmacyId: number;
+  fromNumber: string;
+  message?: string;
+}) => {
+  try {
+    await logAndNotify({
+      userId: 0,
+      pharmacyId: pharmacyId,
+      action: "ORDER_REQUEST",
+      metadata: { from: fromNumber, message: message || "New Order Request" },
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error in checkOrderMessageService:", error);
+    throw error;
+  }
+};
+
+export const processWebhookMessageService = async (record: any) => {
+  try {
+    const { pharmacy_id, message, id, to_number, message_type } = record;
+
+    // Check if the message is an order request (message_type == 10)
+    // Even if we process all messages, maybe we only want to notify for order request?
+    // Based on the prompt: "process FCM notifications for order messages based on the attached files."
+    // Let's assume order messages have message_type = 10, or maybe we just process any message from webhook?
+    // Wait, let's see. The prompt says "notifications for order messages", but then "Title: 'رسالة أوردر جديدة'". Let's just follow the steps exactly.
+    // The instructions say: "Find the target user by matching to_number against users.mobile"
+    // So the incoming message is TO a number. Wait, if it's an incoming message, it should be FROM someone TO the system/pharmacy.
+    // The prompt explicitly states: "Find the target user by matching to_number against users.mobile"
+
+    const targetUser = await prismaClient.users.findUnique({
+      where: { mobile: to_number },
+    });
+
+    if (targetUser && targetUser.is_active && targetUser.fcm_token && targetUser.fcm_token.length > 0) {
+      const fcmTokens = Array.isArray(targetUser.fcm_token) ? targetUser.fcm_token : [];
+      
+      if (fcmTokens.length > 0) {
+        // Create an internal notification record in the database
+        await prismaClient.notification.create({
+          data: {
+            user_id: targetUser.id,
+            pharmacy_id: pharmacy_id ,
+            type: NotificationType.ORDER_REQUEST,
+            target_role: TargetRole.USER,
+            title: "رسالة جديدة",
+            body: message || "",
+          }
+        });
+
+        const fcmMessage = {
+          notification: {
+            title: "رسالة أوردر جديدة",
+            body: message || "",
+          },
+          tokens: fcmTokens.map(token => String(token)),
+        };
+
+        try {
+          const response = await messaging.sendEachForMulticast(fcmMessage);
+          console.log(`Webhook Notification sent: ${response.successCount} successes, ${response.failureCount} failures`);
+        } catch (fcmError) {
+          console.error("Error sending FCM in processWebhookMessageService:", fcmError);
+        }
+      }
+    }
+  } catch (error: any) {
+    console.error("Error in processWebhookMessageService:", error);
     throw error;
   }
 };

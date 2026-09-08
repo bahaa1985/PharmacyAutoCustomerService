@@ -4,7 +4,9 @@ import { userAPI } from "../../api/userAPI";
 import { useAuth } from "../../context/AuthContext";
 import { usePharmacy } from "../../context/PharamcyContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { useNotifications } from "../../context/NotificationsProvider";
 import { getRoleTheme } from "../../utils/theme";
+
 import Switch from "@mui/material/Switch";
 
 interface SidebarProps {
@@ -15,8 +17,10 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const { user, setUser } = useAuth();
-  const { pharmacy, plan } = usePharmacy();
+    const { pharmacy, plan } = usePharmacy();
+  const { unreadCount } = useNotifications();
   const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
+
   const [error, setError] = useState("");
   const { t, dir, language, setLanguage } = useLanguage();
   const theme = getRoleTheme(user?.role_id);
@@ -63,9 +67,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const isLimitReached = usagePercent >= 100;
 
   const links = [
-    { path: "/dashboard", label: t("layout.dashboard") },
+        { path: "/dashboard", label: t("layout.dashboard") },
     { path: "/messages", label: t("layout.messages") },
+    { path: "/notifications", label: t("layout.notifications"), badge: unreadCount },
     { path: "/inventory", label: t("layout.inventory") },
+
     { path:"/pharmacies", label: t("layout.pharmacies")},
     { path: "/subscriptions", label: t("layout.subscriptions") },
     { path: "/users", label: t("layout.users") },
@@ -143,7 +149,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   {t("subscriptions.messages")}
                 </span>
                 <span className={`text-[10px] font-bold ${isLimitReached ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                  {plan.messages_count} / {plan.plans.messages_limit}
+                  {plan.messages_used} / {plan.plans.messages_limit}
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
@@ -175,19 +181,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               const isActive = location.pathname === link.path;
               return (
                 <li key={link.path}>
-                  <Link
+                                    <Link
                     to={link.path}
                     onClick={() => {
                       if (window.innerWidth < 1024) onClose();
                     }}
-                    className={`block px-4 py-2.5 rounded-xl transition-all duration-200 font-medium ${
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 font-medium ${
                       isActive
                         ? `${theme.active} shadow-sm`
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    {link.badge !== undefined && link.badge > 0 && (
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                        {link.badge > 99 ? "99+" : link.badge}
+                      </span>
+                    )}
                   </Link>
+
                 </li>
               );
             })}

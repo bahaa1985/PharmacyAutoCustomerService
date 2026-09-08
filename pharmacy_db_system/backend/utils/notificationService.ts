@@ -5,8 +5,8 @@ import { prismaClient } from './prisma-adapter'; // مسار الداتابيز 
 import { NotificationType, TargetRole } from '@prisma/client'; 
 
 interface SendNotificationParams {
-  userId: bigint;
-  pharmacyId?: bigint | number | null;
+  userId: number;
+  pharmacyId?: number | number | null;
   title: string;
   body: string;
   type: NotificationType;
@@ -21,8 +21,8 @@ export const sendPushNotification = async (params: SendNotificationParams) => {
         // 1. تسجيل الإشعار في قاعدة البيانات
     await prismaClient.notification.create({
       data: {
-        user_id: BigInt(userId),
-        pharmacy_id: pharmacyId ? BigInt(pharmacyId) : null,
+        user_id: userId,
+        pharmacy_id: pharmacyId,
         title,
         body,
         type,
@@ -33,7 +33,7 @@ export const sendPushNotification = async (params: SendNotificationParams) => {
 
     // 2. جلب أجهزة المستخدم (الـ Tokens) من قاعدة البيانات
     const user = await prismaClient.users.findUnique({
-      where: { id: BigInt(userId) },
+      where: { id: userId },
       select: { fcm_token: true },
     });
 

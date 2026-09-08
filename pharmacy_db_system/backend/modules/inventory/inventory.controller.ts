@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { prismaClient } from '../../utils/prisma-adapter';
 import { getInventoryCountByPharmacyId } from './inventory.service';
+import { logAndNotify } from '../logs/log.service';
 
 // Extend Express Request type to include `user` set by authentication middleware
 declare global {
@@ -67,15 +68,18 @@ export const uploadInventory = async (req: any, res: any) => {
         };
       });
       console.log(rowsToInsert[0])
-      await prismaClient.$transaction([
+            await prismaClient.$transaction([
         prismaClient.inventory.deleteMany({ where: { pharmacy_id: BigInt(pharmacyId) } }),
         prismaClient.inventory.createMany({ data: rowsToInsert })
       ]);
 
-      // return res.json({
-      //   success: true,
-      //   message: "delete succeeded"
-      // });
+      logAndNotify({
+        userId: req.user?.id ? BigInt(req.user.id) : BigInt(0),
+        pharmacyId: BigInt(pharmacyId),
+        action: "INVENTORY_UPDATED",
+        username: req.user?.username || "System",
+        details: { count: rowsToInsert.length }
+      }).catch(e => console.error(e));
 
       return res.json({ success: true, message: 'Inventory saved successfully', inserted: rowsToInsert.length });
     }
@@ -83,10 +87,16 @@ export const uploadInventory = async (req: any, res: any) => {
     // If we reached here, the request did not include the expected `rows` array
     return res.status(400).json({ success: false, message: 'Invalid request payload: expected `rows` array in body' });
   }
-  catch (dbError: any) {
+    catch (dbError: any) {
     console.error("NAME:", dbError?.name);
     console.error("MESSAGE:", dbError?.message);
     console.error("STACK:", dbError?.stack);
+    logAndNotify({
+      userId: req.user?.id ? BigInt(req.user.id) : BigInt(0),
+      pharmacyId: req.body?.pharmacy_id ? BigInt(req.body.pharmacy_id) : undefined,
+      action: "APP_ERROR",
+      details: { error: dbError.message, context: "uploadInventory" }
+    }).catch(e => console.error(e));
     return res.status(500).json({ success: false, message: 'Failed to save inventory', error: String(dbError) });
   }
 

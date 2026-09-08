@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "../../utils/prisma-adapter";
 
-export const getContactsByUserService = async (userId: bigint) => {
+export const getContactsByUserService = async (userId: number) => {
   try {
     return await prismaClient.contacts.findMany({
       where: { user_id: userId },
@@ -16,7 +16,7 @@ export const getContactsByUserService = async (userId: bigint) => {
 export const createContactService = async (
   name: string,
   phone: string,
-  userId: number | bigint,
+  userId: number,
 ) => {
   try {
     return await prismaClient.contacts.create({

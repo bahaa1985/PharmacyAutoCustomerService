@@ -1,10 +1,10 @@
 import axios from 'axios';
 import {prismaClient} from '../../utils/prisma-adapter';
-import { log } from 'node:console';
+import { logAndNotify } from '../logs/log.service';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || "default_api_key"
 const EVOLUTION_URL = process.env.EVOLUTION_URL || "http://localhost:3000"
 
-export const createEvolutionInstanceService = async (user_id:BigInt,instance_name: string,mobile:string) => {
+export const createEvolutionInstanceService = async (user_id:number,instance_name: string,mobile:string) => {
     // console.log(instance_name);
     try {
         let obj = {
@@ -31,11 +31,22 @@ export const createEvolutionInstanceService = async (user_id:BigInt,instance_nam
             data: { instance_name: instance_name,instance_status: 'PENDING' }
         });
 
+        logAndNotify({
+            userId: user_id,
+            action: "CREATE_EVOLUTION_INSTANCE",
+            metadata: { instance_name }
+        })
+
         return response.data
     }
     catch (error:any) {
         console.error("Evolution error data:", error.response?.data)
         console.error("Evolution error status:", error.response?.status)
+        logAndNotify({
+            userId: user_id,
+            action: "APP_ERROR",
+            metadata: { error: error.message, evolution_data: error.response?.data, context: "createEvolutionInstanceService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }
@@ -56,8 +67,13 @@ export const getPairingCodeEvolutionService = async (instance_name: string) => {
         
         return response.data
     }
-    catch (error) {
+        catch (error: any) {
         console.error("Error connecting user evolution instance:", error)
+        logAndNotify({
+            userId: 0,
+            action: "APP_ERROR",
+            metadata: { error: error.message, context: "getPairingCodeEvolutionService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }
@@ -95,8 +111,13 @@ export const setWebhookEvolutionService = async (instance_name: string) => {
         const response = await axios.request(config)
         return response.data
     }
-    catch (error:any) {
+        catch (error:any) {
         console.error("Error setting webhook for evolution instance:", JSON.stringify(error.response?.data,null,2))
+        logAndNotify({
+            userId: 0,
+            action: "APP_ERROR",
+            metadata: { error: error.message, evolution_data: error.response?.data, context: "setWebhookEvolutionService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }
@@ -118,8 +139,13 @@ export const getConnectionStateService = async(instance_name:string)=>{
         }
         // return response.data.instance.state
     }
-    catch(error){
+        catch(error: any){
         console.error("Error getting connection state for evolution instance:", error)
+        logAndNotify({
+            userId: 0,
+            action: "APP_ERROR",
+            metadata: { error: error.message, context: "getConnectionStateService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }
@@ -132,8 +158,13 @@ export const updateEvolutionInstanceStatusService = async (instance_name: string
         });
         return updatedUser
     }
-    catch (error) {
+        catch (error: any) {
         console.error("Error updating user evolution instance status:", error)
+        logAndNotify({
+            userId: 0,
+            action: "APP_ERROR",
+            metadata: { error: error.message, context: "updateEvolutionInstanceStatusService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }

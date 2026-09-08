@@ -5,7 +5,9 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useLocation } from "react-router-dom";
 import { messagesAPI } from "../../api/messagesAPI";
+
 import { contactsAPI } from "../../api/contactsAPI";
 // import { userAPI } from '../../api/userAPI';
 import type { Message } from "../../types/message";
@@ -21,7 +23,9 @@ import { subscriptionAPI } from "../../api/subscriptionAPI";
 
 export const MessagesList: React.FC = () => {
   const { user, setUser } = useAuth();
+  const location = useLocation();
   const { t } = useLanguage();
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedClient, setSelectedClient] = useState("");
@@ -90,13 +94,21 @@ export const MessagesList: React.FC = () => {
     [isOwner, user],
   );
 
-  useEffect(() => {
+    useEffect(() => {
     if (user) {
       // setIsAiMode(user.ai_mode ?? true);
       loadContacts();
+      
+      const params = new URLSearchParams(location.search);
+      const contactFromUrl = params.get('contact');
+      if (contactFromUrl) {
+        setSelectedClient(contactFromUrl);
+      }
+      
       loadMessages(selectedClient || undefined);
     }
-  }, [user, selectedClient, loadContacts, loadMessages]);
+  }, [user, selectedClient, loadContacts, loadMessages, location.search]);
+
 
   useEffect(() => {
     // get current pharmacy plan
@@ -160,10 +172,23 @@ export const MessagesList: React.FC = () => {
                 instance_name: instanceName,
                 from_number: currentUserMobile,
                 image_url: "",
-                pharmacyId: user?.pharmacy_id || 0,
+                                pharmacyId: user?.pharmacy_id || 0,
               });
             }
+
+            // Check if it's an order request (message_type = 10)
+            // if (String(newMessageData.message_type) === "10") {
+            //   messagesAPI
+            //     .notifyOrderMessage({
+            //       pharmacyId: String(newMessageData.pharmacy_id),
+            //       fromNumber: newMessageData.from_number,
+            //       message: newMessageData.message || "",
+            //     })
+            //     .catch((e) => console.error("Error triggering order notification:", e));
+            // }
+
             if (matchesClientSelection(newMessageData)) {
+
               setMessages((prev) => {
                 const exists = prev.some(
                   (item) => item.id === newMessageData.id,
@@ -283,7 +308,7 @@ export const MessagesList: React.FC = () => {
     }
     setError("");
 
-    try {
+        try {
       const created = await messagesAPI.createMessage({
         to_number: selectedClient,
         message: newMessage.trim(),
@@ -291,6 +316,7 @@ export const MessagesList: React.FC = () => {
         from_number: currentUserMobile,
         image_url: "",
         pharmacyId: user?.pharmacy_id || 0,
+        message_type: newMessage.trim().toLowerCase().includes("order") ? 10 : 5,
       });
       setMessages((prev) => [...prev, created]);
       setNewMessage("");

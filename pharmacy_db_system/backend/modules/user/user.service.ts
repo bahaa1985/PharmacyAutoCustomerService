@@ -1,11 +1,12 @@
 import { prismaClient } from "../../utils/prisma-adapter";
 import bcrypt from 'bcrypt';
 import axios from 'axios'; 
+import { logAndNotify } from "../logs/log.service";
 const EVOLUTION_URL=process.env.EVOLUTION_URL || "http://localhost:3000"
 const EVOLUTION_API_KEY=process.env.EVOLUTION_API_KEY || "default_api_key"
 
 export const createUserService = async (username: string, password:string, mobile:string,
-    role_id: bigint, pharmacy_id: bigint,avatar:string) => {
+    role_id: number, pharmacy_id: number,avatar:string) => {
         try{
             const saltRounds=10
             const hashedPassword:string = await bcrypt.hash(password,saltRounds)
@@ -14,15 +15,29 @@ export const createUserService = async (username: string, password:string, mobil
                     username, password:hashedPassword, mobile, role_id, pharmacy_id,avatar
                 }
             })
+
+            logAndNotify({
+                userId: newUser.id,
+                pharmacyId: newUser.pharmacy_id,
+                action: "CREATE_NEW_USER",
+                username: newUser.username || "",
+                metadata: { role_id: role_id.toString() }
+            })
+
             return newUser
         }
-        catch(error){ 
+        catch(error: any){ 
             console.error("Error creating user:", error)
+            logAndNotify({
+                userId: 0,
+                action: "APP_ERROR",
+                metadata: { error: error.message, context: "createUserService" }
+            }).catch(e => console.error(e));
             throw error
         }
     }
 
-export const updateUserService = async (userId: bigint, updateData: any) => {
+export const updateUserService = async (userId: number, updateData: any) => {
     try {
         if (updateData.password?.length >=8) {
             const saltRounds = 10;
@@ -33,13 +48,18 @@ export const updateUserService = async (userId: bigint, updateData: any) => {
             data: updateData,
         });
         return updatedUser;
-    } catch (error) {
+        } catch (error: any) {
         console.error("Error updating user:", error);
+        logAndNotify({
+            userId: userId,
+            action: "APP_ERROR",
+            metadata: { error: error.message, context: "updateUserService" }
+        }).catch(e => console.error(e));
         throw error;
     }
 }
 
-export const getAllUsersService = async (pharmacyId:bigint)=>{
+export const getAllUsersService = async (pharmacyId:number)=>{
     // console.log("get all users")
     try{
         const users = await prismaClient.users.findMany({
@@ -47,13 +67,19 @@ export const getAllUsersService = async (pharmacyId:bigint)=>{
         })
         return users
     }
-    catch(error){
+    catch(error: any){
         console.error("Error fetching users:", error)
+        logAndNotify({
+            userId: 0,
+            pharmacyId: pharmacyId,
+            action: "APP_ERROR",
+            metadata: { error: error.message, context: "getAllUsersService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }
 
-export const deactivateUserService = async (userId: bigint) => {
+export const deactivateUserService = async (userId: number) => {
     try{
         const user = await prismaClient.users.update({
             where :{id :userId},
@@ -61,23 +87,28 @@ export const deactivateUserService = async (userId: bigint) => {
         })
         return user
     }
-    catch(error){
-        console.error("Error fetching users:", error)
+    catch(error: any){
+        console.error("Error deactivating users:", error)
+        logAndNotify({
+            userId: userId,
+            action: "APP_ERROR",
+            metadata: { error: error.message, context: "deactivateUserService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }
 
-export const updateUserFCMTokenService = async(userId:bigint,fcmToken:string)=>{
+export const updateUserFCMTokenService = async(userId:number,fcmToken:string)=>{
     try{
         // هنجيب بيانات المستخدم الأول عشان نتأكد إن التوكن مش متسجل قبل كده
     const user = await prismaClient.users.findUnique({
-      where: { id: BigInt(userId) },
+      where: { id: userId },
       select: { fcm_token: true }
     });
     // لو التوكن موجود بالفعل في المصفوفة، مش محتاجين نضيفه تاني
     if (!user?.fcm_token.includes(fcmToken)) {
       await prismaClient.users.update({
-        where: { id: BigInt(userId) },
+        where: { id: userId },
         data: { 
           fcm_token: {
             push: fcmToken // بنضيف التوكن الجديد على التوكنز القديمة
@@ -86,9 +117,14 @@ export const updateUserFCMTokenService = async(userId:bigint,fcmToken:string)=>{
       });
     }
     return user
-    }
-    catch(error){
+        }
+    catch(error: any){
         console.log("Error updating fcm token",error)
+        logAndNotify({
+            userId: userId,
+            action: "APP_ERROR",
+            metadata: { error: error.message, context: "updateUserFCMTokenService" }
+        }).catch(e => console.error(e));
         throw error
     }
 }

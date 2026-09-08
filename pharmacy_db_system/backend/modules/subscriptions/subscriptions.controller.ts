@@ -1,144 +1,76 @@
-import { Request, Response } from "express";
-import * as subscriptionService from "./subscriptions.service";
+import { Request, Response } from 'express';
+import { SubscriptionService } from './subscriptions.service';
 
-// Helper to handle BigInt serialization
-const serialize = (data: any) => {
-  return JSON.parse(
-    JSON.stringify(data, (key, value) =>
-      typeof value === "bigint" ? value.toString() : value
-    )
-  );
-};
+const subscriptionService = new SubscriptionService();
 
-// export const updatePaymentStatus = async (req: Request, res: Response) => {
-//   try {
-//     const { pharmacyPlanId } = req.params;
-
-//     if (typeof paid !== "boolean") {
-//       return res.status(400).json({ success: false, message: "paid must be a boolean" });
-//     }
-
-//     const result = await subscriptionService.updatePaymentStatus(BigInt(pharmacyPlanId.toString()));
-//     res.status(200).json({ success: true, data: serialize(result) });
-//   } catch (error: any) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-
-export const updatePlanState = async (req: Request, res: Response) => {
-  try {
-    const { pharmacyId } = req.params;
-    const { state } = req.body;
-
-    if (!state) {
-      return res.status(400).json({ success: false, message: "state is required" });
+export class SubscriptionController {
+  // 1. إنشاء أو تحديث خطة
+  async createPlanController(req: Request, res: Response) {
+    try {
+      const planId = req.params.id ? parseInt(req.params.id.toString()) : undefined;
+      const { name, price, messages_limit } = req.body;
+      const plan = await subscriptionService.upsertPlan(planId, { name, price, messages_limit });
+      return res.status(200).json({ success: true, data: plan });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
     }
-
-    const result = await subscriptionService.updatePlanState(BigInt(pharmacyId.toString()), state);
-    res.status(200).json({ success: true, data: serialize(result) });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
   }
-};
 
-export const getAllPharmacyPlans = async (req: Request, res: Response) => {
-  try {
-     const { pharmacyId } = req.params;
-    const plans = await subscriptionService.getAllPharmacyPlans();
-    res.status(200).json({ success: true, data: serialize(plans) });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const getPharmacyPlan = async (req: Request, res: Response) => {
-  try {
-    const { pharmacyId } = req.params;
-    const subscriptions = await subscriptionService.getSubscriptionsByPharmacy(BigInt(pharmacyId.toString()));
-    // const subscription = subscriptions.pop(p => p.pharmacy_id === BigInt(pharmacyId.toString()));
-    const subscription = subscriptions.pop();
-    
-    if (!subscription) {
-      return res.status(404).json({ success: false, message: "Plan not found for this pharmacy" });
+  // 2. إنشاء اشتراك جديد
+  async createSubscriptionController(req: Request, res: Response) {
+    try {
+      const { pharmacy_id, plan_id, bill_due } = req.body;
+      const subscription = await subscriptionService.createSubscription(
+        pharmacy_id,
+        plan_id,
+        new Date(bill_due)
+      );
+      return res.status(201).json({ success: true, data: subscription });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
     }
-
-    res.status(200).json({ success: true, data: serialize(subscription) });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
   }
-};
 
-// Plan handlers
-export const getAllPlans = async (req: Request, res: Response) => {
-  try {
-    const plans = await subscriptionService.getAllPlans();
-    res.status(200).json({ success: true, data: serialize(plans) });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  // 3. تجديد الاشتراك
+  async renewSubscriptionController(req: Request, res: Response) {
+    try {
+      const subscriptionId = parseInt(req.params.id.toString());
+      const updated = await subscriptionService.renewSubscription(subscriptionId);
+      return res.status(200).json({ success: true, data: updated });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
-};
 
-export const createPlan = async (req: Request, res: Response) => {
-  try {
-    const plan = await subscriptionService.createPlan(req.body);
-    res.status(201).json({ success: true, data: serialize(plan) });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  // 4. تعليق الاشتراك
+  async suspendSubscriptionController(req: Request, res: Response) {
+    try {
+      const subscriptionId = parseInt(req.params.id.toString());
+      const suspended = await subscriptionService.suspendSubscription(subscriptionId);
+      return res.status(200).json({ success: true, data: suspended });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
-};
 
-export const updatePlan = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const plan = await subscriptionService.updatePlan(Number(id), req.body);
-    res.status(200).json({ success: true, data: serialize(plan) });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  // 5. تفعيل الاشتراك
+  async activateSubscription(req: Request, res: Response) {
+    try {
+      const subscriptionId = parseInt(req.params.id.toString());
+      const activated = await subscriptionService.activateSubscription(subscriptionId);
+      return res.status(200).json({ success: true, data: activated });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
-};
 
-export const deletePlan = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    await subscriptionService.deletePlan(Number(id));
-    res.status(200).json({ success: true, message: "Plan deleted successfully" });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const getPharamcyBillingLogController=async (req:Request,res:Response)=>{
-  try {
-    const {pharmacy_id}=req.params;
-    await subscriptionService.getPharmacyBillingLogService(BigInt(pharmacy_id.toString()))
-    res.status(200).json({success:true,message:"Pharamcy billing log fetched successfully"});
-  } catch (error:any) {
-    res.status(500).json({success:false,message:error.message})
+  // 6. سرد جميع الاشتراكات مرتبة بالأحدث
+  async listSubscriptionsController(req: Request, res: Response) {
+    try {
+      const subscriptions = await subscriptionService.listAllSubscriptions();
+      return res.status(200).json({ success: true, data: subscriptions });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
 }
-
-export const renewPharmacyBillingController=async(req:Request,res:Response)=>{
-  try{
-    const data = req.body;
-    // Handle BigInt conversion if pharmacy_id is present
-    if (data.pharmacy_id) {
-      data.pharmacy_id = BigInt(data.pharmacy_id);
-    }
-    await subscriptionService.createMonthlyBillingLogService(data);
-    res.status(200).json({success:true,message:"Pharmacy Subscription Billing created successfully"});
-  }
-  catch(error:any){
- res.status(500).json({ success: false, message: error.message });
-  }
-}
-
-export const createPharmacyPlan = async (req: Request, res: Response) => {
-  try {
-    const plan = await subscriptionService.createPharmacyPlan(req.body);
-    res.status(201).json({ success: true, data: serialize(plan) });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
-
-

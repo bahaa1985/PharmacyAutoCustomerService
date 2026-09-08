@@ -16,7 +16,8 @@ export const PharmacySubscriptionList: React.FC = () => {
     try {
       setLoading(true);
       const data = await subscriptionAPI.getAllPharmacyPlans();
-      if(data) setPharmPlan(data);   
+      if(data) setPharmPlan(data);  
+      console.log("Fetched pharmacy plans:", data); 
     } catch (error) {
       showToast(t("common.error"), error);
     } finally {

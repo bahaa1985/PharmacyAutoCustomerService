@@ -16,13 +16,12 @@ import { CONTACTS_ROUTER } from './modules/contacts/contacts.route';
 import { INVENTORY_ROUTER } from './modules/inventory/inventory.route';
 import { EVOLUTION_INSTANCE_ROUTER } from './modules/evolution_instance/instance.route';
 import { SUBSCRIPTION_ROUTER } from './modules/subscriptions/subscriptions.route';
-
-
-
+import { LOGS_ROUTER } from './modules/logs/log.route';
+import { NOTIFICATION_ROUTER } from './modules/notifications/notification.route';
 
 const app = express();
 
-// Middleware
+
 const FRONTEND_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -68,17 +67,17 @@ const cleanup = async () => {
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 
-// Routes
+// home route:
 app.get('/',authenticateToken, (req: any, res: any) => {
   if(!req.user){
     res.redirect('/login')
   }
-  console.log("hello ",req.user.username);
-  
+  // console.log("hello ",req.user.username);
   const username = req.user?.username
   res.send('Hello '+username+ ' !')
 });
 
+// routes
 app.use('/users', USER_ROUTER)
 app.use('/login', AUTH_LOGIN_ROUTER)
 app.use('/logout', AUTH_LOGOUT_ROUTER)
@@ -89,7 +88,8 @@ app.use('/contacts', CONTACTS_ROUTER)
 app.use('/inventory', INVENTORY_ROUTER)
 app.use('/evolution', EVOLUTION_INSTANCE_ROUTER)
 app.use('/subscriptions', SUBSCRIPTION_ROUTER)
-
+app.use('/logs',LOGS_ROUTER)
+app.use('/notifications', NOTIFICATION_ROUTER)
 
 const PORT = Number(process.env.PORT ?? 3000);
 app.listen(PORT, () => {

@@ -35,7 +35,15 @@ export const messagesAPI = {
     return response.data;
   },
 
-  deleteMessage: async (id: string): Promise<void> => {
+    deleteMessage: async (id: string): Promise<void> => {
     await api.delete(`/messages/${id}`);
   },
+
+  // notifyOrderMessage: async (data: {
+  //   pharmacyId: string;
+  //   fromNumber: string;
+  //   message?: string;
+  // }): Promise<void> => {
+  //   await api.post(`/messages/order-message`, data);
+  // },
 };

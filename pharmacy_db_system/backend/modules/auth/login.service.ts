@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { prismaClient } from "../../utils/prisma-adapter"
 import { sendPushNotification } from "../../utils/notificationService";
+import { logAndNotify } from "../logs/log.service";
 
 export const userLoginService = async (mobile: string, password: string) => {
     debugger
@@ -25,16 +26,17 @@ export const userLoginService = async (mobile: string, password: string) => {
                         last_login_at: new Date()
                     }
                 })
-                //sendNotification
-                sendPushNotification({
-                    userId: user_data.id, // رقم المستخدم
-                    pharmacyId: user_data.pharmacy_id, // رقم الصيدلية (اختياري)
-                    title: "دخول جديد",
-                    body: "تم تسجيل الدخول بنجاح",
-                    type: "USER_AUTH",
-                    targetRole: "USER",
-                    data: {loggin_id: Date.now().toString() }
-                })
+
+                logAndNotify({
+                    userId: user_data.id,
+                    pharmacyId: user_data.pharmacy_id,
+                    action: "USER_LOGIN",
+                    username: user_data.username || "",
+                    metadata: {
+                        ip_address: '', username: user_data.username,
+                        user_mobile: user_data.mobile
+                    }
+                }).catch(e => console.error(e));
                 return logged_user
             }
             // Password did not match
@@ -44,8 +46,16 @@ export const userLoginService = async (mobile: string, password: string) => {
             throw new Error("User is not active")
         }
     }
-    catch (error) {
+    catch (error: any) {
         console.error("Error during user login: check login data", error)
+        // Log application error
+        logAndNotify({
+            userId: 2, // Owner level
+            action: "APP_ERROR",
+            metadata: { error: error.message, stack: error.stack, context: "userLoginService" },
+            username: mobile || "",
+        }).catch(e => console.error("Critical: Failed to log error", e));
+
         throw error
     }
 }
