@@ -4,16 +4,16 @@ import { createUserService, updateUserService, getAllUsersService, deactivateUse
 const serializeUser = (user: any) => {
     return {
         ...user,
-        id: user.id?.toString(),
-        role_id: user.role_id?.toString(),
-        pharmacy_id: user.pharmacy_id?.toString()
+        id: Number(user.id),
+        role_id: Number(user.role_id),
+        pharmacy_id: Number(user.pharmacy_id)
     }
 }
 
 export const createUserController = async (req: any, res: any) => {
     const { username, password, mobile, role_id, pharmacy_id, instance_name } = req.body
     try {
-        const newUser = await createUserService(username, password, mobile, BigInt(role_id), BigInt(pharmacy_id), "/public/avatar.png")
+        const newUser = await createUserService(username, password, mobile, role_id, pharmacy_id, "/public/avatar.png")
         res.status(201).json(serializeUser(newUser))
     }
     catch (error) {
@@ -28,8 +28,8 @@ export const updateUserController = async (req: any, res: any) => {
     if (username) updateData.username = username
     if (password) updateData.password = password
     if (mobile) updateData.mobile = mobile
-    if (role_id) updateData.role_id = BigInt(role_id)
-    if (pharmacy_id) updateData.pharmacy_id = BigInt(pharmacy_id)
+    if (role_id) updateData.role_id = role_id
+    if (pharmacy_id) updateData.pharmacy_id = pharmacy_id
     if (ai_mode !== undefined && ai_mode !== null) {
         updateData.ai_mode = String(ai_mode).toLowerCase() === 'true';
     }
@@ -40,7 +40,7 @@ export const updateUserController = async (req: any, res: any) => {
         updateData.avatar = avatar
     }
     try {
-        const updatedUser = await updateUserService(BigInt(id), updateData)
+        const updatedUser = await updateUserService(id, updateData)
         res.status(200).json(serializeUser(updatedUser))
     }
     catch (error) {
@@ -51,7 +51,7 @@ export const updateUserController = async (req: any, res: any) => {
 export const getAllUsersController = async (req: any, res: any) => {
     const { pharmacyId } = req.params
     try {
-        const users = await getAllUsersService(BigInt(pharmacyId))
+        const users = await getAllUsersService(Number(pharmacyId))
         res.status(200).json(users.map(serializeUser))
     }
     catch (error) {
@@ -62,7 +62,7 @@ export const getAllUsersController = async (req: any, res: any) => {
 export const deactivateUserController = async (req: any, res: any) => {
     const { id } = req.params
     try {
-        const deactivatedUser = await deactivateUserService(BigInt(id))
+        const deactivatedUser = await deactivateUserService(id)
         res.status(200).json(serializeUser(deactivatedUser))
     }
     catch (error) {

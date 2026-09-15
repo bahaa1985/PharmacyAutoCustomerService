@@ -78,7 +78,7 @@ console.log("smoke test pharmacy are created successfully")
     const plainPassword = 'aaaaaaaa'
     const hashedPassword = await bcrypt.hash(plainPassword, 10)
     await prismaClient.users.upsert({
-    where: { mobile: '01221483799' },
+    where: { mobile: '201221483799' },
     update: {
       password: hashedPassword,
       role_id: 1,
@@ -88,7 +88,7 @@ console.log("smoke test pharmacy are created successfully")
     },
     create: {
       username: 'bahaa salah',
-      mobile: '01221483799',
+      mobile: '201221483799',
       password: hashedPassword,
       pharmacy_id: 1,
       role_id: 1,

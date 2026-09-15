@@ -16,6 +16,11 @@ interface ContactsListProps {
   onToggleBlock: (phone: string, block: boolean) => void;
 }
 
+interface ConversationPreview {
+  phone: string;
+  latestMessage?: Message;
+}
+
 export const ContactsList: React.FC<ContactsListProps> = ({
   contacts,
   messages,
@@ -30,25 +35,43 @@ export const ContactsList: React.FC<ContactsListProps> = ({
 }) => {
 
   const { t } = useLanguage();
-  const participants = useMemo(() => {
-    const set = new Set<string>();
+  const participants = useMemo<ConversationPreview[]>(() => {
+    const conversations = new Map<string, ConversationPreview>();
 
     messages?.forEach((message) => {
-      const other = message.from_number === currentUserMobile ? message.to_number : message.from_number;
-      if (other && other !== currentUserMobile) {
-        set.add(other);
+      const from = message.from_number?.trim();
+      const to = message.to_number?.trim();
+      if (!from || !to || from === to) return;
+
+      const pair = [from, to].sort();
+      const pairKey = pair.join("\u0000");
+      const phone = from === currentUserMobile.trim() ? to : from;
+      const existing = conversations.get(pairKey);
+      if (
+        !existing ||
+        new Date(message.created_at).getTime() >
+          new Date(existing.latestMessage?.created_at || 0).getTime()
+      ) {
+        conversations.set(pairKey, { phone, latestMessage: message });
       }
     });
+
+    const contactPhones = new Set(
+      Array.from(conversations.values()).map((conversation) => conversation.phone),
+    );
 
     contacts?.forEach((contact) => {
-      if (contact.phone !== currentUserMobile) {
-        set.add(contact.phone);
+      if (contact.phone !== currentUserMobile.trim() && !contactPhones.has(contact.phone)) {
+        conversations.set(`contact:${contact.phone}`, { phone: contact.phone });
       }
     });
 
-    return Array.from(set).sort((a, b) => {
-      const nameA = contactMap.get(a)?.name || a;
-      const nameB = contactMap.get(b)?.name || b;
+    return Array.from(conversations.values()).sort((a, b) => {
+      const aTime = a.latestMessage ? new Date(a.latestMessage.created_at).getTime() : 0;
+      const bTime = b.latestMessage ? new Date(b.latestMessage.created_at).getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
+      const nameA = contactMap.get(a.phone)?.name || a.phone;
+      const nameB = contactMap.get(b.phone)?.name || b.phone;
       return nameA.localeCompare(nameB);
     });
   }, [messages, contacts, contactMap, currentUserMobile]);
@@ -56,7 +79,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
   const filteredParticipants = useMemo(() => {
     const term = clientSearch.toLowerCase();
 
-    return participants.filter((phone) => {
+    return participants.filter(({ phone }) => {
       const name = contactMap.get(phone)?.name || phone;
       return name.toLowerCase().includes(term) || phone.includes(term);
     });
@@ -64,7 +87,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
 
     return (
     <aside className="flex flex-col gap-4 h-full">
-      <div className="rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-3 sm:p-4 shadow-sm shrink-0">
+      <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-slate-100">{t('messages.clients')}</h2>
         <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-slate-300">{t('messages.clientsHint')}</p>
         <input
@@ -72,16 +95,15 @@ export const ContactsList: React.FC<ContactsListProps> = ({
           value={clientSearch}
           onChange={(event) => onClientSearchChange(event.target.value)}
           placeholder={t('messages.searchClients')}
-          className="mt-2 sm:mt-3 w-full rounded-md border border-gray-300 px-3 py-1.5 sm:py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:text-slate-800"
+          className="mt-2 w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-900 sm:mt-3 sm:py-2"
         />
-      </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-2 sm:p-4 shadow-sm">
+      <div className="contacts-scrollbar mt-3 min-h-0 flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-slate-700 dark:bg-slate-800/70 sm:p-4">
         {filteredParticipants.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-4">{t('messages.noClients')}</p>
         ) : (
           <ul className="space-y-1.5 sm:space-y-2">
-            {filteredParticipants.map((phone) => {
+            {filteredParticipants.map(({ phone, latestMessage }) => {
               const contact = contactMap.get(phone);
               const isBlocked = blockedPhones.has(phone);
 
@@ -90,13 +112,14 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectClient(phone)}
-                    className={`w-full dark:bg-slate-500 rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-left transition ${
+                    aria-selected={selectedClient === phone}
+                    className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                       selectedClient === phone
-                        ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-sm'
-                        : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
+                        ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-300 dark:bg-blue-600 dark:ring-blue-400'
+                        : 'bg-gray-50 text-gray-900 hover:bg-gray-100 dark:bg-slate-500 dark:text-slate-100 dark:hover:bg-slate-600'
                     }`}
                   >
-                    <div className="font-semibold text-sm sm:text-base dark:text-slate-100 truncate flex items-center gap-2">
+                    <div className="font-semibold text-sm sm:text-base truncate flex items-center gap-2">
                       {contact?.name || phone}
                       {isBlocked && (
                         <span className="text-[10px] bg-red-600 text-red-100 px-1.5 py-0.5 rounded-full uppercase">
@@ -104,9 +127,14 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                         </span>
                       )}
                     </div>
-                    <div className={`text-[10px] sm:text-xs dark:text-slate-100`}>
+                    <div className="text-[10px] sm:text-xs">
                       {phone}
                     </div>
+                    {latestMessage && (
+                      <div className={`mt-1 truncate text-xs ${selectedClient === phone ? 'text-blue-100' : 'text-gray-500 dark:text-slate-200'}`}>
+                        {latestMessage.message || (latestMessage.image_url ? t('messages.image') : '')}
+                      </div>
+                    )}
                   </button>
                   <button
                     onClick={(e) => {
@@ -129,6 +157,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
             })}
           </ul>
         )}
+      </div>
       </div>
     </aside>
   );

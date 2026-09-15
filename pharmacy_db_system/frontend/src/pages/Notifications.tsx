@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { useNotifications } from '../context/NotificationsProvider';
@@ -8,6 +8,7 @@ import type{ AppNotification } from '../types/notifications';
 const NotificationsPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [hiddenNotificationIds, setHiddenNotificationIds] = useState<Set<string>>(new Set());
   const {
     notifications,
     pagination,
@@ -19,7 +20,7 @@ const NotificationsPage: React.FC = () => {
 
   useEffect(() => {
     markAllAsRead();
-  }, []);
+  }, [markAllAsRead]);
 
   const handleNotificationClick = (notification: AppNotification) => {
     if (notification.type === 'ORDER_REQUEST') {
@@ -54,7 +55,7 @@ const NotificationsPage: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white dark:bg-slate-900 shadow-sm rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 shadow-sm rounded-xl  overflow-hidden">
           {loading && notifications.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               {t('common.loading')}
@@ -64,26 +65,51 @@ const NotificationsPage: React.FC = () => {
               {t('notifications.empty') || 'No notifications yet'}
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+            <ul className="space-y-3">
               {notifications.map((notification) => (
                 <li
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer ${
+                  className={`p-4 rounded-md border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer ${
                     !notification.is_read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                      {notification.title}
+                      {notification.title} {[notification.type === 'SYSTEM_ERROR' && notification.data?.error_title]}
                     </h3>
                     <span className="text-xs text-gray-500 dark:text-slate-400">
                       {new Date(notification.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-slate-300">
-                    {notification.body}
-                  </p>
+                  <div className="flex items-start justify-between gap-3">
+                    {!hiddenNotificationIds.has(String(notification.id)) && (
+                      <p className="text-sm text-gray-600 dark:text-slate-300">
+                        {notification.body}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        const notificationId = String(notification.id);
+                        setHiddenNotificationIds((current) => {
+                          const next = new Set(current);
+                          if (next.has(notificationId)) {
+                            next.delete(notificationId);
+                          } else {
+                            next.add(notificationId);
+                          }
+                          return next;
+                        });
+                      }}
+                      className="shrink-0 text-xs text-primary hover:underline"
+                    >
+                      {hiddenNotificationIds.has(String(notification.id))
+                        ? t('layout.view')
+                        : t('layout.hide')}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

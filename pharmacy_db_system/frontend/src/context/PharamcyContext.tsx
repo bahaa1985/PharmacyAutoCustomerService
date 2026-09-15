@@ -1,12 +1,12 @@
 import {createContext, useContext} from 'react'
 import type{ Pharmacy } from '../types/pharmacy'
-import type{ PharmacyPlan } from '../types/subscription'
+import type{ Subscription } from '../types/subscription'
 
 interface PharmacyContextType {
     pharmacy: Pharmacy | null;
     setPharmacy: (pharmacy: Pharmacy | null) => void;
-    plan: PharmacyPlan | null;
-    setPlan: (plan: PharmacyPlan | null) => void;
+    plan: Subscription | null;
+    setPlan: (subscription: Subscription | null) => void;
 }
 
 

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { subscriptionAPI } from "../../api/subscriptionAPI";
-import { type PharmacyPlan, PlanState } from "../../types/subscription";
+import {
+  SubscriptionState,
+  type Subscription,
+  type PlanState,
+} from "../../types/subscription";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 
 export const PharmacySubscriptionList: React.FC = () => {
-  const [pharmPlan, setPharmPlan] = useState<PharmacyPlan[]>([]);
+  const [pharmPlan, setPharmPlan] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -35,20 +39,10 @@ export const PharmacySubscriptionList: React.FC = () => {
     currentPage * itemsPerPage,
   );
 
-  const handleRenewBilling = async (plan: PharmacyPlan) => {
+    const handleRenewBilling = async (plan: Subscription) => {
     try {
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-
       await subscriptionAPI.renewPharmacyBilling({
-        pharmacy_id: plan.pharmacy_id,
-        plan_id: plan.plan_id,
-        amount_paid: Number(plan.plans?.price || 0),
-        bill_due: nextMonth.toISOString().split("T")[0],
-        // paid: true,
-        billing_month: new Date().toISOString().split("T")[0],
-        messages_used: 0,
-        state: PlanState.ACTIVE,
+        subscriptionId: Number(plan.id),
       });
       showToast(t("common.updateSuccess"), "success");
       fetchPlans();
@@ -58,15 +52,25 @@ export const PharmacySubscriptionList: React.FC = () => {
   };
 
   const handleToggleState = async (
-    pharmacyId: string,
+    subscriptionId: string,
     currentState: PlanState,
   ) => {
     try {
       const newState =
-        currentState === PlanState.ACTIVE
-          ? PlanState.SUSPENDED
-          : PlanState.ACTIVE;
-      await subscriptionAPI.updatePlanState(pharmacyId, newState);
+        currentState === SubscriptionState.ACTIVE
+          ? SubscriptionState.SUSPENDED
+          : SubscriptionState.ACTIVE;
+      await subscriptionAPI.updatePlanState(subscriptionId, newState);
+      showToast(t("common.updateSuccess"), "success");
+      fetchPlans();
+    } catch (error) {
+      showToast(t("common.error"), error);
+    }
+  };
+
+  const handleToggleNextMonthPaid = async (subscriptionId: string) => {
+    try {
+      await subscriptionAPI.toggleNextMonthPaid(subscriptionId);
       showToast(t("common.updateSuccess"), "success");
       fetchPlans();
     } catch (error) {
@@ -75,6 +79,7 @@ export const PharmacySubscriptionList: React.FC = () => {
   };
 
   if (loading) return null;
+
 
   return (
     <div className="space-y-4">
@@ -89,12 +94,16 @@ export const PharmacySubscriptionList: React.FC = () => {
                 <th className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
                   {t("subscriptions.plan")}
                 </th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
+                                <th className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
                   {t("subscriptions.status")}
+                </th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white text-center">
+                  {t("subscriptions.nextMonthPaid")}
                 </th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
                   {t("subscriptions.messages")}
                 </th>
+
                 <th className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
                   {t("subscriptions.expiry")}
                 </th>
@@ -120,34 +129,43 @@ export const PharmacySubscriptionList: React.FC = () => {
                         {plan.plans?.name}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                                        <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          plan.state === PlanState.ACTIVE
+                          plan.subscription_state === SubscriptionState.ACTIVE
                             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                             : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                         }`}
                       >
-                        {t(`subscriptions.${plan.state.toLowerCase()}`)}
+                        {t(`subscriptions.${plan?.subscription_state.toLowerCase()}`)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={plan.next_month_paid}
+                        onChange={() => handleToggleNextMonthPaid(plan.id)}
+                        className="rounded text-primary focus:ring-primary h-4 w-4"
+                      />
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 dark:text-white">
-                        {plan.messages_count} / {plan.plans?.messages_limit}
+                        {plan.messages_used || 0} / {plan.plans?.messages_limit}
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-2">
                         <div
                           className="bg-primary h-1.5 rounded-full"
                           style={{
-                            width: `${Math.min((plan.messages_count / (plan.plans?.messages_limit || 1)) * 100, 100)}%`,
+                            width: `${Math.min(((plan.messages_used || 0) / (plan.plans?.messages_limit || 1)) * 100, 100)}%`,
                           }}
                         ></div>
                       </div>
                     </td>
+
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {new Date(plan.bill_due).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 text-center space-x-2 rtl:space-x-reverse">
+                                        <td className="px-6 py-4 text-center space-x-2 rtl:space-x-reverse">
                       <button
                         onClick={() => handleRenewBilling(plan)}
                         disabled={plan.state === "CANCELED"}
@@ -157,20 +175,21 @@ export const PharmacySubscriptionList: React.FC = () => {
                       </button>
                       <button
                         onClick={() =>
-                          handleToggleState(plan.pharmacy_id, plan.state)
+                          handleToggleState(plan.id, plan.state)
                         }
                         disabled={plan.state === "CANCELED"}
                         className={`px-3 py-1 text-xs rounded border transition-colors ${
-                          plan.state === PlanState.ACTIVE
+                          plan.state === SubscriptionState.ACTIVE
                             ? "border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                             : "border-green-500 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20"
                         }`}
                       >
-                        {plan.state === PlanState.ACTIVE
+                        {plan.state === SubscriptionState.ACTIVE
                           ? t("subscriptions.suspend")
                           : t("subscriptions.activate")}
                       </button>
                     </td>
+
                   </tr>
                 ))
               ) : (

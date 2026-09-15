@@ -32,7 +32,7 @@ export const PharmaciesList: React.FC = () => {
     setModalTitle(pharmacy.pharmacy_name);
     setShowModal(true);
   };
-  const handlePharmacyUpdate = async (pharmacyId: bigint) => {
+  const handlePharmacyUpdate = async (pharmacyId: number) => {
     setLoading(true);
     try {
       const updatedPharmacy = await pharmacyAPI.updatePharmacy(pharmacyId, {
@@ -40,6 +40,7 @@ export const PharmaciesList: React.FC = () => {
         pharmacy_address: selectedPharmacy?.pharmacy_address || "",
         work_time:selectedPharmacy?.work_time||"",
         delivery:selectedPharmacy?.delivery,
+        delivery_price: selectedPharmacy?.delivery_price ?? 0,
         logo:selectedPharmacy?.logo
       });
       if (updatedPharmacy) {
@@ -126,16 +127,32 @@ export const PharmaciesList: React.FC = () => {
                 <label className="block text-sm font-semibold dark:text-slate-200 mb-1">{t('pharmacy.workTime')}</label>
                 <input className="w-full p-3 rounded-lg dark:bg-slate-800 bg-gray-50 dark:text-slate-100 border dark:border-slate-700" defaultValue={selectedPharmacy.work_time}onChange={(e)=>selectedPharmacy.work_time=e.target.value}></input>
               </div>
-              <div>
+              <div className="flex flex-wrap items-center gap-4">
                 <label className="block text-sm font-semibold dark:text-slate-200 mb-1">{t('pharmacy.delivery')}</label>
                 <Switch color="primary" defaultChecked={selectedPharmacy.delivery} onChange={(e)=>selectedPharmacy.delivery=e.target.checked}></Switch>
+                <div className="min-w-[180px] flex-1">
+                  <label className="block text-sm font-semibold dark:text-slate-200 mb-1">{t('pharmacy.deliveryPrice')}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className="w-full p-3 rounded-lg dark:bg-slate-800 bg-gray-50 dark:text-slate-100 border dark:border-slate-700"
+                    value={selectedPharmacy.delivery_price ?? 0}
+                    onChange={(e) =>
+                      setSelectedPharmacy({
+                        ...selectedPharmacy,
+                        delivery_price: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
               </div>
             </div>
             <div className="pt-4 flex gap-3">              
               <Button
                 disabled={loading}
                 fullWidth
-                onClick={() => handlePharmacyUpdate(BigInt(selectedPharmacy.id))}
+                onClick={() => handlePharmacyUpdate(selectedPharmacy.id)}
               >
                 {loading ? (
                   <span className="flex items-center space-x-2">

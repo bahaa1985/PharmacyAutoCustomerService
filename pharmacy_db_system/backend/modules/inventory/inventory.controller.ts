@@ -1,7 +1,3 @@
-import { Request, Response } from 'express';
-import * as XLSX from 'xlsx';
-import path from 'path';
-import fs from 'fs';
 import { prismaClient } from '../../utils/prisma-adapter';
 import { getInventoryCountByPharmacyId } from './inventory.service';
 import { logAndNotify } from '../logs/log.service';
@@ -17,7 +13,10 @@ declare global {
 const serializeInventory=(inventory:any)=>{
   return{
     ...inventory,
-    
+    pharmacy_id: Number(inventory.pharmacy_id),
+    price: inventory.price !== null ? parseFloat(String(inventory.price)) : null,
+    units_count: inventory.units_count !== null ? parseFloat(String(inventory.units_count)) : null,
+    quantity: inventory.quantity !== null ? parseFloat(String(inventory.quantity)) : null,
   }
 }
 // interface DrugCardEntry {
@@ -55,7 +54,7 @@ export const uploadInventory = async (req: any, res: any) => {
         const dosage_form = r.dosage_form ?? null;
 
         return {
-          pharmacy_id: BigInt(pharmacyId),
+          pharmacy_id: pharmacyId,
           ar_name: ar_name ? String(ar_name) : null,
           en_name: en_name ? String(en_name) : null,
           price: price === null ? null : price,
@@ -69,16 +68,16 @@ export const uploadInventory = async (req: any, res: any) => {
       });
       console.log(rowsToInsert[0])
             await prismaClient.$transaction([
-        prismaClient.inventory.deleteMany({ where: { pharmacy_id: BigInt(pharmacyId) } }),
+        prismaClient.inventory.deleteMany({ where: { pharmacy_id: pharmacyId } }),
         prismaClient.inventory.createMany({ data: rowsToInsert })
       ]);
 
       logAndNotify({
-        userId: req.user?.id ? BigInt(req.user.id) : BigInt(0),
-        pharmacyId: BigInt(pharmacyId),
+        userId: req.user?.id ,
+        pharmacyId: pharmacyId,
         action: "INVENTORY_UPDATED",
         username: req.user?.username || "System",
-        details: { count: rowsToInsert.length }
+        metadata: { count: rowsToInsert.length }
       }).catch(e => console.error(e));
 
       return res.json({ success: true, message: 'Inventory saved successfully', inserted: rowsToInsert.length });
@@ -92,10 +91,10 @@ export const uploadInventory = async (req: any, res: any) => {
     console.error("MESSAGE:", dbError?.message);
     console.error("STACK:", dbError?.stack);
     logAndNotify({
-      userId: req.user?.id ? BigInt(req.user.id) : BigInt(0),
-      pharmacyId: req.body?.pharmacy_id ? BigInt(req.body.pharmacy_id) : undefined,
+      userId: req.user?.id ,
+      pharmacyId: req.body?.pharmacy_id ,
       action: "APP_ERROR",
-      details: { error: dbError.message, context: "uploadInventory" }
+      metadata: { error: dbError.message, context: "uploadInventory" }
     }).catch(e => console.error(e));
     return res.status(500).json({ success: false, message: 'Failed to save inventory', error: String(dbError) });
   }
@@ -109,10 +108,10 @@ export const getInventoryCountController = async (req: any, res: any) => {
   try {
     const {pharmacyId} = req.params   
     if (!pharmacyId) return res.status(401).json({ message: 'Unauthorized' });
-    const inventoryCount = await getInventoryCountByPharmacyId(BigInt(pharmacyId))
+    const inventoryCount = await getInventoryCountByPharmacyId(Number(pharmacyId))
     res.status(200).json(inventoryCount)
   }
   catch (error) {
-    res.status(500).json({ message: 'Error fetching contacts', error });
+    res.status(500).json({ message: 'Error fetching inventory', error });
   }
 }

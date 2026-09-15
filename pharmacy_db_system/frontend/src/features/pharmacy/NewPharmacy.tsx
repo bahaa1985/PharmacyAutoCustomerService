@@ -11,6 +11,7 @@ export const NewPharmacy: React.FC = () => {
     address: "",
     work_time: "",
     delivery: false,
+    delivery_price: 0,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { t } = useLanguage();
@@ -65,8 +66,10 @@ export const NewPharmacy: React.FC = () => {
       newErrors.work_time = t("pharmacy.requiredWorkTime");
     if (formData.work_time.length > 50)
       newErrors.work_time = t("pharmacy.workTimeTooLong");
-    if (formData.work_time.length < 10)
+    if (formData.work_time.length < 5)
       newErrors.work_time = t("pharmacy.workTimeTooShort");
+    if (formData.delivery_price < 0)
+      newErrors.delivery_price = "Delivery price cannot be negative";
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
       try {
@@ -75,10 +78,11 @@ export const NewPharmacy: React.FC = () => {
           formData.address,
           formData.work_time,
           formData.delivery,
+          formData.delivery_price,
         );
-        setMessage(newPharmacy.pharmacy_name + t("pharmacy.created"));
+        setMessage(newPharmacy.pharmacy_name +" " + t("pharmacy.created"));
         setShowSuccessModal(true);
-        setFormData({ name: "", address: "", work_time: "", delivery: false });
+        setFormData({ name: "", address: "", work_time: "", delivery: false, delivery_price: 0 });
       } catch (err) {
         const errMessage =
           err instanceof Error ? err.message : "Regestration failed";
@@ -155,7 +159,7 @@ export const NewPharmacy: React.FC = () => {
             </p>
           )}
         </div>
-        <div>
+        <div className="flex flex-wrap items-center gap-4">
           <label className="flex items-center space-x-3 cursor-pointer">
             <span className="text-sm font-semibold dark:text-slate-200">
               {t("pharmacy.delivery")}
@@ -167,6 +171,26 @@ export const NewPharmacy: React.FC = () => {
             />
           </label>
         </div>
+        <div className="min-w-[180px] flex-1">
+            <label className="block text-sm font-semibold dark:text-slate-200 mb-2">
+              {t("pharmacy.deliveryPrice")}
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              name="delivery_price"
+              disabled={!formData.delivery}
+              value={formData.delivery_price}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 dark:bg-slate-800 dark:text-slate-100 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
+            {errors.delivery_price && (
+              <p className="text-red-500 text-sm mt-1.5 font-medium">
+                {errors.delivery_price}
+              </p>
+            )}
+          </div>
         <div className="w-full pt-4">
           <Button
             onClick={handleSubmit}

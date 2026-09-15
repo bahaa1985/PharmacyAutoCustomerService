@@ -11,8 +11,12 @@ export const messagesAPI = {
   getMessagesByPharmacy: async (
     pharmacyId: number,
     contactPhone?: string,
+    pharmacyPhone?: string,
   ): Promise<Message[]> => {
-    const search = contactPhone ? `?contactPhone=${encodeURIComponent(contactPhone)}` : '';
+    const params = new URLSearchParams();
+    if (contactPhone) params.set('contactPhone', contactPhone);
+    if (pharmacyPhone) params.set('pharmacyPhone', pharmacyPhone);
+    const search = params.toString() ? `?${params.toString()}` : '';
     const response = await api.get<Message[]>(`/messages/pharmacy/${pharmacyId}${search}`);
     return response.data;
   },

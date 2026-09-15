@@ -7,13 +7,14 @@ import {
   checkOrderMessageService,
   processWebhookMessageService,
 } from "./messages.service";
+import { prismaClient } from "../../utils/prisma-adapter";
 
 
 const serializeMessage = (message: any) => {
   return {
     ...message,
     id: message.id?.toString(),
-    pharmacy_id: message.pharmacy_id?.toString(),
+    pharmacy_id: Number(message.pharmacy_id?.toString()),
     message_type: message.message_type?.toString(),
     created_at: message.created_at?.toISOString?.() || message.created_at,
   };
@@ -22,8 +23,21 @@ const serializeMessage = (message: any) => {
 export const getMessagesByPharmacyIdController = async (req: any, res: any) => {
   const { pharmacyId } = req.params;
   const contactPhone = req.query.contactPhone as string | undefined;
+  const pharmacyPhone = req.query.pharmacyPhone as string | undefined;
+  if (pharmacyPhone) {
+    const pharmacyUser = await prismaClient.users.findFirst({
+      where: { mobile: pharmacyPhone, pharmacy_id: Number(pharmacyId) },
+    });
+    if (!pharmacyUser) {
+      return res.status(404).json({ message: "Pharmacy user not found" });
+    }
+  }
   try {
-    const messages = await getMessagesByPharmacyIdService(BigInt(pharmacyId), contactPhone);
+    const messages = await getMessagesByPharmacyIdService(
+      pharmacyId,
+      contactPhone,
+      pharmacyPhone || req.user?.mobile,
+    );
     res.status(200).json(messages.map(serializeMessage));
   } catch (error) {
     res.status(500).json({ message: "Error fetching messages", error });
@@ -60,7 +74,7 @@ export const createMessageController = async (req: any, res: any) => {
       message,
       imageUrl: image_url,
       message_type: message_type,
-      pharmacyId: BigInt(user.pharmacy_id),
+      pharmacyId: user.pharmacy_id,
       log: `Created by ${user.username}`,
     });
     res.status(201).json(serializeMessage(newMessage));
@@ -100,7 +114,7 @@ export const checkOrderMessageController = async (req: any, res: any) => {
   }
   try {
     const result = await checkOrderMessageService({
-      pharmacyId: BigInt(pharmacyId),
+      pharmacyId: pharmacyId,
       fromNumber,
       message,
     });
@@ -112,7 +126,8 @@ export const checkOrderMessageController = async (req: any, res: any) => {
 
 export const handleWebhookController = async (req: any, res: any) => {
   const { type, table, record } = req.body;
-  if (type === 'INSERT' && table === 'messages' && record.message_type.toString()==='10') {
+  console.log("Webhook received:", { type, table, record });
+  if (type === 'INSERT' && table === 'messages' && Number(record?.message_type) === 11) {
     try {
       await processWebhookMessageService(record);
       res.status(200).json({ success: true });

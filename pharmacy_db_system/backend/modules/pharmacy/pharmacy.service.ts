@@ -6,6 +6,7 @@ export const createPharmacyService = async (
   pharmacy_address: string,
   work_time:string,
   delivery:boolean,
+  delivery_price:number,
   logo:string
 ) => {
   try {
@@ -15,6 +16,7 @@ export const createPharmacyService = async (
         pharmacy_address,
         work_time,
         delivery,
+        delivery_price,
         logo
       },
     });
@@ -47,12 +49,12 @@ export const getPharmacyByIdService = async (id: number) => {
   }
 }
 
-export const updatePharmacyService = async (id: number, pharmacy_name: string, pharmacy_address: string, work_time:string,delivery:boolean,logo:string) => {
+export const updatePharmacyService = async (id: number, pharmacy_name: string, pharmacy_address: string, work_time:string,delivery:boolean,logo:string,delivery_price:number) => {
   try {
     const updatedPharmacy = await prismaClient.pharmacies.update({
       where: { id },
       data: {
-        pharmacy_name, pharmacy_address, work_time,delivery,logo
+        pharmacy_name, pharmacy_address, work_time, delivery, logo, delivery_price
       }
     })
     return updatedPharmacy

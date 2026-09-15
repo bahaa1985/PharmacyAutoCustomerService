@@ -55,7 +55,7 @@
     "basic_dashboard": "لوحة تحكم أساسية",
     "advanced_dashboard": "لوحة تحكم متقدمة",
     "setPaid": "تعيين كمدفوع",
-
+    "nextMonthPaid": "تم الدفع للشهر القادم",
     "setUnpaid": "تعيين كغير مدفوع",
     "activate": "تفعيل",
     "suspend": "إيقاف",
@@ -81,20 +81,20 @@
     "inventory": "المخزون",
     "users": "المستخدمون",
     "pharmacies": "الصيدليات",
-        "subscriptions": "الاشتراكات",
-        "notifications": "الإشعارات",
-    "notifications.subtitle": "إدارة التنبيهات والتحديثات الخاصة بك",
-    "notifications.empty": "لا توجد إشعارات بعد",
+    "subscriptions": "الاشتراكات",
     "language": "اللغة",
-
-
-
     "role": "الدور",
     "aiEnabled": "وضع الرد الآلي: مفعل",
     "aiDisabled": "وضع الرد الآلي: معطل",
-    "renewSubscription": "يرجى تجديد اشتراكك لمواصلة الخدمة"
+    "renewSubscription": "يرجى تجديد اشتراكك لمواصلة الخدمة",
+    "notifications": "الإشعارات",
+      "view": "عرض",
+      "hide": "إخفاء"
   },
-
+  "notifications":{
+    "subtitle": "إدارة التنبيهات والتحديثات الخاصة بك",
+    "empty": "لا توجد إشعارات بعد"
+  },
   "dashboard": {
     "title": "لوحة التحكم",
     "welcome": "مرحبًا بك مرة أخرى! إليك نظرة عامة على صيدليتك.",
@@ -109,6 +109,7 @@
     "title": "الرسائل",
     "subtitle": "إدارة إشعارات ورسائل صيدليتك.",
     "clients": "العملاء",
+    "pharmacyUsers": "موظفو الصيدلية",
     "clientsHint": "ابحث واختر عميلًا لفتح المحادثة.",
     "searchClients": "بحث عن العملاء",
     "noClients": "لا يوجد عملاء يطابقون بحثك.",
@@ -130,7 +131,8 @@
     "you": "أنت",
     "imageMessage": "رسالة صورة",
     "noContent": "لا يوجد محتوى",
-    "messagePreview": "الرسالة"
+    "messagePreview": "الرسالة",
+    "aiEnabled": "وضع الرد الآلي: مفعل"
   },
   "inventory": {
     "title": "المخزون",
@@ -162,6 +164,7 @@
     "logo": "لوجو الصيدلية",
     "workTime": "مواعيد العمل",
     "delivery": "يوجد توصيل؟",
+    "deliveryPrice": "سعر التوصيل",
     "requiredName": "اسم الصيدلية مطلوب",
     "nameTooLong": "الاسم أطول من 50 حرف",
     "nameTooShort": "الاسم أقل من 9 حروف",

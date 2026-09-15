@@ -3,25 +3,37 @@ import {sendTextMessage} from "./evolutionSendTextMessage"
 import { logAndNotify } from "../logs/log.service";
 import { messaging } from "../../utils/firebase";
 import { NotificationType, TargetRole } from "@prisma/client";
-// const getTextMessageType = async (): Promise<bigint> => {
-//   const messageType = await prismaClient.message_types.findFirst({
-//     where: { message_type: 'text' },
-//   });
-//   return messageType ? BigInt(messageType.id) : BigInt(1);
-// };
 
 export const getMessagesByPharmacyIdService = async (
   pharmacyId: number,
   contactPhone?: string,
+  pharmacyPhone?: string,
 ) => {
   try {
-    const where: any = { pharmacy_id: pharmacyId };
-    if (contactPhone) {
+    const where: any = { pharmacy_id: Number(pharmacyId) };
+    const normalizedContactPhone = contactPhone?.trim();
+    const normalizedPharmacyPhone = pharmacyPhone?.trim();
+    if (normalizedContactPhone && normalizedPharmacyPhone) {
       where.AND = [
         {
           OR: [
-            { from_number: contactPhone },
-            { to_number: contactPhone },
+            {
+              from_number: normalizedContactPhone,
+              to_number: normalizedPharmacyPhone,
+            },
+            {
+              from_number: normalizedPharmacyPhone,
+              to_number: normalizedContactPhone,
+            },
+          ],
+        },
+      ];
+    } else if (normalizedContactPhone) {
+      where.AND = [
+        {
+          OR: [
+            { from_number: normalizedContactPhone },
+            { to_number: normalizedContactPhone },
           ],
         },
       ];
@@ -37,7 +49,7 @@ export const getMessagesByPharmacyIdService = async (
         userId: 0,
         pharmacyId: pharmacyId,
         action: "APP_ERROR",
-        metadata: { error: error.message, context: "getMessagesByPharmacyIdService" }
+        metadata: { error_title: "Error fetching pharmacy messages", error: error.message, context: "getMessagesByPharmacyIdService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -65,8 +77,9 @@ export const getMessagesByUserNumberService = async (
     console.error("Error fetching messages by user number:", error);
     logAndNotify({
         userId: 0,
+        pharmacyId: null,
         action: "APP_ERROR",
-        metadata: { error: error.message, context: "getMessagesByUserNumberService" }
+        metadata: { error_title: "Error fetching user messages", error: error.message, context: "getMessagesByUserNumberService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -118,8 +131,8 @@ export const createMessageService = async ({
       },
     });
 
-    // Check if message_type is 10 (Order Request)
-    if (Number(message_type) === 10) {
+    // Check if message_type is 11 (Order Request)
+    if (Number(message_type) === 11) {
       const contact = await prismaClient.contacts.findFirst({
         where: { phone: fromNumber },
         select: { name: true, phone: true }
@@ -145,7 +158,7 @@ export const createMessageService = async ({
         userId: 0,
         pharmacyId: pharmacyId,
         action: "APP_ERROR",
-        metadata: { error: error.message, context: "createMessageService" }
+        metadata: { error_title: "Error creating message", error: error.message, context: "createMessageService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -168,8 +181,9 @@ export const updateMessageService = async (
     console.error("Error updating message:", error);
     logAndNotify({
         userId: 0,
+        pharmacyId: null,
         action: "APP_ERROR",
-        metadata: { error: error.message, context: "updateMessageService" }
+        metadata: { error_title: "Error updating message", error: error.message, context: "updateMessageService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -182,8 +196,9 @@ export const deleteMessageService = async (id: bigint) => {
     console.error("Error deleting message:", error);
     logAndNotify({
         userId: 0,
+        pharmacyId: null,
         action: "APP_ERROR",
-        metadata: { error: error.message, context: "deleteMessageService" }
+        metadata: { error_title: "Error deleting message", error: error.message, context: "deleteMessageService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -215,11 +230,11 @@ export const checkOrderMessageService = async ({
 export const processWebhookMessageService = async (record: any) => {
   try {
     const { pharmacy_id, message, id, to_number, message_type } = record;
-
-    // Check if the message is an order request (message_type == 10)
+console.log("processWebhookMessageService fired with record:", record);
+    // Check if the message is an order request (message_type == 11)
     // Even if we process all messages, maybe we only want to notify for order request?
     // Based on the prompt: "process FCM notifications for order messages based on the attached files."
-    // Let's assume order messages have message_type = 10, or maybe we just process any message from webhook?
+    // Let's assume order messages have message_type = 11, or maybe we just process any message from webhook?
     // Wait, let's see. The prompt says "notifications for order messages", but then "Title: 'رسالة أوردر جديدة'". Let's just follow the steps exactly.
     // The instructions say: "Find the target user by matching to_number against users.mobile"
     // So the incoming message is TO a number. Wait, if it's an incoming message, it should be FROM someone TO the system/pharmacy.
@@ -229,9 +244,9 @@ export const processWebhookMessageService = async (record: any) => {
       where: { mobile: to_number },
     });
 
-    if (targetUser && targetUser.is_active && targetUser.fcm_token && targetUser.fcm_token.length > 0) {
+    if (targetUser && targetUser.is_active && targetUser.fcm_token && targetUser.fcm_token.length > 0 && message_type === 11) {
       const fcmTokens = Array.isArray(targetUser.fcm_token) ? targetUser.fcm_token : [];
-      
+
       if (fcmTokens.length > 0) {
         // Create an internal notification record in the database
         await prismaClient.notification.create({

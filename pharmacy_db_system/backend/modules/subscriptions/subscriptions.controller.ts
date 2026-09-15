@@ -64,7 +64,18 @@ export class SubscriptionController {
     }
   }
 
-  // 6. سرد جميع الاشتراكات مرتبة بالأحدث
+  // 6. تبديل حالة دفع الشهر القادم
+  async toggleNextMonthPaidController(req: Request, res: Response) {
+    try {
+      const subscriptionId = parseInt(req.params.id.toString());
+      const updated = await subscriptionService.toggleNextMonthPaid(subscriptionId);
+      return res.status(200).json({ success: true, data: updated });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // 7. سرد جميع الاشتراكات مرتبة بالأحدث
   async listSubscriptionsController(req: Request, res: Response) {
     try {
       const subscriptions = await subscriptionService.listAllSubscriptions();

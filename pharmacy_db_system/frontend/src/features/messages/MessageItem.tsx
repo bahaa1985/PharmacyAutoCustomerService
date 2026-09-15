@@ -4,38 +4,68 @@ import { useLanguage } from '../../context/LanguageContext';
 
 interface MessageItemProps {
   message: Message;
-  onDelete?: (id: string) => void;
+  senderName: string;
+  isOwnMessage: boolean;
+  alignRight: boolean;
+  isEditing: boolean;
+  editingText: string;
+  onEditingTextChange: (text: string) => void;
 }
 
 export const MessageItem: React.FC<MessageItemProps> = ({
   message,
-  onDelete,
+  senderName,
+  isOwnMessage,
+  alignRight,
+  isEditing,
+  editingText,
+  onEditingTextChange,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
-    <div className="p-3 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm sm:text-lg text-gray-900 truncate">
-            {message.from_number} → {message.to_number}
-          </h3>
-          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2 break-words">
-            {message.message || (message.image_url ? t('messages.imageMessage') : t('messages.noContent'))}
-          </p>
+    <div className={`flex ${alignRight ? 'justify-end' : 'justify-start'} items-start gap-3`}>
+      <div
+        className={`max-w-[80%] rounded-3xl border px-4 py-3 shadow-sm ${
+          isOwnMessage
+            ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/40'
+            : 'border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800'
+        }`}
+      >
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-300">
+          {senderName}
         </div>
-        {onDelete && (
-          <button
-            onClick={() => onDelete(message.id)}
-            className="shrink-0 px-2 sm:px-3 py-1 text-xs sm:text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
-          >
-            {t('common.delete')}
-          </button>
+        {isEditing ? (
+          <textarea
+            value={editingText}
+            onChange={(event) => onEditingTextChange(event.target.value)}
+            rows={3}
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900"
+          />
+        ) : (
+          <>
+            {message.image_url ? (
+              <img
+                src={message.image_url}
+                alt="Client media"
+                className="max-h-80 w-full rounded-xl object-cover"
+              />
+            ) : (
+              <p className="whitespace-pre-wrap text-sm text-gray-900 dark:text-slate-100">
+                {message.message || t('messages.noContent')}
+              </p>
+            )}
+            <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-500 dark:text-slate-400">
+              <span>
+                {new Date(message.created_at).toLocaleTimeString(
+                  language === 'ar' ? 'ar-EG' : 'en-US',
+                  { hour: '2-digit', minute: '2-digit' },
+                )}
+              </span>
+            </div>
+          </>
         )}
       </div>
-      <p className="text-[10px] sm:text-xs text-gray-500 mt-2 sm:mt-4">
-        {new Date(message.created_at).toLocaleString()}
-      </p>
     </div>
   );
 };

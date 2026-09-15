@@ -53,14 +53,14 @@
     "order_notification": "Order Notifications",
     "advanced_dashboard": "Advanced Dashboard",
     "setPaid": "Set as Paid",
-
+    "nextMonthPaid": "Next Month Paid",
     "setUnpaid": "Set as Unpaid",
     "activate": "Activate",
     "suspend": "Suspend",
     "noSubscriptions": "No subscriptions available.",
-    "assignSubscription":"Assign Subscription to Pharmacy",
-"selectPharmacy":"Select Pharmacy",
-    "selectPlan":"Select Plan"
+    "assignSubscription": "Assign Subscription to Pharmacy",
+    "selectPharmacy": "Select Pharmacy",
+    "selectPlan": "Select Plan"
   },
 
   "auth": {
@@ -80,20 +80,21 @@
     "inventory": "Inventory",
     "users": "Users",
     "pharmacies": "Pharmacies",
-        "subscriptions": "Subscriptions",
-        "notifications": "Notifications",
-    "notifications.subtitle": "Manage your alerts and updates",
-    "notifications.empty": "No notifications yet",
+    "subscriptions": "Subscriptions",
     "language": "Language",
-
-
-
     "role": "Role",
     "aiEnabled": "Auto Response Mode: Enabled",
     "aiDisabled": "Auto Response Mode: Disabled",
-    "renewSubscription": "Please renew your subscription to continue service"
+      "notifications": "Notifications",
+    "renewSubscription": "Please renew your subscription to continue service",
+    "view": "View",
+    "hide": "Hide"
   },
-
+  "notifications": {
+  
+    "notifications.subtitle": "Manage your alerts and updates",
+    "notifications.empty": "No notifications yet"
+  },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back! Here's an overview of your pharmacy.",
@@ -108,6 +109,7 @@
     "title": "Messages",
     "subtitle": "Manage your pharmacy notifications and messages.",
     "clients": "Clients",
+    "pharmacyUsers": "Pharmacy employees",
     "clientsHint": "Search and choose a client to open the conversation.",
     "searchClients": "Search clients",
     "noClients": "No clients match your search.",
@@ -153,7 +155,7 @@
   },
   "pharmacy": {
     "title": "Pharmacies",
-    "pharmacy":"Pharmacy",
+    "pharmacy": "Pharmacy",
     "subtitle": "Manage your pharmacies.",
     "listTab": "Pharmacies List",
     "newTab": "New Pharmacy",
@@ -163,6 +165,7 @@
     "logo": "Pharmacy Logo",
     "workTime": "Work Time",
     "delivery": "Delivery Available?",
+    "deliveryPrice": "Delivery Price",
     "requiredName": "Pharmacy name is required",
     "nameTooLong": "الاسم أطول من 50 حرف",
     "nameTooShort": "الاسم أقل من 9 حروف",

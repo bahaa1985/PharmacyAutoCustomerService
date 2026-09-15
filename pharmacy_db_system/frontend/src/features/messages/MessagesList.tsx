@@ -9,7 +9,7 @@ import { useLocation } from "react-router-dom";
 import { messagesAPI } from "../../api/messagesAPI";
 
 import { contactsAPI } from "../../api/contactsAPI";
-// import { userAPI } from '../../api/userAPI';
+import { userAPI } from "../../api/userAPI";
 import type { Message } from "../../types/message";
 import type { Contact } from "../../types/contact";
 import type { User } from "../../types/user";
@@ -17,14 +17,15 @@ import { useAuth } from "../../context/AuthContext";
 import { supabaseClient } from "../../lib/supabaseClient";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { ContactsList } from "./ContactsList";
+import { MessageItem } from "./MessageItem";
 import { useLanguage } from "../../context/LanguageContext";
-import type{ PharmacyPlan } from "../../types/subscription";
+import type { Subscription } from "../../types/subscription";
 import { subscriptionAPI } from "../../api/subscriptionAPI";
 
 export const MessagesList: React.FC = () => {
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, dir, language } = useLanguage();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -33,19 +34,23 @@ export const MessagesList: React.FC = () => {
   const [messageSearch, setMessageSearch] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [saveContactName, setSaveContactName] = useState("");
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [error, setError] = useState("");
   const [isSavingContact, setIsSavingContact] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [blockedPhones, setBlockedPhones] = useState<Set<string>>(new Set());
-  const [pharmPlan, setPharmPlan] = useState<PharmacyPlan>();
+  const [pharmPlan, setPharmPlan] = useState<Subscription>();
+  const [pharmacyUsers, setPharmacyUsers] = useState<User[]>([]);
+  const [selectedPharmacyUser, setSelectedPharmacyUser] = useState<User | null>(null);
+  const [showPharmacyUsers, setShowPharmacyUsers] = useState(false);
   // const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
 
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const isOwner = user?.role_id === 1;
-  const currentUserMobile = user?.mobile || "";
+  const canViewAllContacts = user?.role_id === 1 || user?.role_id === 2;
+  const activePharmacyUser = canViewAllContacts ? selectedPharmacyUser : user;
+  const conversationUserMobile = activePharmacyUser?.mobile || "";
   const instanceName =
     user?.instance_name ||
     (user as User & { instanceName?: string }).instanceName ||
@@ -54,34 +59,37 @@ export const MessagesList: React.FC = () => {
   const loadContacts = useCallback(async () => {
     try {
       const [contactsData, blockedData] = await Promise.all([
-        contactsAPI.getContacts(),
+        contactsAPI.getContacts(activePharmacyUser?.id),
         contactsAPI.getBlockedContacts(),
       ]);
       setContacts(contactsData);
       setBlockedPhones(
         new Set(
           blockedData
-            .filter((b: any) => b.blocked)
-            .map((b: any) => b.contact_number),
+            .filter((blockedContact) => blockedContact.blocked)
+            .map((blockedContact) => blockedContact.contact_number),
         ),
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load contacts");
     }
-  }, []);
+  }, [activePharmacyUser?.id]);
 
   const loadMessages = useCallback(
     async (clientPhone?: string) => {
-      if (!user) return;
+      if (!user || !activePharmacyUser) return;
       setIsLoading(true);
       setError("");
       try {
-        const data = isOwner
+        const data = 
+        canViewAllContacts
           ? await messagesAPI.getMessagesByPharmacy(
               user.pharmacy_id,
               clientPhone,
+              conversationUserMobile,
             )
-          : await messagesAPI.getMessages(user.mobile, clientPhone);
+          : 
+          await messagesAPI.getMessages(conversationUserMobile, clientPhone);
         if (data) setMessages(data);
       } catch (err) {
         setError(
@@ -91,29 +99,40 @@ export const MessagesList: React.FC = () => {
         setIsLoading(false);
       }
     },
-    [isOwner, user],
+    [activePharmacyUser, canViewAllContacts, conversationUserMobile, user],
   );
 
-    useEffect(() => {
-    if (user) {
-      // setIsAiMode(user.ai_mode ?? true);
-      loadContacts();
-      
-      const params = new URLSearchParams(location.search);
-      const contactFromUrl = params.get('contact');
-      if (contactFromUrl) {
-        setSelectedClient(contactFromUrl);
-      }
-      
-      loadMessages(selectedClient || undefined);
+  useEffect(() => {
+    if (!user) return;
+    if (canViewAllContacts) {
+      userAPI
+        .getUsers(user.pharmacy_id)
+        .then(setPharmacyUsers)
+        .catch((err) => setError(err instanceof Error ? err.message : "Failed to load pharmacy users"));
+    } else {
+      setSelectedPharmacyUser(user);
     }
-  }, [user, selectedClient, loadContacts, loadMessages, location.search]);
+  }, [canViewAllContacts, user]);
+
+  useEffect(() => {
+    if (!activePharmacyUser) {
+      setIsLoading(false);
+      return;
+    }
+    const params = new URLSearchParams(location.search);
+    setSelectedClient(params.get("contact") || "");
+    loadContacts();
+  }, [activePharmacyUser, loadContacts, location.search]);
+
+  useEffect(() => {
+    if (activePharmacyUser) loadMessages(selectedClient || undefined);
+  }, [activePharmacyUser, loadMessages, selectedClient]);
 
 
   useEffect(() => {
     // get current pharmacy plan
     const fetchPharmacyPlan = async () => {
-      const subscription = await subscriptionAPI.getPharmacyPlan(
+      const subscription = await subscriptionAPI.getPharmacySubscription(
         Number(user?.pharmacy_id),
       );
       setPharmPlan(subscription);
@@ -121,7 +140,8 @@ export const MessagesList: React.FC = () => {
     fetchPharmacyPlan();
   }, [user?.pharmacy_id]);
 
-  //supabase messages table realtime subscription:
+  //#region Messages realtime subscription
+  
   useEffect(() => {
     if (!supabaseClient || !user) return;
     const client = supabaseClient;
@@ -138,20 +158,23 @@ export const MessagesList: React.FC = () => {
 
           const matchesCurrentUser = (msg: Message) => {
             if (!user) return false;
-            if (isOwner) {
-              return String(msg.pharmacy_id) === String(user.pharmacy_id);
-            }
             return (
-              msg.from_number === user.mobile || msg.to_number === user.mobile
+              String(msg.pharmacy_id) === String(user.pharmacy_id) &&
+              (msg.from_number === conversationUserMobile ||
+                msg.to_number === conversationUserMobile)
             );
           };
 
           const matchesClientSelection = (msg: Message) => {
             if (!selectedClient) return true;
-            return (
-              msg.from_number === selectedClient ||
-              msg.to_number === selectedClient
-            );
+            const isSamePharmacy =
+              String(msg.pharmacy_id) === String(user.pharmacy_id);
+            const isSameConversation =
+              (msg.from_number === selectedClient &&
+                msg.to_number === conversationUserMobile) ||
+              (msg.from_number === conversationUserMobile &&
+                msg.to_number === selectedClient);
+            return isSamePharmacy && isSameConversation;
           };
 
           if (
@@ -161,16 +184,16 @@ export const MessagesList: React.FC = () => {
           ) {
             // فحص نوع الرسالة وخطة الاشتراك واستهلاك الصور
             if (
-              (newMessageData.message_type === "2" ||
-                newMessageData.message_type === "3") &&
+              (newMessageData.message_type === 2 ||
+                newMessageData.message_type === 3) &&
               pharmPlan?.plan_id === 2 &&
               pharmPlan?.images_count >= 100 // تأكد إن اسم الحقل يطابق الموجود في state عندك
             ) {
               messagesAPI.createMessage({
-                to_number: currentUserMobile,
+                to_number: conversationUserMobile,
                 message: "You exceeds 100 images",
                 instance_name: instanceName,
-                from_number: currentUserMobile,
+                from_number: conversationUserMobile,
                 image_url: "",
                                 pharmacyId: user?.pharmacy_id || 0,
               });
@@ -238,15 +261,16 @@ export const MessagesList: React.FC = () => {
   }, [
     user,
     selectedClient,
-    isOwner,
-    currentUserMobile,
+    canViewAllContacts,
+    conversationUserMobile,
     pharmPlan,
     instanceName,
   ]);
+  //#endregion Messages realtime subscription
 
   // Auto-select the first client if none is selected and there are messages
   useEffect(() => {
-    if (!selectedClient && !isOwner && messages?.length > 0 && user) {
+    if (!selectedClient && !canViewAllContacts && messages?.length > 0 && user) {
       const firstClient =
         messages?.find((message) => message.from_number !== user.mobile)
           ?.from_number ||
@@ -257,7 +281,7 @@ export const MessagesList: React.FC = () => {
         setSelectedClient(firstClient);
       }
     }
-  }, [messages, selectedClient, isOwner, user]);
+  }, [messages, selectedClient, canViewAllContacts, user]);
 
   // Scroll to the bottom of the message list when messages change
   useEffect(() => {
@@ -275,14 +299,23 @@ export const MessagesList: React.FC = () => {
 
   const conversationMessages = useMemo(() => {
     const items = selectedClient
-      ? messages?.filter(
-          (message) =>
-            message.from_number === selectedClient ||
-            message.to_number === selectedClient,
-        )
+      ? messages?.filter((message) => {
+          const isSamePharmacy =
+            String(message.pharmacy_id) === String(user?.pharmacy_id);
+          const isSelectedPair =
+            (message.from_number === selectedClient &&
+              message.to_number === conversationUserMobile) ||
+            (message.from_number === conversationUserMobile &&
+              message.to_number === selectedClient);
+          return isSamePharmacy && (conversationUserMobile ? isSelectedPair : (
+            message.from_number === selectedClient || message.to_number === selectedClient
+          ));
+        })
       : messages;
     const term = messageSearch.toLowerCase();
-    return items?.filter(
+    return [...(items || [])].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    ).filter(
       (message) =>
         !term ||
         message.message?.toLowerCase().includes(term) ||
@@ -290,7 +323,7 @@ export const MessagesList: React.FC = () => {
         message.from_number.toLowerCase().includes(term) ||
         message.to_number.toLowerCase().includes(term),
     );
-  }, [messages, selectedClient, messageSearch]);
+  }, [messages, selectedClient, conversationUserMobile, messageSearch, user?.pharmacy_id]);
 
   const selectedClientName = selectedClient
     ? contactMap.get(selectedClient)?.name || selectedClient
@@ -313,7 +346,7 @@ export const MessagesList: React.FC = () => {
         to_number: selectedClient,
         message: newMessage.trim(),
         instance_name: instanceName,
-        from_number: currentUserMobile,
+        from_number: conversationUserMobile,
         image_url: "",
         pharmacyId: user?.pharmacy_id || 0,
         message_type: newMessage.trim().toLowerCase().includes("order") ? 10 : 5,
@@ -367,7 +400,7 @@ export const MessagesList: React.FC = () => {
       const contact = await contactsAPI.createContact({
         name: saveContactName.trim(),
         phone: selectedClient,
-        userId: Number(user?.id),
+        userId: Number(activePharmacyUser?.id),
       });
       setContacts((prev) => [contact, ...prev]);
       setSaveContactName("");
@@ -416,17 +449,57 @@ export const MessagesList: React.FC = () => {
   if (isLoading)
     return <div className="text-center py-8">{t("common.loading")}</div>;
 
-  const isAiEnabled = !!user?.ai_mode;
+  const isAiEnabled = !!activePharmacyUser?.ai_mode;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+    <div className="space-y-4">
+      {canViewAllContacts && (
+        <section className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
+          <button
+            type="button"
+            onClick={() => setShowPharmacyUsers((visible) => !visible)}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+              {t("messages.pharmacyUsers")}
+            </span>
+            <span className="text-sm text-gray-500 dark:text-slate-300">
+              {showPharmacyUsers ? t("layout.hide") : t("layout.view")}
+            </span>
+          </button>
+          {showPharmacyUsers && (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {pharmacyUsers.map((pharmacyUser) => (
+                <button
+                  key={pharmacyUser.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedPharmacyUser(pharmacyUser);
+                    setSelectedClient("");
+                  }}
+                  className={`rounded-lg border px-3 py-2 text-left ${
+                    selectedPharmacyUser?.id === pharmacyUser.id
+                      ? "border-blue-600 bg-blue-50 text-blue-700"
+                      : "border-gray-200 bg-gray-50 text-gray-900 hover:bg-gray-100"
+                  }`}
+                >
+                  <div className="font-semibold">{pharmacyUser.username}</div>
+                  <div className="text-xs">{pharmacyUser.mobile}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {activePharmacyUser && <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
       {/* Sidebar: contact and client selection list */}
       <ContactsList
         contacts={contacts}
         messages={messages}
         selectedClient={selectedClient}
         clientSearch={clientSearch}
-        currentUserMobile={currentUserMobile}
+        currentUserMobile={conversationUserMobile}
         contactMap={contactMap}
         onClientSearchChange={setClientSearch}
         onSelectClient={setSelectedClient}
@@ -434,9 +507,9 @@ export const MessagesList: React.FC = () => {
         onToggleBlock={handleToggleBlock}
       />
 
-      <section className="space-y-4">
+      {selectedClient && <section className="space-y-4">
         {/* Conversation header: current chat info and controls */}
-        <div className="rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-4 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
@@ -445,7 +518,7 @@ export const MessagesList: React.FC = () => {
               <p className="text-sm text-gray-500 dark:text-slate-300">
                 {selectedClient
                   ? `${selectedClientName}`
-                  : isOwner
+                    : canViewAllContacts
                     ? t("messages.viewingAll")
                     : t("messages.selectClient")}
               </p>
@@ -458,7 +531,7 @@ export const MessagesList: React.FC = () => {
               >
                 {isAiMode ? t('messages.aiEnabled') : t('messages.aiDisabled')}
               </button>*/}
-              {isOwner && selectedClient && (
+              {canViewAllContacts && selectedClient && (
                 <button
                   type="button"
                   onClick={() => setSelectedClient("")}
@@ -476,7 +549,7 @@ export const MessagesList: React.FC = () => {
             </div>
             <div>
               <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">{t('layout.role')}</span>
-              <p className="mt-1 text-sm text-gray-700">{isOwner ? t('messages.roleOwner') : t('messages.roleMember')}</p>
+              <p className="mt-1 text-sm text-gray-700">{canViewAllContacts ? t('messages.roleOwner') : t('messages.roleMember')}</p>
             </div>
           </div> */}
         </div>
@@ -492,108 +565,107 @@ export const MessagesList: React.FC = () => {
               value={messageSearch}
               onChange={(e) => setMessageSearch(e.target.value)}
               placeholder={t("messages.searchMessages")}
-              className="w-full dark:text-slate-900 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:w-64"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900 sm:w-64"
             />
           </div>
 
           <div
             ref={messageContainerRef}
-            className="mt-4 flex h-[calc(100vh-380px)] flex-col gap-3 overflow-y-auto rounded-xl border border-gray-200 bg-slate-50 dark:bg-slate-500 p-4"
+            className="sidebar-scrollbar mt-4 flex h-[calc(100vh-380px)] flex-col gap-3 overflow-y-auto rounded-xl border border-gray-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/70"
           >
+            <style>{`
+            .sidebar-scrollbar {
+              scrollbar-width: thin;
+              scrollbar-color: transparent transparent;
+            }
+
+            .sidebar-scrollbar::-webkit-scrollbar {
+              width: 8px;
+            }
+
+            .sidebar-scrollbar::-webkit-scrollbar-track {
+              background: transparent;
+            }
+
+            .sidebar-scrollbar::-webkit-scrollbar-thumb {
+              background: transparent;
+              border-radius: 9999px;
+              border: 2px solid transparent;
+              background-clip: padding-box;
+            }
+
+            .dark .sidebar-scrollbar {
+              scrollbar-color: #3f3f46 transparent;
+            }
+
+            .dark .sidebar-scrollbar::-webkit-scrollbar-track {
+              background: #18181b;
+            }
+
+            .dark .sidebar-scrollbar::-webkit-scrollbar-thumb {
+              background: #3f3f46;
+              border-radius: 9999px;
+              border: 2px solid #18181b;
+              background-clip: padding-box;
+            }
+
+            .dark .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #52525b;
+              border-color: #18181b;
+            }
+          `}</style>
             {conversationMessages?.length === 0 ? (
               <div className="text-center text-sm text-gray-500">
                 {t("messages.noMessages")}
               </div>
             ) : (
-              conversationMessages?.map((message) => {
-                const isOutgoing = selectedClient
-                  ? message.to_number === selectedClient
-                  : message.from_number === currentUserMobile;
-                const isOwnMessage = message.from_number === currentUserMobile;
+              conversationMessages?.map((message, index) => {
+                const isOwnMessage = message.from_number === conversationUserMobile;
+                const alignRight = dir === "ltr" ? isOwnMessage : !isOwnMessage;
                 const senderName = isOwnMessage
                   ? t("messages.you")
                   : contactMap.get(message.from_number)?.name ||
                     message.from_number;
+                const messageDate = new Date(message.created_at);
+                const previousMessage = conversationMessages[index - 1];
+                const previousMessageDate = previousMessage
+                  ? new Date(previousMessage.created_at)
+                  : null;
+                const isNewDate =
+                  !previousMessageDate ||
+                  messageDate.getFullYear() !== previousMessageDate.getFullYear() ||
+                  messageDate.getMonth() !== previousMessageDate.getMonth() ||
+                  messageDate.getDate() !== previousMessageDate.getDate();
+                const formattedMessageDate = messageDate.toLocaleDateString(
+                  language === "ar" ? "ar-EG" : "en-US",
+                  {
+                    day: "numeric",
+                    month: "long",
+                    weekday: "long",
+                    year: "numeric",
+                  },
+                );
                 return (
-                  <div
-                    key={message.id}
-                    className={`flex ${isOutgoing ? "justify-end" : "justify-start"} items-start gap-3`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-3xl border px-4 py-3 shadow-sm ${
-                        isOutgoing
-                          ? "border-blue-200 bg-blue-50"
-                          : "border-gray-200 bg-white"
-                      }`}
-                    >
-                      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        {senderName}
+                  <React.Fragment key={message.id}>
+                    {isNewDate && (
+                      <div className="flex items-center gap-3 py-2" role="separator">
+                        <div className="h-px flex-1 bg-gray-200 dark:bg-slate-600" />
+                        <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+                          {formattedMessageDate}
+                        </span>
+                        <div className="h-px flex-1 bg-gray-200 dark:bg-slate-600" />
                       </div>
-                      {editingMessageId === message.id ? (
-                        <div className="space-y-3">
-                          <textarea
-                            value={editingText}
-                            onChange={(e) => setEditingText(e.target.value)}
-                            rows={3}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                          />
-                          {/* <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={handleSaveEdit}
-                              className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                            >
-                              Save
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditingMessageId(null)}
-                              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                            >
-                              Cancel
-                            </button>
-                          </div> */}
-                        </div>
-                      ) : (
-                        <>
-                          {message.image_url ? (
-                            <img
-                              src={message.image_url}
-                              alt="Client media"
-                              className="max-h-80 w-full rounded-xl object-cover"
-                            />
-                          ) : (
-                            <p className="whitespace-pre-wrap text-sm text-gray-900">
-                              {message.message}
-                            </p>
-                          )}
-                          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-500">
-                            <span>
-                              {new Date(message.created_at).toLocaleString()}
-                            </span>
-                            {/* {isOwnMessage && (
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleStartEditing(message)}
-                                  className="rounded-md px-2 py-1 text-blue-600 hover:bg-blue-50"
-                                >
-                                  {t('common.edit')}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDelete(message.id)}
-                                  className="rounded-md px-2 py-1 text-red-600 hover:bg-red-50"
-                                >
-                                  {t('common.delete')}
-                                </button>
-                              </div>
-                            )} */}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                    )}
+                    <MessageItem
+                      message={message}
+                      senderName={senderName}
+                      isOwnMessage={isOwnMessage}
+                      alignRight={alignRight}
+                      isEditing={editingMessageId === message.id}
+                      editingText={editingText}
+                      onEditingTextChange={setEditingText}
+                    />
+                  </React.Fragment>
                 );
               })
             )}
@@ -601,7 +673,7 @@ export const MessagesList: React.FC = () => {
         </div>
 
         {/* New message composer and contact save section */}
-        <div className="rounded-xl border border-gray-200 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-4 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
             {t("messages.sendTitle")}
           </h3>
@@ -617,7 +689,7 @@ export const MessagesList: React.FC = () => {
                   ? `${t("messages.messagePreview")}: ${selectedClientName}`
                   : t("messages.placeholder")
             }
-            className="mt-3 w-full rounded-md border dark:text-slate-900 border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="mt-3 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900 dark:disabled:bg-slate-700"
           />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
@@ -636,7 +708,7 @@ export const MessagesList: React.FC = () => {
                   value={saveContactName}
                   onChange={(e) => setSaveContactName(e.target.value)}
                   placeholder={t("messages.contactName")}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900"
                 />
                 <button
                   type="button"
@@ -656,7 +728,8 @@ export const MessagesList: React.FC = () => {
             </div>
           )}
         </div>
-      </section>
+      </section>}
+      </div>}
     </div>
   );
 };

@@ -4,6 +4,17 @@ import { logAndNotify } from '../logs/log.service';
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || "default_api_key"
 const EVOLUTION_URL = process.env.EVOLUTION_URL || "http://localhost:3000"
 
+const getInstanceOwner = async (instance_name: string) => {
+    try {
+        return await prismaClient.users.findFirst({
+            where: { instance_name },
+            select: { id: true, pharmacy_id: true }
+        });
+    } catch {
+        return null;
+    }
+};
+
 export const createEvolutionInstanceService = async (user_id:number,instance_name: string,mobile:string) => {
     // console.log(instance_name);
     try {
@@ -33,6 +44,7 @@ export const createEvolutionInstanceService = async (user_id:number,instance_nam
 
         logAndNotify({
             userId: user_id,
+            pharmacyId: null,
             action: "CREATE_EVOLUTION_INSTANCE",
             metadata: { instance_name }
         })
@@ -44,8 +56,9 @@ export const createEvolutionInstanceService = async (user_id:number,instance_nam
         console.error("Evolution error status:", error.response?.status)
         logAndNotify({
             userId: user_id,
+            pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error: error.message, evolution_data: error.response?.data, context: "createEvolutionInstanceService" }
+            metadata: { error_title: "Error creating WhatsApp instance", error: error.message, evolution_data: error.response?.data, context: "createEvolutionInstanceService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -69,10 +82,12 @@ export const getPairingCodeEvolutionService = async (instance_name: string) => {
     }
         catch (error: any) {
         console.error("Error connecting user evolution instance:", error)
+        const owner = await getInstanceOwner(instance_name);
         logAndNotify({
-            userId: 0,
+            userId: owner?.id || 0,
+            pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error: error.message, context: "getPairingCodeEvolutionService" }
+            metadata: { error_title: "Error getting WhatsApp pairing code", error: error.message, context: "getPairingCodeEvolutionService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -113,10 +128,12 @@ export const setWebhookEvolutionService = async (instance_name: string) => {
     }
         catch (error:any) {
         console.error("Error setting webhook for evolution instance:", JSON.stringify(error.response?.data,null,2))
+        const owner = await getInstanceOwner(instance_name);
         logAndNotify({
-            userId: 0,
+            userId: owner?.id || 0,
+            pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error: error.message, evolution_data: error.response?.data, context: "setWebhookEvolutionService" }
+            metadata: { error_title: "Error setting WhatsApp webhook", error: error.message, evolution_data: error.response?.data, context: "setWebhookEvolutionService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -141,10 +158,12 @@ export const getConnectionStateService = async(instance_name:string)=>{
     }
         catch(error: any){
         console.error("Error getting connection state for evolution instance:", error)
+        const owner = await getInstanceOwner(instance_name);
         logAndNotify({
-            userId: 0,
+            userId: owner?.id || 0,
+            pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error: error.message, context: "getConnectionStateService" }
+            metadata: { error_title: "Error getting WhatsApp connection state", error: error.message, context: "getConnectionStateService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -160,10 +179,12 @@ export const updateEvolutionInstanceStatusService = async (instance_name: string
     }
         catch (error: any) {
         console.error("Error updating user evolution instance status:", error)
+        const owner = await getInstanceOwner(instance_name);
         logAndNotify({
-            userId: 0,
+            userId: owner?.id || 0,
+            pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error: error.message, context: "updateEvolutionInstanceStatusService" }
+            metadata: { error_title: "Error updating WhatsApp instance status", error: error.message, context: "updateEvolutionInstanceStatusService" }
         }).catch(e => console.error(e));
         throw error
     }

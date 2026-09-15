@@ -1,7 +1,7 @@
 import React , {useState, useEffect} from 'react';
 import { PharmacyContext } from './PharamcyContext';
 import type { Pharmacy } from '../types/pharmacy';
-import type { PharmacyPlan } from '../types/subscription';
+import type { Subscription } from '../types/subscription';
 import { pharmacyAPI } from '../api/pharmacyAPI';
 import { subscriptionAPI } from '../api/subscriptionAPI';
 import { useAuth } from './AuthContext';
@@ -10,22 +10,22 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
     const [pharmacy, setPharmacy] = useState<Pharmacy | null>(null);
-    const [plan, setPlan] = useState<PharmacyPlan | null>(null);
+    const [plan, setPlan] = useState<Subscription | null>(null);
     const user = useAuth().user
 
     useEffect(() => {
         const fetchData = async (pharmacyId: number) => {
             if (!pharmacyId) return;
             try {
-                const [pharmacyData, planData] = await Promise.all([
+                const [pharmacyData, subscriptionData] = await Promise.all([
                     pharmacyAPI.getPharmacyById(pharmacyId),
-                    subscriptionAPI.getPharmacyPlan(pharmacyId)
+                    subscriptionAPI.getPharmacySubscription(pharmacyId)
                 ]);
                 
                 if (pharmacyData) setPharmacy(pharmacyData);
-                if (planData) setPlan(planData);
+                if (subscriptionData) setPlan(subscriptionData);
                 
-                // console.log("Pharmacy and plan data loaded", { pharmacyData, planData });
+                console.log("Pharmacy and plan data loaded", { pharmacyData, subscriptionData });
             } catch (error) {
                 console.error("Error fetching pharmacy/plan data:", error);
                 setPharmacy(null);

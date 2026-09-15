@@ -3,14 +3,14 @@ import { createPharmacyService, getAllPharmaciesService, getPharmacyByIdService,
 const serializePharmacy = (pharmacy: any) => {
     return {
         ...pharmacy,
-        id: pharmacy.id?.toString()
+        id: Number(pharmacy.id)
     }
 }
 
 export const createPharamcyController = async (req: any, res: any) => {
-    const { pharmacy_name, pharmacy_address,work_time,delivery,logo } = req.body
+    const { pharmacy_name, pharmacy_address,work_time,delivery,delivery_price,logo } = req.body
     try {
-        const newPharmacy = await createPharmacyService(pharmacy_name, pharmacy_address,work_time,delivery,logo)
+        const newPharmacy = await createPharmacyService(pharmacy_name, pharmacy_address,work_time,delivery,delivery_price,logo)
         res.status(201).json(serializePharmacy(newPharmacy))
     }
     catch (error) {
@@ -31,7 +31,7 @@ export const getAllPharmaciesController = async (req: any, res: any) => {
 export const getPharmacyByIdController = async (req: any, res: any) => {
     const { id } = req.params
     try {
-        const pharmacy = await getPharmacyByIdService(id)
+        const pharmacy = await getPharmacyByIdService(Number(id))
         res.status(201).json(serializePharmacy(pharmacy))
     }
     catch (error) {
@@ -41,9 +41,9 @@ export const getPharmacyByIdController = async (req: any, res: any) => {
 
 export const updatePharmacyController = async (req: any, res: any) => {
     const { id } = req.params
-    const { pharmacy_name, pharmacy_address,work_time,delivery,logo } = req.body
+    const { pharmacy_name, pharmacy_address,work_time,delivery,delivery_price,logo } = req.body
     try {
-        await updatePharmacyService(id, pharmacy_name, pharmacy_address,work_time,delivery,logo)
+        await updatePharmacyService(id, pharmacy_name, pharmacy_address,work_time,delivery,logo,delivery_price)
         res.status(200).json({ message: 'Pharmacy updated successfully' })
     }
     catch (error) {

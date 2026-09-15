@@ -77,7 +77,7 @@ export const UserPage: React.FC = () => {
           avatar: formData.avatar,
         });
         setUpdatedUser(
-          await userAPI.updateUser(BigInt(currentUser?.id || 0), formData),
+          await userAPI.updateUser(currentUser?.id || 0, formData),
         );
         setShowSuccessModal(true);
         return updatedUser;

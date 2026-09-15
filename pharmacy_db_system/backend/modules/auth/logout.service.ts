@@ -23,8 +23,9 @@ export const userLogoutService  = async(user_id:number)=>{
         console.error("Error during user logout: check logout data", error)
         logAndNotify({
             userId: user_id,
+            pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error: error.message, context: "userLogoutService" }
+            metadata: { error_title: "Error in logout", error: error.message, context: "userLogoutService" }
         }).catch(e => console.error(e));
         throw error
     }

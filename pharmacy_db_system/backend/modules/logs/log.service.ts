@@ -3,8 +3,8 @@ import { TargetRole, NotificationType } from '@prisma/client';
 import { sendPushNotification } from '../../utils/notificationService';
 
 export interface LogFilter {
-  pharmacyId?: bigint;
-  userId?: bigint;
+  pharmacyId?: number;
+  userId?: number;
   action?: string;
   page?: number;
   limit?: number;
@@ -19,7 +19,7 @@ export const createLog = async (data: {
   return await prismaClient.system_log.create({
     data: {
       user_id: data.userId,
-      pharmacy_id: data.pharmacyId,
+      pharmacy_id:Number(data.pharmacyId),
       action: data.action,
       metadata: data.metadata || {}
     },
@@ -67,11 +67,11 @@ const translations: Record<string, any> = {
     USER_LOGIN: { title: "Login Alert", body: "User {username} ({mobile}) signed in successfully" },
     USER_LOGOUT: { title: "Logout Alert", body: "User {username} ({mobile}) signed out" },
     AI_MODE_TOGGLED: { title: "AI Mode Changed", body: "AI mode has been updated by {username} ({mobile})" },
-    SUBSCRIPTION_D: { title: "Subscription Renewed", body: "Pharmacy subscription renewed successfully" },
+    SUBSCRIPTION_RENEWED: { title: "Subscription Renewed", body: "Pharmacy subscription renewed successfully" },
     SUBSCRIPTION_SUSPENDED: { title: "Subscription Suspended", body: "Pharmacy subscription has been suspended" },
     ORDER_REQUEST: { title: "New Order", body: "New order request from {contactName} ({contactNumber}) has been received" },
     INVENTORY_UPDATED: { title: "Inventory Update", body: "Inventory has been updated by {username}" },
-    CREATE_NEW_USER: { tiRENEWEtle: "Security Alert", body: "A new user {username} was created" },
+    CREATE_NEW_USER: { title: "Security Alert", body: "A new user {username} was created" },
     APP_ERROR: { title: "System Error", body: "An application error occurred: {details}" },
     CREATE_EVOLUTION_INSTANCE: { title: "WhatsApp Connected", body: "A new WhatsApp instance was created for {username}" },
   },
@@ -91,7 +91,7 @@ const translations: Record<string, any> = {
 
 export const logAndNotify = async (params: {
   userId: number;
-  pharmacyId?: number | null;
+  pharmacyId: number | null;
   action: string;
   metadata?: any;
   locale?: 'en' | 'ar';
@@ -99,8 +99,17 @@ export const logAndNotify = async (params: {
 }) => {
   const { userId, pharmacyId, action, metadata, locale = 'ar', username = '' } = params;
 
+  let resolvedPharmacyId = pharmacyId;
+  if (resolvedPharmacyId == null && userId > 0) {
+    const user = await prismaClient.users.findUnique({
+      where: { id: userId },
+      select: { pharmacy_id: true }
+    });
+    resolvedPharmacyId = user?.pharmacy_id ?? null;
+  }
+
   // 1. Create System Log
-  await createLog({ userId, pharmacyId, action, metadata });
+  await createLog({ userId, pharmacyId: resolvedPharmacyId, action, metadata });
 
   // 2. Determine Target Roles
   let targetRoles: TargetRole[] = [];
@@ -178,7 +187,7 @@ export const logAndNotify = async (params: {
     const targetUsers = await prismaClient.users.findMany({
       where: {
         role_id: roleIdMap[role],
-        ...(role !== TargetRole.SUPER_ADMIN && pharmacyId ? { pharmacy_id: pharmacyId } : {})
+        ...(role !== TargetRole.SUPER_ADMIN && resolvedPharmacyId ? { pharmacy_id: resolvedPharmacyId } : {})
       },
       select: { id: true }
     });
@@ -187,12 +196,12 @@ export const logAndNotify = async (params: {
     for (const user of targetUsers) {
       await sendPushNotification({
         userId: user.id,
-        pharmacyId: pharmacyId,
+        pharmacyId: resolvedPharmacyId,
         title: localizedTitle,
         body: localizedBody,
         type: notification_type,
         targetRole: role,
-        data: { action, ...metadata }
+        data: { action, ...(metadata && typeof metadata === 'object' ? metadata : {}) }
       });
     }
   }

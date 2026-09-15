@@ -1,9 +1,6 @@
 import { prismaClient } from "../../utils/prisma-adapter";
 import bcrypt from 'bcrypt';
-import axios from 'axios'; 
 import { logAndNotify } from "../logs/log.service";
-const EVOLUTION_URL=process.env.EVOLUTION_URL || "http://localhost:3000"
-const EVOLUTION_API_KEY=process.env.EVOLUTION_API_KEY || "default_api_key"
 
 export const createUserService = async (username: string, password:string, mobile:string,
     role_id: number, pharmacy_id: number,avatar:string) => {
@@ -30,8 +27,9 @@ export const createUserService = async (username: string, password:string, mobil
             console.error("Error creating user:", error)
             logAndNotify({
                 userId: 0,
-                action: "APP_ERROR",
-                metadata: { error: error.message, context: "createUserService" }
+                    action: "APP_ERROR",
+                    pharmacyId: pharmacy_id,
+                    metadata: { error_title: "Error creating user", error: error.message, context: "createUserService" }
             }).catch(e => console.error(e));
             throw error
         }
@@ -44,7 +42,7 @@ export const updateUserService = async (userId: number, updateData: any) => {
             updateData.password = await bcrypt.hash(updateData.password as string, saltRounds);
         }
         const updatedUser = await prismaClient.users.update({
-            where: { id: userId },
+            where: { id: Number(userId) },
             data: updateData,
         });
         return updatedUser;
@@ -52,8 +50,9 @@ export const updateUserService = async (userId: number, updateData: any) => {
         console.error("Error updating user:", error);
         logAndNotify({
             userId: userId,
-            action: "APP_ERROR",
-            metadata: { error: error.message, context: "updateUserService" }
+                action: "APP_ERROR",
+                pharmacyId: null,
+                metadata: { error_title: "Error updating user", error: error.message, context: "updateUserService" }
         }).catch(e => console.error(e));
         throw error;
     }
@@ -72,8 +71,8 @@ export const getAllUsersService = async (pharmacyId:number)=>{
         logAndNotify({
             userId: 0,
             pharmacyId: pharmacyId,
-            action: "APP_ERROR",
-            metadata: { error: error.message, context: "getAllUsersService" }
+                action: "APP_ERROR",
+                metadata: { error_title: "Error fetching users", error: error.message, context: "getAllUsersService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -91,8 +90,9 @@ export const deactivateUserService = async (userId: number) => {
         console.error("Error deactivating users:", error)
         logAndNotify({
             userId: userId,
+            pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error: error.message, context: "deactivateUserService" }
+            metadata: { error_title: "Error deactivating user", error: error.message, context: "deactivateUserService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -119,11 +119,12 @@ export const updateUserFCMTokenService = async(userId:number,fcmToken:string)=>{
     return user
         }
     catch(error: any){
-        console.log("Error updating fcm token",error)
+        // console.log("Error updating fcm token",error)
         logAndNotify({
             userId: userId,
+            pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error: error.message, context: "updateUserFCMTokenService" }
+            metadata: { error_title: "Error updating notification token", error: error.message, context: "updateUserFCMTokenService" }
         }).catch(e => console.error(e));
         throw error
     }

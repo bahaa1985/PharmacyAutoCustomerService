@@ -16,7 +16,7 @@ export const getInventoryCountByPharmacyId= async(pharmacyId:number)=>{
         userId: 0,
         pharmacyId: pharmacyId,
         action: "APP_ERROR",
-        metadata: { error: error.message, context: "getInventoryCountByPharmacyId" }
+        metadata: { error_title: "Error fetching inventory count", error: error.message, context: "getInventoryCountByPharmacyId" }
     }).catch(e => console.error(e));
     throw error;
     }

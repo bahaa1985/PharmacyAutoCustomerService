@@ -48,11 +48,16 @@ export const userLoginService = async (mobile: string, password: string) => {
     }
     catch (error: any) {
         console.error("Error during user login: check login data", error)
+        const failedUser = await prismaClient.users.findUnique({
+            where: { mobile },
+            select: { id: true, pharmacy_id: true }
+        });
         // Log application error
         logAndNotify({
-            userId: 2, // Owner level
+            userId: failedUser?.id || 2,
+            pharmacyId: failedUser?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error: error.message, stack: error.stack, context: "userLoginService" },
+            metadata: { error_title: "Error in login", error: error.message, stack: error.stack, context: "userLoginService" },
             username: mobile || "",
         }).catch(e => console.error("Critical: Failed to log error", e));
 

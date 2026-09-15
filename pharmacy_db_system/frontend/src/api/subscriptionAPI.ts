@@ -1,13 +1,12 @@
 import api from "./axios";
-import { PlanState } from "../types/subscription";
-import type { MonthlyBillingLog, PharmacyPlan, Plan } from "../types/subscription";
+import { type MonthlySubscriptionLog, SubscriptionState, type Plan, type Subscription } from "../types/subscription";
 
 export const subscriptionAPI = {
   /**
    * Get all pharmacy subscriptions.
    * The backend exposes this list endpoint rather than a dedicated /subscriptions root listing.
    */
-  getAllPharmacyPlans: async (): Promise<PharmacyPlan[]> => {
+  getAllPharmacyPlans: async (): Promise<Subscription[]> => {
     const response = await api.get("/subscriptions/list");
     return response.data.data;
   },
@@ -16,10 +15,10 @@ export const subscriptionAPI = {
    * Get current subscription for a specific pharmacy.
    * The backend does not expose a direct GET by pharmacy endpoint, so we read the list and filter it.
    */
-  getPharmacyPlan: async (pharmacyId: number): Promise<PharmacyPlan> => {
+  getPharmacySubscription: async (pharmacyId: number): Promise<Subscription> => {
     const response = await api.get("/subscriptions/list");
     const subscription = response.data.data.find(
-      (item: PharmacyPlan) => Number(item.pharmacy_id) === Number(pharmacyId)
+      (item: Subscription) => Number(item.pharmacy_id) === Number(pharmacyId)
     );
 
     if (!subscription) {
@@ -40,31 +39,45 @@ export const subscriptionAPI = {
   /**
    * Update a subscription state by hitting the activate/suspend endpoints.
    */
-  updatePlanState: async (subscriptionId: number | string, state: PlanState): Promise<PharmacyPlan> => {
-    const endpoint = state === PlanState.ACTIVE ? "activate" : "suspend";
+  updatePlanState: async (
+    subscriptionId: number | string,
+    state: typeof SubscriptionState[keyof typeof SubscriptionState]
+  ): Promise<Subscription> => {
+    const endpoint = state === SubscriptionState.ACTIVE ? "activate" : "suspend";
     const response = await api.post(`/subscriptions/${subscriptionId}/${endpoint}`);
+    return response.data.data;
+  },
+
+  /**
+   * Toggle the next_month_paid status of a subscription.
+   */
+  toggleNextMonthPaid: async (subscriptionId: number | string): Promise<Subscription> => {
+    const response = await api.post(`/subscriptions/${subscriptionId}/toggle-next-month-paid`);
     return response.data.data;
   },
 
   // Plan CRUD
   getPlans: async (): Promise<Plan[]> => {
     const response = await api.get("/subscriptions/list");
-    const plans = (response.data.data ?? [])
-      .map((item: any) => item.plans)
-      .filter(Boolean);
+    // Extract unique plans from the subscriptions list
+    const subscriptions: Subscription[] = response.data.data ?? [];
+    const plansMap = new Map<number, Plan>();
+    
+    subscriptions.forEach(sub => {
+      if (sub.plans) {
+        plansMap.set(sub.plans.id, sub.plans);
+      }
+    });
 
-    return plans.filter(
-      (plan: Plan, index: number, array: Plan[]) =>
-        array.findIndex((item) => item.id === plan.id) === index
-    );
+    return Array.from(plansMap.values());
   },
 
-  createPlan: async (data: any): Promise<Plan> => {
+  createPlan: async (data: Plan): Promise<Plan> => {
     const response = await api.post("/subscriptions/plans", data);
     return response.data.data;
   },
 
-  updatePlan: async (id: number, data: any): Promise<Plan> => {
+  updatePlan: async (id: number, data: Plan): Promise<Plan> => {
     const response = await api.put(`/subscriptions/plans/${id}`, data);
     return response.data.data;
   },
@@ -74,7 +87,7 @@ export const subscriptionAPI = {
     pharmacy_id: string | number;
     plan_id: number;
     bill_due?: string;
-  }): Promise<PharmacyPlan> => {
+  }): Promise<Subscription> => {
     const payload = {
       ...data,
       bill_due: data.bill_due ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -92,15 +105,15 @@ export const subscriptionAPI = {
     bill_due?: string;
     billing_month?: string;
     messages_used?: number;
-    state?: PlanState;
+    state?: typeof SubscriptionState[keyof typeof SubscriptionState];
     subscriptionId?: number;
-  }): Promise<MonthlyBillingLog> => {
+  }): Promise<MonthlySubscriptionLog> => {
     let subscriptionId = data.subscriptionId;
 
     if (!subscriptionId && data.pharmacy_id != null) {
       const response = await api.get("/subscriptions/list");
       const subscription = (response.data.data ?? []).find(
-        (item: any) => Number(item.pharmacy_id) === Number(data.pharmacy_id)
+        (item: Subscription) => Number(item.pharmacy_id) === Number(data.pharmacy_id)
       );
 
       if (!subscription) {

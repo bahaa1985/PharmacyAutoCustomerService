@@ -28,7 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const getPlanBadge = () => {
     if (!plan || !plan.plans) return null;
     
-    const isLimitReached = plan.messages_count >= plan.plans.messages_limit;
+    const isLimitReached = plan.messages_used >= plan.plans.messages_limit;
     if (isLimitReached) {
       return {
         name: plan.plans.name,
@@ -63,7 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   };
 
   const badge = getPlanBadge();
-  const usagePercent = plan && plan.plans ? Math.min((plan.messages_count / plan.plans.messages_limit) * 100, 100) : 0;
+  const usagePercent = plan && plan.plans ? Math.min((plan.messages_used / plan.plans.messages_limit) * 100, 100) : 0;
   const isLimitReached = usagePercent >= 100;
 
   const links = [
@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     try {
       const newAiMode = !user.ai_mode;
       setIsAiMode(newAiMode);
-      const updatedUser = await userAPI.updateUser(BigInt(user.id), {
+      const updatedUser = await userAPI.updateUser(user.id, {
         ai_mode: newAiMode,
       });
       setUser({ ...user, ai_mode: updatedUser.ai_mode });
@@ -168,7 +168,48 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="sidebar-scrollbar flex-1 p-4 overflow-y-auto">
+          <style>{`
+            .sidebar-scrollbar {
+              scrollbar-width: thin;
+              scrollbar-color: transparent transparent;
+            }
+
+            .sidebar-scrollbar::-webkit-scrollbar {
+              width: 8px;
+            }
+
+            .sidebar-scrollbar::-webkit-scrollbar-track {
+              background: transparent;
+            }
+
+            .sidebar-scrollbar::-webkit-scrollbar-thumb {
+              background: transparent;
+              border-radius: 9999px;
+              border: 2px solid transparent;
+              background-clip: padding-box;
+            }
+
+            .dark .sidebar-scrollbar {
+              scrollbar-color: #3f3f46 transparent;
+            }
+
+            .dark .sidebar-scrollbar::-webkit-scrollbar-track {
+              background: #18181b;
+            }
+
+            .dark .sidebar-scrollbar::-webkit-scrollbar-thumb {
+              background: #3f3f46;
+              border-radius: 9999px;
+              border: 2px solid #18181b;
+              background-clip: padding-box;
+            }
+
+            .dark .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #52525b;
+              border-color: #18181b;
+            }
+          `}</style>
 
           <ul className="space-y-1 py-2">
             {links.map((link) => {
