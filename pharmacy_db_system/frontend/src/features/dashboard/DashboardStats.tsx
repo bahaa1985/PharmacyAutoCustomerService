@@ -20,7 +20,7 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ label, value, icon }) => (
-  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-slate-900 dark:text-slate-100">
+  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-gray-500 dark:text-slate-100 text-sm font-medium">{label}</p>
@@ -39,18 +39,16 @@ export const DashboardStats: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { pharmacy } = usePharmacy();
+  console.log("pharmacy", pharmacy)
   const [messagesCount, setMessagesCount] = useState<string | number>(0);
   const [inventoryCount, setInventoryCount] = useState<string | number>(0);
   const [usersCount, setUsersCount] = useState<string | number>(0);
-  // const [orders,setOrders] = useState(0)
+  const [ordersCount, setOrdersCount] = useState<string | number>(0);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const messages = await messagesAPI.getMessagesByPharmacy(
-          Number(pharmacy?.id),
-          user?.mobile,
-        );
+        const messages = await messagesAPI.getMessagesByPharmacy(Number(pharmacy?.id));
         if(messages){
           setMessagesCount(messages?.length)
         }
@@ -82,31 +80,27 @@ const fetchInventory = async () => {
       }
     }
 
+    const fetchOrders = async () => {
+      if (!user?.mobile) return;
+      try {
+        const count = await messagesAPI.getOrderMessageCountByUserMobile(user.mobile);
+        setOrdersCount(count);
+      } catch {
+        setOrdersCount("Not Available now");
+      }
+    };
+
     fetchMessages();
     fetchInventory();
     fetchUsers();
+    fetchOrders();
   }, [pharmacy?.id, user?.mobile]);
-
-  // useEffect(() => {
-  //   const fetchInventory = async () => {
-  //     try {
-  //       const inventoryCount = await inventoryAPI.getInventoryCountByPharmacyId(
-  //         Number(pharmacy?.id),
-  //       );
-  //       setInventoryCount(inventoryCount);
-  //     } catch {
-  //       setMessagesCount("Not Available now");
-  //     }
-  //   };
-
-  //   fetchInventory();
-  // },[pharmacy?.id]);
 
   const stats = [
     { label: t("dashboard.stats.messages"), value: messagesCount, icon: <MessageOutlined /> },
     { label: t("dashboard.stats.inventory"), value: inventoryCount, icon: <VaccinesOutlined /> },
     { label: t("dashboard.stats.users"), value: usersCount, icon: <PeopleOutline /> },
-    { label: t("dashboard.stats.orders"), value: 57, icon: <QueryStats /> },
+    { label: t("dashboard.stats.orders"), value: ordersCount, icon: <QueryStats /> },
   ];
 
   return (

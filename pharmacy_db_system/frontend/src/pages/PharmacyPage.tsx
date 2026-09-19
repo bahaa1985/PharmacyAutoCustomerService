@@ -16,8 +16,8 @@ export const PharmacyPage: React.FC = () => {
   const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
-    pharmacy_name: pharmacy?.pharmacy_name,
-    pharmacy_address: pharmacy?.pharmacy_address,
+    pharmacy_name: pharmacy?.pharmacy_name || "",
+    pharmacy_address: pharmacy?.pharmacy_address || "",
     work_time: pharmacy?.work_time || "",
     logo: pharmacy?.logo || "",
   });
@@ -77,11 +77,11 @@ export const PharmacyPage: React.FC = () => {
 
     // Restore empty fields to original state before validation if they are empty
     const pharmacyName =
-      formData.pharmacy_name?.trim() === ""
+      formData.pharmacy_name.trim() === ""
         ? pharmacy.pharmacy_name
         : formData.pharmacy_name;
     const pharmacyAddress =
-      formData.pharmacy_address?.trim() === ""
+      formData.pharmacy_address.trim() === ""
         ? pharmacy.pharmacy_address
         : formData.pharmacy_address;
     const finalWorkTime =
@@ -92,23 +92,23 @@ export const PharmacyPage: React.FC = () => {
       formData.logo.trim() === "" ? pharmacy.logo || "" : formData.logo;
 
     // Validation on final values
-    if (user?.role_id === 1) {
+    if (user?.role_id === 1 || user?.role_id === 2) {
       if (!pharmacyName?.trim())
         newErrors.pharmacy_name = t("pharmacy.requiredName");
-      if (pharmacyName?.length < 9)
+      if (pharmacyName.length < 9)
         newErrors.pharmacy_name = t("pharmacy.nameTooShort");
-      if (pharmacyName?.length > 50)
+      if (pharmacyName.length > 50)
         newErrors.pharmacy_name = t("pharmacy.nameTooLong");
       if (!pharmacyAddress?.trim())
         newErrors.pharmacy_address = t("pharmacy.requiredAddress");
-      if (pharmacyAddress?.length < 5)
+      if (pharmacyAddress.length < 5)
         newErrors.pharmacy_address = t("pharmacy.addressTooShort");
-      if (pharmacyAddress?.length > 50)
+      if (pharmacyAddress.length > 50)
         newErrors.pharmacy_address = t("pharmacy.addressTooLong");
     }
     if (!finalWorkTime.trim()) {
       newErrors.work_time = t("pharmacy.requiredWorkTime");
-    } else if (finalWorkTime.length < 10) {
+    } else if (finalWorkTime.length < 5) {
       newErrors.work_time = t("pharmacy.workTimeTooShort");
     } else if (finalWorkTime.length > 50) {
       newErrors.work_time = t("pharmacy.workTimeTooLong");
@@ -120,7 +120,7 @@ export const PharmacyPage: React.FC = () => {
       setIsUpdating(true);
       try {
         const updatedPharmacy = await pharmacyAPI.updatePharmacy(
-          BigInt(pharmacy.id),
+          pharmacy.id,
           {
             pharmacy_name: pharmacyName,
             pharmacy_address: pharmacyAddress,
@@ -136,7 +136,7 @@ export const PharmacyPage: React.FC = () => {
           logo: updatedPharmacy.logo || "",
         });
         showToast(t("pharmacy.updateSuccess"), "success");
-      } catch (error) {
+      } catch {
         showToast("Failed to update pharmacy info", "error");
       } finally {
         setIsUpdating(false);
@@ -167,15 +167,18 @@ export const PharmacyPage: React.FC = () => {
         <div className="dark:bg-slate-800 shadow-sm rounded-2xl border dark:border-slate-700 p-6 sm:p-8">
           <form onSubmit={handleUpdate} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Read-only fields if user is  not super admin */}
+              {/* Pharmacy identity fields are editable by admins and owners. */}
               <div>
                 <label className="block text-sm font-medium mb-1">
                   {t("pharmacy.name")}
                 </label>
                 <Input
                   type="text"
-                  value={pharmacy?.pharmacy_name || ""}
-                  disabled={user?.role_id !== 1 && true}
+                  value={formData.pharmacy_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, pharmacy_name: e.target.value })
+                  }
+                  disabled={user?.role_id !== 1 && user?.role_id !== 2}
                   // className={`w-full border  rounded-xl py-2.5 px-4  ${user?.role_id !==1 && 'cursor-not-allowed'}`}
                 />
               </div>
@@ -186,8 +189,11 @@ export const PharmacyPage: React.FC = () => {
                 </label>
                 <Input
                   type="text"
-                  value={pharmacy?.pharmacy_address || ""}
-                  disabled={user?.role_id !== 1 && true}
+                  value={formData.pharmacy_address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, pharmacy_address: e.target.value })
+                  }
+                  disabled={user?.role_id !== 1 && user?.role_id !== 2}
                   // className="w-full border rounded-xl py-2.5 px-4 cursor-not-allowed"
                 />
               </div>
@@ -261,13 +267,12 @@ export const PharmacyPage: React.FC = () => {
             </div>
 
             <div className="flex justify-end pt-6 border-t ">
-              <button
+              <Button
                 type="submit"
-                disabled={isUpdating || uploading}
-                className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-500/20"
+                isLoading={isUpdating || uploading}
               >
-                {isUpdating ? t("common.loading") : t("common.update")}
-              </button>
+                {t("common.update")}
+              </Button>
             </div>
           </form>
         </div>

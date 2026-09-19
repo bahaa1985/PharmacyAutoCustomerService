@@ -3,6 +3,10 @@ import {
   deleteMessageService,
   getMessagesByPharmacyIdService,
   getMessagesByUserNumberService,
+  getUserMessagesCount,
+  getPharmacyMessagesCount,
+  getOrderMessageCountByUserMobileService,
+  getOrderMessageCountByPharmacyService,
   updateMessageService,
   checkOrderMessageService,
   processWebhookMessageService,
@@ -22,21 +26,21 @@ const serializeMessage = (message: any) => {
 
 export const getMessagesByPharmacyIdController = async (req: any, res: any) => {
   const { pharmacyId } = req.params;
-  const contactPhone = req.query.contactPhone as string | undefined;
-  const pharmacyPhone = req.query.pharmacyPhone as string | undefined;
-  if (pharmacyPhone) {
-    const pharmacyUser = await prismaClient.users.findFirst({
-      where: { mobile: pharmacyPhone, pharmacy_id: Number(pharmacyId) },
-    });
-    if (!pharmacyUser) {
-      return res.status(404).json({ message: "Pharmacy user not found" });
-    }
-  }
+  // const contactPhone = req.query.contactPhone as string | undefined;
+  // const pharmacyPhone = req.query.pharmacyPhone as string | undefined;
+  // if (pharmacyPhone) {
+  //   const pharmacyUser = await prismaClient.users.findFirst({
+  //     where: { mobile: pharmacyPhone, pharmacy_id: Number(pharmacyId) },
+  //   });
+  //   if (!pharmacyUser) {
+  //     return res.status(404).json({ message: "Pharmacy user not found" });
+  //   }
+  // }
   try {
     const messages = await getMessagesByPharmacyIdService(
       pharmacyId,
-      contactPhone,
-      pharmacyPhone || req.user?.mobile,
+      // contactPhone,
+      // pharmacyPhone || req.user?.mobile,
     );
     res.status(200).json(messages.map(serializeMessage));
   } catch (error) {
@@ -52,6 +56,62 @@ export const getMessagesByUserNumberController = async (req: any, res: any) => {
     res.status(200).json(messages.map(serializeMessage));
   } catch (error) {
     res.status(500).json({ message: "Error fetching messages", error });
+  }
+};
+
+export const getUserMessagesCountController = async (req: any, res: any) => {
+  const userNumber = req.params.userNumber?.trim();
+  if (!userNumber) {
+    return res.status(400).json({ message: "User number is required" });
+  }
+
+  try {
+    const count = await getUserMessagesCount(userNumber);
+    res.status(200).json(count);
+  } catch (error) {
+    res.status(500).json({ message: "Error counting user messages", error });
+  }
+};
+
+export const getPharmacyMessagesCountController = async (req: any, res: any) => {
+  const pharmacyId = Number(req.params.pharmacyId);
+  if (!Number.isInteger(pharmacyId) || pharmacyId <= 0) {
+    return res.status(400).json({ message: "Valid pharmacy ID is required" });
+  }
+
+  try {
+    const count = await getPharmacyMessagesCount(pharmacyId);
+    res.status(200).json(count);
+  } catch (error) {
+    res.status(500).json({ message: "Error counting pharmacy messages", error });
+  }
+};
+
+export const getOrderMessageCountByUserMobileController = async (req: any, res: any) => {
+  const mobile = req.params.mobile?.trim();
+  if (!mobile) {
+    return res.status(400).json({ message: "User mobile is required" });
+  }
+
+  try {
+    const count = await getOrderMessageCountByUserMobileService(mobile);
+    res.status(200).json(count);
+  } catch (error) {
+    res.status(500).json({ message: "Error counting user order messages", error });
+  }
+};
+
+export const getOrderMessageCountByPharmacyController = async (req: any, res: any) => {
+  const pharmacyId = Number(req.params.pharmacyId);
+  if (!Number.isInteger(pharmacyId) || pharmacyId <= 0) {
+    return res.status(400).json({ message: "Valid pharmacy ID is required" });
+  }
+
+  try {
+    const count = await getOrderMessageCountByPharmacyService(pharmacyId);
+    res.status(200).json(count);
+  } catch (error) {
+    res.status(500).json({ message: "Error counting pharmacy order messages", error });
   }
 };
 

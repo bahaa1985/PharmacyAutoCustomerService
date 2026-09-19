@@ -201,7 +201,9 @@ export const logAndNotify = async (params: {
         body: localizedBody,
         type: notification_type,
         targetRole: role,
-        data: { action, ...(metadata && typeof metadata === 'object' ? metadata : {}) }
+        data: notification_type === NotificationType.SYSTEM_ERROR
+          ? (typeof metadata === 'string' ? metadata : metadata?.error || '')
+          : { action, ...(metadata && typeof metadata === 'object' ? metadata : {}) }
       });
     }
   }

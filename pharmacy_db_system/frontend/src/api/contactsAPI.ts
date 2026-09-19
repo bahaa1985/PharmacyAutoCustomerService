@@ -7,14 +7,23 @@ type BlockedContact = {
 };
 
 export const contactsAPI = {
-  getContacts: async (userId?: number): Promise<Contact[]> => {
-    const search = userId ? `?userId=${userId}` : '';
+  getContacts: async (userMobile?: string): Promise<Contact[]> => {
+    const search = userMobile ? `?userMobile=${encodeURIComponent(userMobile)}` : '';
     const response = await api.get<Contact[]>(`/contacts${search}`);
     return response.data;
   },
 
   createContact: async (data: { name: string, phone: string, userId: number }): Promise<Contact> => {
     const response = await api.post<Contact>('/contacts/new', data);
+    return response.data;
+  },
+
+  updateContact: async (data: {
+    contact_mobile: string;
+    user_mobile: string;
+    contact_name: string;
+  }): Promise<Contact> => {
+    const response = await api.patch<Contact>('/contacts/update', data);
     return response.data;
   },
 

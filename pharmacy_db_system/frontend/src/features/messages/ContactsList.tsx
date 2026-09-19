@@ -12,7 +12,7 @@ interface ContactsListProps {
   contactMap: Map<string, Contact>;
   blockedPhones: Set<string>;
   onClientSearchChange: (value: string) => void;
-  onSelectClient: (phone: string) => void;
+  onSelectClient: (phone: string, contactName: string | null) => void;
   onToggleBlock: (phone: string, block: boolean) => void;
 }
 
@@ -61,8 +61,8 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     );
 
     contacts?.forEach((contact) => {
-      if (contact.phone !== currentUserMobile.trim() && !contactPhones.has(contact.phone)) {
-        conversations.set(`contact:${contact.phone}`, { phone: contact.phone });
+      if (contact.contact_mobile !== currentUserMobile.trim() && !contactPhones.has(contact.contact_mobile)) {
+        conversations.set(`contact:${contact.contact_mobile}`, { phone: contact.contact_mobile });
       }
     });
 
@@ -70,8 +70,8 @@ export const ContactsList: React.FC<ContactsListProps> = ({
       const aTime = a.latestMessage ? new Date(a.latestMessage.created_at).getTime() : 0;
       const bTime = b.latestMessage ? new Date(b.latestMessage.created_at).getTime() : 0;
       if (aTime !== bTime) return bTime - aTime;
-      const nameA = contactMap.get(a.phone)?.name || a.phone;
-      const nameB = contactMap.get(b.phone)?.name || b.phone;
+      const nameA = contactMap.get(a.phone)?.contact_name || a.phone;
+      const nameB = contactMap.get(b.phone)?.contact_name || b.phone;
       return nameA.localeCompare(nameB);
     });
   }, [messages, contacts, contactMap, currentUserMobile]);
@@ -80,7 +80,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     const term = clientSearch.toLowerCase();
 
     return participants.filter(({ phone }) => {
-      const name = contactMap.get(phone)?.name || phone;
+      const name = contactMap.get(phone)?.contact_name || phone;
       return name.toLowerCase().includes(term) || phone.includes(term);
     });
   }, [participants, contactMap, clientSearch]);
@@ -106,12 +106,13 @@ export const ContactsList: React.FC<ContactsListProps> = ({
             {filteredParticipants.map(({ phone, latestMessage }) => {
               const contact = contactMap.get(phone);
               const isBlocked = blockedPhones.has(phone);
+              const displayName = contact?.contact_name?.trim();
 
               return (
                 <li key={phone} className="group relative ">
                   <button
                     type="button"
-                    onClick={() => onSelectClient(phone)}
+                    onClick={() => onSelectClient(phone, contact?.contact_name ?? null)}
                     aria-selected={selectedClient === phone}
                     className={`w-full rounded-lg sm:rounded-xl px-3 py-2 sm:py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                       selectedClient === phone
@@ -120,7 +121,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                     }`}
                   >
                     <div className="font-semibold text-sm sm:text-base truncate flex items-center gap-2">
-                      {contact?.name || phone}
+                      {displayName ? `${displayName} (${phone})` : phone}
                       {isBlocked && (
                         <span className="text-[10px] bg-red-600 text-red-100 px-1.5 py-0.5 rounded-full uppercase">
                           {t('common.blocked')}

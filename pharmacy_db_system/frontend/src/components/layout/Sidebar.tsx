@@ -6,6 +6,7 @@ import { usePharmacy } from "../../context/PharamcyContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { useNotifications } from "../../context/NotificationsProvider";
 import { getRoleTheme } from "../../utils/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 import Switch from "@mui/material/Switch";
 
@@ -17,22 +18,23 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const { user, setUser } = useAuth();
-    const { pharmacy, plan } = usePharmacy();
+  const { pharmacy, plan } = usePharmacy();
   const { unreadCount } = useNotifications();
+  const { theme: currentTheme } = useTheme();
   const [isAiMode, setIsAiMode] = useState(user?.ai_mode);
 
-  const [error, setError] = useState("");
   const { t, dir, language, setLanguage } = useLanguage();
   const theme = getRoleTheme(user?.role_id);
 
   const getPlanBadge = () => {
     if (!plan || !plan.plans) return null;
-    
+
     const isLimitReached = plan.messages_used >= plan.plans.messages_limit;
     if (isLimitReached) {
       return {
         name: plan.plans.name,
-        classes: "bg-gray-100 text-gray-500 border-gray-300 dark:bg-gray-700 dark:text-gray-400"
+        classes:
+          "bg-gray-100 text-gray-500 border-gray-300 dark:bg-gray-700 dark:text-gray-400",
       };
     }
 
@@ -40,39 +42,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     if (name.includes("gold") || name.includes("شاملة")) {
       return {
         name: plan.plans.name,
-        classes: "bg-yellow-100 text-yellow-700 border-yellow-300 font-bold"
+        classes: "bg-yellow-100 text-yellow-700 border-yellow-300 font-bold",
       };
     }
     if (name.includes("silver") || name.includes("إحترافية")) {
       return {
         name: plan.plans.name,
-        classes: "bg-slate-100 text-slate-700 border-slate-300  font-bold"
+        classes: "bg-slate-100 text-slate-700 border-slate-300  font-bold",
       };
     }
     if (name.includes("bronze") || name.includes("أساسية")) {
       return {
         name: plan.plans.name,
-        classes: "bg-orange-100 text-orange-700 border-orange-300  font-bold"
+        classes: "bg-orange-100 text-orange-700 border-orange-300  font-bold",
       };
     }
-    
+
     return {
       name: plan.plans.name,
-      classes: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400"
+      classes:
+        "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400",
     };
   };
 
   const badge = getPlanBadge();
-  const usagePercent = plan && plan.plans ? Math.min((plan.messages_used / plan.plans.messages_limit) * 100, 100) : 0;
+  const usagePercent =
+    plan && plan.plans
+      ? Math.min((plan.messages_used / plan.plans.messages_limit) * 100, 100)
+      : 0;
   const isLimitReached = usagePercent >= 100;
 
   const links = [
-        { path: "/dashboard", label: t("layout.dashboard") },
+    { path: "/dashboard", label: t("layout.dashboard") },
     { path: "/messages", label: t("layout.messages") },
-    { path: "/notifications", label: t("layout.notifications"), badge: unreadCount },
+    {
+      path: "/notifications",
+      label: t("layout.notifications"),
+      badge: unreadCount,
+    },
     { path: "/inventory", label: t("layout.inventory") },
 
-    { path:"/pharmacies", label: t("layout.pharmacies")},
+    { path: "/pharmacies", label: t("layout.pharmacies") },
     { path: "/subscriptions", label: t("layout.subscriptions") },
     { path: "/users", label: t("layout.users") },
   ];
@@ -87,7 +97,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       });
       setUser({ ...user, ai_mode: updatedUser.ai_mode });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update AI mode");
+      console.error(
+        err instanceof Error ? err.message : "Failed to update AI mode",
+      );
     }
   };
 
@@ -95,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Overlay for mobile */}
       <div
-        className={`fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-x-0 top-16 bottom-0 bg-black/50 z-40 md:hidden transition-opacity duration-300 ${
           isOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -103,39 +115,61 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClick={onClose}
       />
 
-            <aside
-        className={`fixed lg:sticky inset-y-0 ${
+      <aside
+        className={`fixed top-16 md:top-0 ${
           dir === "rtl" ? "right-0" : "left-0"
-        } w-64 ${theme.sidebar} border-x h-screen lg:h-[calc(100vh-64px)] lg:top-16 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${
+        } w-64 max-w-[85vw] ${theme.sidebar} border-x h-[calc(100vh-4rem)] md:h-screen flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen
             ? "translate-x-0"
             : dir === "rtl"
               ? "translate-x-full"
               : "-translate-x-full"
-        } lg:translate-x-0 shadow-lg lg:shadow-none
+        } md:translate-x-0 shadow-lg md:shadow-none
       dark:bg-slate-900
         dark:border-slate-800
         transition-colors
         duration-300`}
         dir={dir}
       >
-                <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="w-full flex items-center gap-2 mb-4">
+            <Link
+              to="/dashboard"
+              aria-label="Mujeeb dashboard"
+              className="block w-full"
+            >
+              <img
+                src={
+                  currentTheme === "dark"
+                    ? "/mujeeb-navbar-ldark.png"
+                    : "/mujeeb-navbar-light.png"
+                }
+                alt="Mujeeb"
+                className="block w-[90%] h-16 m-auto object-cover"
+              />
+            </Link>
+          </div>
           <Link
             to="/pharmacy-settings"
             className="flex flex-col gap-2 hover:opacity-90 transition-all"
           >
             <div className="flex items-center gap-3">
-              <img src={pharmacy?.logo} className="size-10 rounded-full object-cover border dark:border-gray-700" />
+              <img
+                src={pharmacy?.logo}
+                className="size-10 rounded-full object-cover border dark:border-gray-700"
+              />
               <h1
                 className={`text-lg font-bold truncate bg-gradient-to-r ${theme.shell} bg-clip-text text-transparent`}
               >
                 {pharmacy?.pharmacy_name}
               </h1>
             </div>
-            
+
             {badge && (
               <div className="mt-1">
-                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${badge.classes}`}>
+                <span
+                  className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${badge.classes}`}
+                >
                   {badge.name}
                 </span>
               </div>
@@ -148,14 +182,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
                   {t("subscriptions.messages")}
                 </span>
-                <span className={`text-[10px] font-bold ${isLimitReached ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                <span
+                  className={`text-[10px] font-bold ${isLimitReached ? "text-red-500" : "text-gray-700 dark:text-gray-300"}`}
+                >
                   {plan.messages_used} / {plan.plans.messages_limit}
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                <div 
+                <div
                   className={`h-full rounded-full transition-all duration-500 ${
-                    isLimitReached ? 'bg-red-500' : usagePercent > 80 ? 'bg-orange-500' : 'bg-primary'
+                    isLimitReached
+                      ? "bg-red-500"
+                      : usagePercent > 80
+                        ? "bg-orange-500"
+                        : "bg-primary"
                   }`}
                   style={{ width: `${usagePercent}%` }}
                 />
@@ -213,16 +253,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
           <ul className="space-y-1 py-2">
             {links.map((link) => {
-                            const showLink =
-                 (link.path !== "/users" || (user && user.role_id <= 2)) &&
+              const showLink =
+                (link.path !== "/users" || (user && user.role_id <= 2)) &&
                 (link.path !== "/pharmacies" || (user && user.role_id === 1)) &&
-                (link.path !== "/subscriptions" || (user && user.role_id === 1));
+                (link.path !== "/subscriptions" ||
+                  (user && user.role_id === 1));
 
               if (!showLink) return null;
               const isActive = location.pathname === link.path;
               return (
                 <li key={link.path}>
-                                    <Link
+                  <Link
                     to={link.path}
                     onClick={() => {
                       if (window.innerWidth < 1024) onClose();
@@ -240,7 +281,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       </span>
                     )}
                   </Link>
-
                 </li>
               );
             })}
@@ -248,7 +288,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="my-4 border-t border-gray-100"></div>
           <div className="space-y-4">
             <div className="flex items-center justify-between px-2">
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {isAiMode ? t("layout.aiEnabled") : t("layout.aiDisabled")}
               </span>
               <Switch
@@ -256,11 +296,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 onChange={handleToggleAiMode}
                 size="small"
                 sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': {
-                    color: theme.active.split(' ')[0]
+                  "& .MuiSwitch-switchBase.Mui-checked": {
+                    color: theme.active.split(" ")[0],
                   },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                    backgroundColor: theme.active.split(' ')[0]
+                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                    backgroundColor: theme.active.split(" ")[0],
                   },
                 }}
               />

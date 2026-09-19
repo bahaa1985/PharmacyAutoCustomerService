@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['pwa-192.png', 'pwa-512.jfif'],
       manifest: {
         name: 'Medispond AI',
         short_name: 'PharmAssist',
@@ -23,14 +23,14 @@ export default defineConfig({
             type: 'image/png'
           },
           {
-            src: '/pwa-512.png',
+            src: '/pwa-512.jfif',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/jpeg'
           },
           {
-            src: '/pwa-512.png',
+            src: '/pwa-512.jfif',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
             purpose: 'any maskable'
           }
         ]

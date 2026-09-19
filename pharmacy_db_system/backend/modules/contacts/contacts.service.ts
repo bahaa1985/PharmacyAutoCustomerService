@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { prismaClient } from "../../utils/prisma-adapter";
 
-export const getContactsByUserService = async (userId: number) => {
+export const getContactsByUserService = async (user_mobile: string) => {
   try {
     return await prismaClient.contacts.findMany({
-      where: { user_id: userId },
+      where: { user_mobile: user_mobile },
       orderBy: { created_at: 'desc' },
     });
   } catch (error) {
@@ -13,21 +13,26 @@ export const getContactsByUserService = async (userId: number) => {
   }
 };
 
-export const createContactService = async (
-  name: string,
-  phone: string,
-  userId: number,
+export const updateContactService = async (
+  contact_mobile: string,
+  user_mobile: string,
+  contact_name: string,
 ) => {
   try {
-    return await prismaClient.contacts.create({
-      data: {
-        name,
-        phone,
-        user_id: userId,
-      },
+    const result = await prismaClient.contacts.updateMany({
+      where: { contact_mobile, user_mobile },
+      data: { contact_name },
+    });
+
+    if (result.count === 0) {
+      throw new Error('Contact not found');
+    }
+
+    return await prismaClient.contacts.findFirstOrThrow({
+      where: { contact_mobile, user_mobile },
     });
   } catch (error) {
-    console.error('Error creating contact:', error);
+    console.error('Error updating contact:', error);
     throw error;
   }
 };

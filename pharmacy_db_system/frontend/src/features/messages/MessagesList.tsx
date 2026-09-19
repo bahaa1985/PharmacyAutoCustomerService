@@ -56,10 +56,16 @@ export const MessagesList: React.FC = () => {
     (user as User & { instanceName?: string }).instanceName ||
     "";
 
+  const contactMap = useMemo(() => {
+    const map = new Map<string, Contact>();
+    contacts?.forEach((contact) => map.set(contact.contact_mobile, contact));
+    return map;
+  }, [contacts]);
+
   const loadContacts = useCallback(async () => {
     try {
       const [contactsData, blockedData] = await Promise.all([
-        contactsAPI.getContacts(activePharmacyUser?.id),
+        contactsAPI.getContacts(activePharmacyUser?.mobile),
         contactsAPI.getBlockedContacts(),
       ]);
       setContacts(contactsData);
@@ -123,6 +129,12 @@ export const MessagesList: React.FC = () => {
     setSelectedClient(params.get("contact") || "");
     loadContacts();
   }, [activePharmacyUser, loadContacts, location.search]);
+
+  useEffect(() => {
+    if (selectedClient) {
+      setSaveContactName(contactMap.get(selectedClient)?.contact_name ?? "");
+    }
+  }, [contactMap, selectedClient]);
 
   useEffect(() => {
     if (activePharmacyUser) loadMessages(selectedClient || undefined);
@@ -291,12 +303,6 @@ export const MessagesList: React.FC = () => {
     }
   }, [messages]);
 
-  const contactMap = useMemo(() => {
-    const map = new Map<string, Contact>();
-    contacts?.forEach((contact) => map.set(contact.phone, contact));
-    return map;
-  }, [contacts]);
-
   const conversationMessages = useMemo(() => {
     const items = selectedClient
       ? messages?.filter((message) => {
@@ -326,7 +332,7 @@ export const MessagesList: React.FC = () => {
   }, [messages, selectedClient, conversationUserMobile, messageSearch, user?.pharmacy_id]);
 
   const selectedClientName = selectedClient
-    ? contactMap.get(selectedClient)?.name || selectedClient
+    ? contactMap.get(selectedClient)?.contact_name || selectedClient
     : "All clients";
 
   const handleSendMessage = async () => {
@@ -349,7 +355,7 @@ export const MessagesList: React.FC = () => {
         from_number: conversationUserMobile,
         image_url: "",
         pharmacyId: user?.pharmacy_id || 0,
-        message_type: newMessage.trim().toLowerCase().includes("order") ? 10 : 5,
+        message_type: newMessage.trim().toLowerCase().includes("order") ? 11 : 6,
       });
       setMessages((prev) => [...prev, created]);
       setNewMessage("");
@@ -397,14 +403,29 @@ export const MessagesList: React.FC = () => {
     setError("");
     setIsSavingContact(true);
     try {
-      const contact = await contactsAPI.createContact({
-        name: saveContactName.trim(),
-        phone: selectedClient,
-        userId: Number(activePharmacyUser?.id),
+      const contact = await contactsAPI.updateContact({
+        contact_mobile: selectedClient,
+        user_mobile: conversationUserMobile,
+        contact_name: saveContactName.trim(),
       });
-      setContacts((prev) => [contact, ...prev]);
-      setSaveContactName("");
+      setContacts((prev) => {
+        const contactExists = prev.some(
+          (item) =>
+            item.contact_mobile === contact.contact_mobile &&
+            item.user_mobile === contact.user_mobile,
+        );
+        return contactExists
+          ? prev.map((item) =>
+              item.contact_mobile === contact.contact_mobile &&
+              item.user_mobile === contact.user_mobile
+                ? contact
+                : item,
+            )
+          : [contact, ...prev];
+      });
+      setSaveContactName(contact.contact_name ?? "");
     } catch (err) {
+      console.log("Error saving contact:", err);
       setError(err instanceof Error ? err.message : "Failed to save contact");
     } finally {
       setIsSavingContact(false);
@@ -428,6 +449,11 @@ export const MessagesList: React.FC = () => {
         err instanceof Error ? err.message : "Failed to toggle block status",
       );
     }
+  };
+
+  const handleSelectClient = (phone: string, contactName: string | null) => {
+    setSelectedClient(phone);
+    setSaveContactName(contactName ?? "");
   };
 
   // const handleToggleAiMode = async () => {
@@ -454,7 +480,7 @@ export const MessagesList: React.FC = () => {
   return (
     <div className="space-y-4">
       {canViewAllContacts && (
-        <section className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
+        <section className="bg-white dark:bg-slate-900 border dark:border-gray-800 shadow-md rounded-lg p-6 mb-8">
           <button
             type="button"
             onClick={() => setShowPharmacyUsers((visible) => !visible)}
@@ -502,7 +528,7 @@ export const MessagesList: React.FC = () => {
         currentUserMobile={conversationUserMobile}
         contactMap={contactMap}
         onClientSearchChange={setClientSearch}
-        onSelectClient={setSelectedClient}
+        onSelectClient={handleSelectClient}
         blockedPhones={blockedPhones}
         onToggleBlock={handleToggleBlock}
       />
@@ -624,7 +650,7 @@ export const MessagesList: React.FC = () => {
                 const alignRight = dir === "ltr" ? isOwnMessage : !isOwnMessage;
                 const senderName = isOwnMessage
                   ? t("messages.you")
-                  : contactMap.get(message.from_number)?.name ||
+                  : contactMap.get(message.from_number)?.contact_name ||
                     message.from_number;
                 const messageDate = new Date(message.created_at);
                 const previousMessage = conversationMessages[index - 1];
@@ -701,7 +727,7 @@ export const MessagesList: React.FC = () => {
               {t("messages.sendButton")}
             </button>
 
-            {selectedClient && !contactMap.has(selectedClient) && (
+            {/* {selectedClient && !contactMap.has(selectedClient) && ( */}
               <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
                 <input
                   type="text"
@@ -719,7 +745,7 @@ export const MessagesList: React.FC = () => {
                   {t("messages.saveContact")}
                 </button>
               </div>
-            )}
+            {/* )} */}
           </div>
 
           {error && (

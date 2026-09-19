@@ -1,7 +1,7 @@
 export interface Contact {
   id: string;
-  name: string;
-  phone: string;
-  user_id: number;
+  contact_name: string | null;
+  contact_mobile: string;
+  user_mobile: string;
   created_at: string;
 }

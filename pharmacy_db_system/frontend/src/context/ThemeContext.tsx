@@ -9,27 +9,30 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const getSavedTheme = (): Theme | undefined => {
+  const savedTheme = document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('theme='))
+    ?.slice('theme='.length);
+
+  const decodedTheme = savedTheme ? decodeURIComponent(savedTheme) : undefined;
+  return decodedTheme === 'dark' || decodedTheme === 'light' ? decodedTheme : undefined;
+};
+
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+
+  return getSavedTheme() ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    const savedTheme = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('theme='))
-      ?.split('=')[1] as Theme | undefined;
-
-      //  const savedTheme = window.localStorage.getItem('theme') as Theme | null;
-
-    if (savedTheme === 'dark' || savedTheme === 'light') {
-      setTheme(savedTheme);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTheme('dark');
-    }
-  }, []);
-
-  useEffect(() => {
-    // window.localStorage.setItem('theme', theme);
-    document.cookie = `theme=${theme}; path=/; max-age=31536000`;
+    document.cookie = `theme=${encodeURIComponent(theme)}; path=/; max-age=31536000; samesite=lax`;
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
       document.body.classList.add('dark');

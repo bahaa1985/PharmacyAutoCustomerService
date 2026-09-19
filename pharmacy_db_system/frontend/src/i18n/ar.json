@@ -172,7 +172,7 @@
     "addressTooLong": "العنوان أطول من 50 حرف",
     "addressTooShort": "العنوان أقل من 5 حروف",
     "requiredWorkTime": "مواعيد العمل مطلوبة",
-    "workTimeTooShort": "مواعيد العمل أقل من 50 حرف",
+    "workTimeTooShort": "مواعيد العمل أقل من 5 حرف",
     "workTimeTooLong": "مواعيد العمل أقل من 10 حروف",
     "createButton": "إنشاء صيدلية",
     "created": "تم إنشاؤها بنجاح!",

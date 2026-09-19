@@ -17,17 +17,19 @@ interface SendNotificationParams {
 export const sendPushNotification = async (params: SendNotificationParams) => {
   try {
     const { userId, pharmacyId, title, body, type, targetRole, data } = params;
-    console.log("sendPushNotification is fired!",params)
+    // console.log("sendPushNotification is fired!",params)
         // 1. تسجيل الإشعار في قاعدة البيانات
     await prismaClient.notification.create({
       data: {
         user_id: userId,
-        pharmacy_id: pharmacyId,
+        pharmacy_id: pharmacyId||1,
         title,
         body,
         type,
         target_role: targetRole,
-        data: data || {},
+        data: type === NotificationType.SYSTEM_ERROR
+          ? (typeof data === 'string' ? data : data?.error || '')
+          : data || {},
       },
     });
 

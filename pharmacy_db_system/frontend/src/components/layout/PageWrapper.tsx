@@ -21,9 +21,9 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${dir === 'rtl' ? 'rtl' : 'ltr'}`} dir={dir}>
+    <div className={`min-h-screen z-0 bg-gray-50 ${dir === 'rtl' ? 'rtl' : 'ltr'}`} dir={dir}>
       <Navbar />
-      <div className="flex min-h-screen relative">
+      <div className="flex min-h-screen min-w-0 relative">
         {showSidebar && (
           <>
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
@@ -31,7 +31,7 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
             {/* Toggle Button for Mobile */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className={`lg:hidden fixed top-1/2 -translate-y-1/2 z-[60] flex items-center justify-center w-8 h-12 shadow-lg transition-all duration-300 bg-gradient-to-b ${theme.shell} text-white ${
+                className={`md:hidden fixed top-1/2 -translate-y-1/2 z-[60] flex items-center justify-center w-8 h-12 shadow-lg transition-all duration-300 bg-gradient-to-b ${theme.shell} text-white ${
                 isSidebarOpen 
                   ? (dir === 'rtl' ? 'right-64 rounded-l-md' : 'left-64 rounded-r-md') 
                   : (dir === 'rtl' ? 'right-0 rounded-l-md' : 'left-0 rounded-r-md')
@@ -46,9 +46,11 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
             </button>
           </>
         )}
-                <main className={`flex-1 p-2 sm:p-8 bg-gray-50/50 transition-all duration-300`}>
-          <div className="max-w-7xl mx-auto">
-            <div className="rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 p-4 sm:p-8 shadow-sm">
+                <main className={`min-w-0 flex-1 p-2 sm:p-8 bg-gray-50/50 transition-all duration-300 ${
+                  showSidebar ? (dir === 'rtl' ? 'md:mr-64' : 'md:ml-64') : ''
+                }`}>
+          <div className="w-full max-w-7xl mx-auto">
+            <div className="rounded-xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 p-3 sm:p-8 shadow-sm">
               {children}
             </div>
           </div>

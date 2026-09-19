@@ -22,6 +22,7 @@ export class SubscriptionService {
       metadata: {
         error_title: errorTitle,
         error: error?.message || String(error),
+        stack: error?.stack,
         context: 'SubscriptionService',
       },
     }).catch((loggingError) => console.error('Failed to log subscription error:', loggingError));

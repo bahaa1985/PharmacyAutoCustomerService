@@ -43,6 +43,9 @@ export const evolutionWebhookController = async (req: any, res: any) => {
 
 export const getConnectionStateController = async (req: any, res: any) => {
     const { instance_name } = req.query
+    if(!instance_name || typeof instance_name !== 'string' || instance_name === undefined || instance_name.trim() === '') {
+        return res.status(400).json({ message: "instance_name query parameter is required and must be a string" })
+    }
     try {
         const state = await getConnectionStateService(instance_name as string)
         res.status(200).json({ state })

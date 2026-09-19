@@ -25,7 +25,7 @@ export const userLogoutService  = async(user_id:number)=>{
             userId: user_id,
             pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error in logout", error: error.message, context: "userLogoutService" }
+            metadata: { error_title: "Error in logout", error: error.message, stack: error.stack, context: "userLogoutService" }
         }).catch(e => console.error(e));
         throw error
     }

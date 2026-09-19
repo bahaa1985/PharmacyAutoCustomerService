@@ -6,40 +6,10 @@ import { NotificationType, TargetRole } from "@prisma/client";
 
 export const getMessagesByPharmacyIdService = async (
   pharmacyId: number,
-  contactPhone?: string,
-  pharmacyPhone?: string,
 ) => {
   try {
-    const where: any = { pharmacy_id: Number(pharmacyId) };
-    const normalizedContactPhone = contactPhone?.trim();
-    const normalizedPharmacyPhone = pharmacyPhone?.trim();
-    if (normalizedContactPhone && normalizedPharmacyPhone) {
-      where.AND = [
-        {
-          OR: [
-            {
-              from_number: normalizedContactPhone,
-              to_number: normalizedPharmacyPhone,
-            },
-            {
-              from_number: normalizedPharmacyPhone,
-              to_number: normalizedContactPhone,
-            },
-          ],
-        },
-      ];
-    } else if (normalizedContactPhone) {
-      where.AND = [
-        {
-          OR: [
-            { from_number: normalizedContactPhone },
-            { to_number: normalizedContactPhone },
-          ],
-        },
-      ];
-    }
     const messages = await prismaClient.messages.findMany({
-      where,
+      where:{pharmacy_id: Number(pharmacyId)},
       orderBy: { created_at: 'asc' },
     });
     return messages;
@@ -47,9 +17,9 @@ export const getMessagesByPharmacyIdService = async (
     console.error("Error fetching messages by pharmacy:", error);
     logAndNotify({
         userId: 0,
-        pharmacyId: pharmacyId,
+        pharmacyId: pharmacyId || 1,
         action: "APP_ERROR",
-        metadata: { error_title: "Error fetching pharmacy messages", error: error.message, context: "getMessagesByPharmacyIdService" }
+        metadata: { error_title: "Error fetching pharmacy messages", error: error.message, stack: error.stack, context: "getMessagesByPharmacyIdService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -79,8 +49,91 @@ export const getMessagesByUserNumberService = async (
         userId: 0,
         pharmacyId: null,
         action: "APP_ERROR",
-        metadata: { error_title: "Error fetching user messages", error: error.message, context: "getMessagesByUserNumberService" }
+        metadata: { error_title: "Error fetching user messages", error: error.message, stack: error.stack, context: "getMessagesByUserNumberService" }
     }).catch(e => console.error(e));
+    throw error;
+  }
+};
+
+export const getOrderMessageCountByUserMobileService = async (mobile: string) => {
+  try {
+    return await prismaClient.messages.count({
+      where: {
+        message_type: 11,
+        to_number: mobile.trim(),
+      },
+    });
+  } catch (error: any) {
+    console.error("Error counting order messages by user mobile:", error);
+    logAndNotify({
+      userId: 0,
+      pharmacyId: null,
+      action: "APP_ERROR",
+      metadata: {
+        error_title: "Error counting user order messages",
+        error: error.message,
+        stack: error.stack,
+        context: "getOrderMessageCountByUserMobileService",
+      },
+    }).catch(e => console.error(e));
+    throw error;
+  }
+};
+
+export const getOrderMessageCountByPharmacyService = async (pharmacyId: number) => {
+  try {
+    return await prismaClient.messages.count({
+      where: {
+        message_type: 11,
+        pharmacy_id: Number(pharmacyId),
+      },
+    });
+  } catch (error: any) {
+    console.error("Error counting order messages by pharmacy:", error);
+    logAndNotify({
+      userId: 0,
+      pharmacyId: Number(pharmacyId),
+      action: "APP_ERROR",
+      metadata: {
+        error_title: "Error counting pharmacy order messages",
+        error: error.message,
+        stack: error.stack,
+        context: "getOrderMessageCountByPharmacyService",
+      },
+    }).catch(e => console.error(e));
+    throw error;
+  }
+};
+
+export const getUserMessagesCount = async (userNumber: string) => {
+  try {
+    const count = await prismaClient.messages.count({
+      where: {
+        from_number: userNumber.trim(),
+        OR: 
+          [
+          { to_number: userNumber.trim() }],
+      },
+    });
+    return count;
+  }
+  catch (error: any) {
+    console.error("Error counting messages:", error);
+    throw error;
+  }
+};
+
+export const getPharmacyMessagesCount = async (pharmacyId: number) => {
+  try {
+    const count = await prismaClient.messages.count({
+      where: {
+        pharmacy_id: Number(pharmacyId),
+      },
+    });
+    return count;
+  }
+  catch (error: any) {
+    console.error("Error counting pharmacy messages:", error);
     throw error;
   }
 };
@@ -134,8 +187,8 @@ export const createMessageService = async ({
     // Check if message_type is 11 (Order Request)
     if (Number(message_type) === 11) {
       const contact = await prismaClient.contacts.findFirst({
-        where: { phone: fromNumber },
-        select: { name: true, phone: true }
+        where: { contact_mobile: fromNumber },
+        select: { contact_name: true, contact_mobile: true }
       });
 
       logAndNotify({
@@ -145,8 +198,8 @@ export const createMessageService = async ({
         metadata: {
           from: fromNumber,
           message,
-          contact_name: contact?.name || fromNumber,
-          contact_number: contact?.phone || fromNumber
+          contact_name: contact?.contact_name || fromNumber,
+          contact_number: contact?.contact_mobile || fromNumber
         }
       }).catch(e => console.error("Error in logAndNotify for ORDER_REQUEST:", e));
     }
@@ -158,7 +211,7 @@ export const createMessageService = async ({
         userId: 0,
         pharmacyId: pharmacyId,
         action: "APP_ERROR",
-        metadata: { error_title: "Error creating message", error: error.message, context: "createMessageService" }
+        metadata: { error_title: "Error creating message", error: error.message, stack: error.stack, context: "createMessageService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -183,7 +236,7 @@ export const updateMessageService = async (
         userId: 0,
         pharmacyId: null,
         action: "APP_ERROR",
-        metadata: { error_title: "Error updating message", error: error.message, context: "updateMessageService" }
+        metadata: { error_title: "Error updating message", error: error.message, stack: error.stack, context: "updateMessageService" }
     }).catch(e => console.error(e));
     throw error;
   }
@@ -198,7 +251,7 @@ export const deleteMessageService = async (id: bigint) => {
         userId: 0,
         pharmacyId: null,
         action: "APP_ERROR",
-        metadata: { error_title: "Error deleting message", error: error.message, context: "deleteMessageService" }
+        metadata: { error_title: "Error deleting message", error: error.message, stack: error.stack, context: "deleteMessageService" }
     }).catch(e => console.error(e));
     throw error;
   }

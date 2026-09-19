@@ -29,7 +29,7 @@ export const createUserService = async (username: string, password:string, mobil
                 userId: 0,
                     action: "APP_ERROR",
                     pharmacyId: pharmacy_id,
-                    metadata: { error_title: "Error creating user", error: error.message, context: "createUserService" }
+                    metadata: { error_title: "Error creating user", error: error.message, stack: error.stack, context: "createUserService" }
             }).catch(e => console.error(e));
             throw error
         }
@@ -52,7 +52,7 @@ export const updateUserService = async (userId: number, updateData: any) => {
             userId: userId,
                 action: "APP_ERROR",
                 pharmacyId: null,
-                metadata: { error_title: "Error updating user", error: error.message, context: "updateUserService" }
+                metadata: { error_title: "Error updating user", error: error.message, stack: error.stack, context: "updateUserService" }
         }).catch(e => console.error(e));
         throw error;
     }
@@ -72,7 +72,7 @@ export const getAllUsersService = async (pharmacyId:number)=>{
             userId: 0,
             pharmacyId: pharmacyId,
                 action: "APP_ERROR",
-                metadata: { error_title: "Error fetching users", error: error.message, context: "getAllUsersService" }
+                metadata: { error_title: "Error fetching users", error: error.message, stack: error.stack, context: "getAllUsersService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -92,7 +92,7 @@ export const deactivateUserService = async (userId: number) => {
             userId: userId,
             pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error deactivating user", error: error.message, context: "deactivateUserService" }
+            metadata: { error_title: "Error deactivating user", error: error.message, stack: error.stack, context: "deactivateUserService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -124,7 +124,7 @@ export const updateUserFCMTokenService = async(userId:number,fcmToken:string)=>{
             userId: userId,
             pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error updating notification token", error: error.message, context: "updateUserFCMTokenService" }
+            metadata: { error_title: "Error updating notification token", error: error.message, stack: error.stack, context: "updateUserFCMTokenService" }
         }).catch(e => console.error(e));
         throw error
     }

@@ -27,8 +27,8 @@ export const pharmacyAPI = {
     /**
      * Update an existing pharmacy
      * */
-    updatePharmacy: async (id: number | bigint, data:Partial<Pharmacy>):Promise<Pharmacy> =>{
-        const response = await api.put(`/pharmacy/update/${id}`,data)
+    updatePharmacy: async (id: number, data:Partial<Pharmacy>):Promise<Pharmacy> =>{
+        const response = await api.patch(`/pharmacy/update/${id}`,data)
         return response.data
     },
 }

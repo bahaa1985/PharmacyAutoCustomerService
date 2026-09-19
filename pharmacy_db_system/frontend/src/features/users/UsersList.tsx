@@ -149,16 +149,17 @@ export const UsersList: React.FC = () => {
 
   useEffect(() => {
     // لو مش محتاجين نفحص، اخرج فوراً
+    console.log("selectedUser?.instance_name", selectedUser?.instance_name)
     if (
       !selectedUser ||
       (selectedUser.instance_status === "open" &&
-        selectedUser.instance_name != null)
+        selectedUser.instance_name !== null || selectedUser.instance_name !== undefined)
     )
       return;
     const interval = setInterval(async () => {
       try {
         const connectionState = await evolutionAPI.getConnectionState(
-          selectedUser?.username + "_" + selectedUser?.id,
+          selectedUser?.instance_name
         );
 
                 if (connectionState === "open") {
@@ -186,7 +187,7 @@ export const UsersList: React.FC = () => {
     });
   };
 
-  const handleUserUpdate = async (userId: bigint) => {
+  const handleUserUpdate = async (userId: number) => {
     setLoading(true);
     try {
       const updatedUser = await userAPI.updateUser(userId, {
@@ -431,7 +432,7 @@ export const UsersList: React.FC = () => {
             <div className="pt-4 flex gap-3">
               <Button
                 fullWidth
-                onClick={() => handleUserUpdate(BigInt(selectedUser?.id))}
+                onClick={() => handleUserUpdate(selectedUser?.id)}
                 isLoading={loading}
               >
                 {t("common.update")}

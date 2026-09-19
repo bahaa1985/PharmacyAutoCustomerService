@@ -1,4 +1,4 @@
-import { createContactService, getContactsByUserService, getBlockedContactsService, toggleBlockContactService } from './contacts.service';
+import { updateContactService, getContactsByUserService, getBlockedContactsService, toggleBlockContactService } from './contacts.service';
 import { prismaClient } from '../../utils/prisma-adapter';
 
 
@@ -15,14 +15,14 @@ export const getContactsController = async (req: any, res: any) => {
   }
 
   try {
-    const requestedUserId = Number(req.query.userId || user.id);
+    const requestedUserMobile = req.query.userMobile || user.mobile;
     const requestedUser = await prismaClient.users.findFirst({
-      where: { id: requestedUserId, pharmacy_id: user.pharmacy_id },
+      where: { mobile: requestedUserMobile, pharmacy_id: user.pharmacy_id },
     });
     if (!requestedUser) {
       return res.status(404).json({ message: 'Pharmacy user not found' });
     }
-    const contacts = await getContactsByUserService(requestedUserId);
+    const contacts = await getContactsByUserService(requestedUserMobile);
     res.status(200).json(contacts.map(serializeContact));
   } catch (error) {
     res.status(500).json({ message: 'Error fetching contacts', error });
@@ -53,29 +53,38 @@ export const toggleBlockContactController = async (req: any, res: any) => {
 };
 
 
-export const createContactController = async (req: any, res: any) => {
+export const updateContactController = async (req: any, res: any) => {
   const user = req.user;
-  console.log("Creating contact for user:", user);
+  console.log("Updating contact for user:", user);
   if (!user) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const { name, phone, userId } = req.body;
-  if (!name || !phone) {
-    return res.status(400).json({ message: 'Contact name and phone are required' });
+  const { contact_mobile, user_mobile, contact_name } = req.body;
+  if (!contact_mobile || !user_mobile || !contact_name?.trim()) {
+    return res.status(400).json({
+      message: 'contact_mobile, user_mobile, and contact_name are required',
+    });
   }
 
   try {
-    const requestedUserId = Number(userId || user.id);
     const requestedUser = await prismaClient.users.findFirst({
-      where: { id: requestedUserId, pharmacy_id: user.pharmacy_id },
+      where: { mobile: user_mobile, pharmacy_id: user.pharmacy_id },
     });
     if (!requestedUser) {
       return res.status(404).json({ message: 'Pharmacy user not found' });
     }
-    const contact = await createContactService(name, phone, requestedUserId);
+
+    const contact = await updateContactService(
+      contact_mobile,
+      user_mobile,
+      contact_name.trim(),
+    );
     res.status(201).json(serializeContact(contact));
   } catch (error) {
-    res.status(500).json({ message: 'Error creating contact', error });
+    if (error instanceof Error && error.message === 'Contact not found') {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Error updating contact', error });
   }
 };

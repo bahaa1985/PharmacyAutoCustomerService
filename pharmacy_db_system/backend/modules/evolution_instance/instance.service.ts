@@ -58,7 +58,7 @@ export const createEvolutionInstanceService = async (user_id:number,instance_nam
             userId: user_id,
             pharmacyId: null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error creating WhatsApp instance", error: error.message, evolution_data: error.response?.data, context: "createEvolutionInstanceService" }
+            metadata: { error_title: "Error creating WhatsApp instance", error: error.message, stack: error.stack, evolution_data: error.response?.data, context: "createEvolutionInstanceService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -87,7 +87,7 @@ export const getPairingCodeEvolutionService = async (instance_name: string) => {
             userId: owner?.id || 0,
             pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error getting WhatsApp pairing code", error: error.message, context: "getPairingCodeEvolutionService" }
+            metadata: { error_title: "Error getting WhatsApp pairing code", error: error.message, stack: error.stack, context: "getPairingCodeEvolutionService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -133,7 +133,7 @@ export const setWebhookEvolutionService = async (instance_name: string) => {
             userId: owner?.id || 0,
             pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error setting WhatsApp webhook", error: error.message, evolution_data: error.response?.data, context: "setWebhookEvolutionService" }
+            metadata: { error_title: "Error setting WhatsApp webhook", error: error.message, stack: error.stack, evolution_data: error.response?.data, context: "setWebhookEvolutionService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -144,6 +144,7 @@ export const getConnectionStateService = async(instance_name:string)=>{
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
+            timeout: 10000, // 10 seconds timeout
             url: `${EVOLUTION_URL}/instance/connectionState/${instance_name}`,
             headers: {
                 'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ export const getConnectionStateService = async(instance_name:string)=>{
             userId: owner?.id || 0,
             pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error getting WhatsApp connection state", error: error.message, context: "getConnectionStateService" }
+            metadata: { error_title: "Error getting WhatsApp connection state", error: error.message, stack: error.stack, context: "getConnectionStateService" }
         }).catch(e => console.error(e));
         throw error
     }
@@ -184,7 +185,7 @@ export const updateEvolutionInstanceStatusService = async (instance_name: string
             userId: owner?.id || 0,
             pharmacyId: owner?.pharmacy_id ?? null,
             action: "APP_ERROR",
-            metadata: { error_title: "Error updating WhatsApp instance status", error: error.message, context: "updateEvolutionInstanceStatusService" }
+            metadata: { error_title: "Error updating WhatsApp instance status", error: error.message, stack: error.stack, context: "updateEvolutionInstanceStatusService" }
         }).catch(e => console.error(e));
         throw error
     }

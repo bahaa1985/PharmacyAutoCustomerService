@@ -10,14 +10,22 @@ export const messagesAPI = {
 
   getMessagesByPharmacy: async (
     pharmacyId: number,
-    contactPhone?: string,
-    pharmacyPhone?: string,
   ): Promise<Message[]> => {
-    const params = new URLSearchParams();
-    if (contactPhone) params.set('contactPhone', contactPhone);
-    if (pharmacyPhone) params.set('pharmacyPhone', pharmacyPhone);
-    const search = params.toString() ? `?${params.toString()}` : '';
-    const response = await api.get<Message[]>(`/messages/pharmacy/${pharmacyId}${search}`);
+    // const params = new URLSearchParams();
+    // if (contactPhone) params.set('contactPhone', contactPhone);
+    // if (pharmacyPhone) params.set('pharmacyPhone', pharmacyPhone);
+    // const search = params.toString() ? `?${params.toString()}` : '';
+    const response = await api.get<Message[]>(`/messages/pharmacy/${pharmacyId}`);
+    return response.data;
+  },
+
+  getOrderMessageCountByUserMobile: async (mobile: string): Promise<number> => {
+    const response = await api.get<number>(`/messages/orders/count/user/${encodeURIComponent(mobile)}`);
+    return response.data;
+  },
+
+  getOrderMessageCountByPharmacy: async (pharmacyId: number): Promise<number> => {
+    const response = await api.get<number>(`/messages/orders/count/pharmacy/${pharmacyId}`);
     return response.data;
   },
 
@@ -42,12 +50,4 @@ export const messagesAPI = {
     deleteMessage: async (id: string): Promise<void> => {
     await api.delete(`/messages/${id}`);
   },
-
-  // notifyOrderMessage: async (data: {
-  //   pharmacyId: string;
-  //   fromNumber: string;
-  //   message?: string;
-  // }): Promise<void> => {
-  //   await api.post(`/messages/order-message`, data);
-  // },
 };
