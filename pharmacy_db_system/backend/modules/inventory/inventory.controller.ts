@@ -31,12 +31,16 @@ export const uploadInventory = async (req: any, res: any) => {
     // Mode 1: JSON payload from frontend after it performs validation and fuzzy matching
     if (req.body && Array.isArray((req.body as any).rows)) {
       const body: any = req.body;
-      const pharmacyId = body.pharmacy_id || req.user?.pharmacyId;
+      const pharmacyId = Number(req.user?.role_id) === 1
+        ? Number(body.pharmacy_id || req.user?.pharmacy_id)
+        : Number(req.user?.pharmacy_id);
       if (!pharmacyId) {
         return res.status(400).json({ success: false, message: 'pharmacy_id not provided' });
       }
 
       const rows = body.rows as any[];
+      console.log("roes back",rows);
+      
       if (rows.length === 0) {
         return res.status(400).json({ success: false, message: 'No rows provided' });
       }
@@ -66,7 +70,7 @@ export const uploadInventory = async (req: any, res: any) => {
 
         };
       });
-      console.log(rowsToInsert[0])
+      // console.log(rowsToInsert[0])
             await prismaClient.$transaction([
         prismaClient.inventory.deleteMany({ where: { pharmacy_id: pharmacyId } }),
         prismaClient.inventory.createMany({ data: rowsToInsert })
@@ -92,7 +96,7 @@ export const uploadInventory = async (req: any, res: any) => {
     console.error("STACK:", dbError?.stack);
     logAndNotify({
       userId: req.user?.id ,
-      pharmacyId: req.body?.pharmacy_id ,
+      pharmacyId: req.user?.pharmacy_id,
       action: "APP_ERROR",
       metadata: { error: dbError.message, context: "uploadInventory" }
     }).catch(e => console.error(e));
@@ -106,7 +110,9 @@ export const uploadInventory = async (req: any, res: any) => {
 
 export const getInventoryCountController = async (req: any, res: any) => {
   try {
-    const {pharmacyId} = req.params   
+    const pharmacyId = Number(req.user?.role_id) === 1
+      ? Number(req.params.pharmacyId || req.user?.pharmacy_id)
+      : Number(req.user?.pharmacy_id);
     if (!pharmacyId) return res.status(401).json({ message: 'Unauthorized' });
     const inventoryCount = await getInventoryCountByPharmacyId(Number(pharmacyId))
     res.status(200).json(inventoryCount)

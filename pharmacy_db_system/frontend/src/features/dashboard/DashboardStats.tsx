@@ -39,7 +39,7 @@ export const DashboardStats: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { pharmacy } = usePharmacy();
-  console.log("pharmacy", pharmacy)
+  // console.log("pharmacy", pharmacy)
   const [messagesCount, setMessagesCount] = useState<string | number>(0);
   const [inventoryCount, setInventoryCount] = useState<string | number>(0);
   const [usersCount, setUsersCount] = useState<string | number>(0);
@@ -48,7 +48,7 @@ export const DashboardStats: React.FC = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const messages = await messagesAPI.getMessagesByPharmacy(Number(pharmacy?.id));
+        const messages = await messagesAPI.getMessagesByPharmacy();
         if(messages){
           setMessagesCount(messages?.length)
         }
@@ -61,9 +61,7 @@ export const DashboardStats: React.FC = () => {
     };
 const fetchInventory = async () => {
       try {
-        const itemsCount = await inventoryAPI.getInventoryCountByPharmacyId(
-          Number(pharmacy?.id),
-        );
+        const itemsCount = await inventoryAPI.getInventoryCountByPharmacyId();
         if(itemsCount) setInventoryCount(itemsCount) 
         else {setInventoryCount(0)}
       } catch {
