@@ -1,12 +1,12 @@
 import api from "./axios";
-import { type MonthlySubscriptionLog, SubscriptionState, type Plan, type Subscription } from "../types/subscription";
+import { type MonthlySubscriptionLog, SubscriptionState, type Subscription } from "../types/subscription";
 
 export const subscriptionAPI = {
   /**
    * Get all pharmacy subscriptions.
    * The backend exposes this list endpoint rather than a dedicated /subscriptions root listing.
    */
-  getAllPharmacyPlans: async (): Promise<Subscription[]> => {
+  getAllPharmacySubscriptions: async (): Promise<Subscription[]> => {
     const response = await api.get("/subscriptions/list");
     return response.data.data;
   },
@@ -56,45 +56,19 @@ export const subscriptionAPI = {
     return response.data.data;
   },
 
-  // Plan CRUD
-  getPlans: async (): Promise<Plan[]> => {
-    const response = await api.get("/subscriptions/list");
-    // Extract unique plans from the subscriptions list
-    const subscriptions: Subscription[] = response.data.data ?? [];
-    const plansMap = new Map<number, Plan>();
-    
-    subscriptions.forEach(sub => {
-      if (sub.plans) {
-        plansMap.set(sub.plans.id, sub.plans);
-      }
-    });
-
-    return Array.from(plansMap.values());
-  },
-
-  createPlan: async (data: Plan): Promise<Plan> => {
-    const response = await api.post("/subscriptions/plans", data);
-    return response.data.data;
-  },
-
-  updatePlan: async (id: number, data: Plan): Promise<Plan> => {
-    const response = await api.put(`/subscriptions/plans/${id}`, data);
-    return response.data.data;
-  },
-
   // create new pharmacy subscription
   createPharmacySubscription: async (data: {
-    pharmacy_id: string | number;
-    plan_id: number;
-    bill_due?: string;
+    pharmacy_id: number;
+    plan_id: number
   }): Promise<Subscription> => {
     const payload = {
       ...data,
-      bill_due: data.bill_due ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      // bill_due: data.bill_due ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     };
-
+// console.log("payload",payload)
     const response = await api.post("/subscriptions/create", payload);
-    return response.data.data;
+    // console.log("createPharmacySubscription response", response.data);
+    return response.data;
   },
 
   // renew a subscription
@@ -105,6 +79,7 @@ export const subscriptionAPI = {
     bill_due?: string;
     billing_month?: string;
     messages_used?: number;
+    
     state?: typeof SubscriptionState[keyof typeof SubscriptionState];
     subscriptionId?: number;
   }): Promise<MonthlySubscriptionLog> => {

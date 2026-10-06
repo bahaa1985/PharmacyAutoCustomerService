@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { subscriptionAPI } from "../../api/subscriptionAPI";
+import { plansAPI } from "../../api/plansAPI";
 import { pharmacyAPI } from "../../api/pharmacyAPI";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { type Pharmacy } from "../../types/pharmacy";
 import { Button } from "../../components/ui/Button";
 import type { AlertColor } from "@mui/material";
-import type {Plan} from "../../types/subscription";
+import type { Plan } from "../../types/plan";
 
 export const NewSubscription: React.FC<{ onSuccess: () => void }> = ({
   onSuccess,
@@ -18,7 +19,7 @@ export const NewSubscription: React.FC<{ onSuccess: () => void }> = ({
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
-    pharmacy_id: "",
+    pharmacy_id: 1,
     plan_id: "",
     // bill_due: (() => {
     //   const date = new Date();
@@ -32,7 +33,7 @@ export const NewSubscription: React.FC<{ onSuccess: () => void }> = ({
       try {
         const [pharmaciesData, plansData] = await Promise.all([
           pharmacyAPI.getPharmacies(),
-          subscriptionAPI.getPlans(),
+          plansAPI.getPlans(),
         ]);
         setPharmacies(pharmaciesData);
         setPlans(plansData);
@@ -55,7 +56,7 @@ export const NewSubscription: React.FC<{ onSuccess: () => void }> = ({
     try {
       await subscriptionAPI.createPharmacySubscription({
         pharmacy_id: formData.pharmacy_id,
-        plan_id: Number(formData.plan_id),
+        plan_id: Number(formData.plan_id)
       });
       showToast(t("common.success"), "success");
       onSuccess();
@@ -89,7 +90,7 @@ export const NewSubscription: React.FC<{ onSuccess: () => void }> = ({
               required
               value={formData.pharmacy_id}
               onChange={(e) =>
-                setFormData({ ...formData, pharmacy_id: e.target.value })
+                setFormData({ ...formData, pharmacy_id: Number(e.target.value) })
               }
               className="w-full min-w-0 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-2 focus:ring-2 focus:ring-primary outline-none"
             >
